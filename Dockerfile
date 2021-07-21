@@ -1,36 +1,18 @@
-#### Stage 1: Build the application
-FROM openjdk:16-jdk-alpine3.12 as build
+# Part 1: Build the app using Maven
+FROM maven:3.6.3-jdk-11 as build
 
-# Set the current working directory inside the image
-WORKDIR /app
+## download dependencies
+ADD pom.xml /
+RUN mvn verify clean
+## build after dependencies are down so it wont redownload unless the POM changes
+ADD . /
+RUN mvn package
 
-# Copy maven executable to the image
-COPY mvnw .
-COPY .mvn .mvn
-
-# Copy the pom.xml file
-COPY pom.xml .
-
-# Build all the dependencies in preparation to go offline.
-# This is a separate step so the dependencies will be cached unless
-# the pom.xml file has changed.
-RUN chmod +x ./mvnw && ./mvnw dependency:go-offline -B
-
-# Copy the project source
-COPY src src
-
-# Package the application
-RUN ./mvnw package -DskipTests
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
-
-#### Stage 2: A minimal docker image with command to run the app
-FROM openjdk:16-jdk-alpine
-
-ARG DEPENDENCY=/app/target/dependency
-
-# Copy project dependencies from the build stage
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-
-ENTRYPOINT ["java","-cp","app:app/lib/*","io.octatec.horext.api.ApiForHorextApplication"]
+# Part 2: use the JAR file used in the first part and copy it across ready to RUN
+FROM openjdk:11.0.11-jdk
+WORKDIR /root/
+## COPY packaged JAR file and rename as app.jar
+## → this relies on your MAVEN package command building a jar
+## that matches *-jar-with-dependencies.jar with a single match
+COPY --from=0 /target/*-jar-with-dependencies.jar app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","./app.jar"]
