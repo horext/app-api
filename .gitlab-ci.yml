@@ -50,3 +50,5 @@ deploy:
     - main
     - develop
     - next
+  environment:
+    name: $CI_ENVIRONMENT_SLUG
