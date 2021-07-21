@@ -51,4 +51,4 @@ deploy:
     - develop
     - next
   environment:
-    name: $CI_ENVIRONMENT_SLUG
+    name: $CI_COMMIT_REF_NAME
