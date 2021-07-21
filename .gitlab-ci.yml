@@ -47,4 +47,4 @@ deploy:
     - ssh  $SERVER_USER@$SERVER_IP "docker-compose -f $DOCKER_COMPOSE_FILE_PATH up -d horext-api-server --env-file $ENV_FILE_PATH"
     - ssh  $SERVER_USER@$SERVER_IP "docker image prune --force"
   only:
-    - master
+    - main,develop,next
