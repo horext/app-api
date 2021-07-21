@@ -38,7 +38,6 @@ deploy:
     - chmod 700 ~/.ssh
     - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
-    - cat $FILE_ENV >> .env
     - ssh  $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh  $SERVER_USER@$SERVER_IP "docker pull $TAG_LATEST"
     - ssh  $SERVER_USER@$SERVER_IP "mkdir -p $CI_PROJECT_PATH/deploy"
