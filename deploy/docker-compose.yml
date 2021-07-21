@@ -2,12 +2,23 @@ version: '3.5'
 
 services:
   horext-api-server:
-    image: registry.gitlab.com/horext-app/api-server:latest
-    container_name: horext-api-server-dev
+    image:  ${IMAGE_NAME}
+    container_name: ${CONTAINER_NAME}
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT}
+      server_servlet_contextPath: /
+      FIREBASE_JSON: ${FIREBASE_JSON}
+      VIRTUAL_PORT: ${SERVER_PORT}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
     ports:
-      - "8080"
+      - ${SERVER_PORT}
     networks:
-      - horext-api-network  
+      - horext-api-network
       - letsencrypt
 networks:
   letsencrypt:
