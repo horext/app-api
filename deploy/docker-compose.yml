@@ -2,8 +2,8 @@ version: '3.5'
 
 services:
   horext-api-server:
-    image: registry.gitlab.com/horext-app/api-server/main:latest
-    container_name: horext-api-server
+    image: registry.gitlab.com/horext-app/api-server:latest
+    container_name: horext-api-server-dev
     ports:
       - "8080"
     networks:

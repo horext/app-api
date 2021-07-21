@@ -3,7 +3,7 @@ version: '3.5'
 services:
   horext-api-server:
     image: registry.gitlab.com/horext-app/api-server/next:latest
-    container_name: horext-api-server
+    container_name: horext-api-server-next
     ports:
       - "8080"
     networks:
