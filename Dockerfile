@@ -1,5 +1,5 @@
 # Part 1: Build the app using Maven
-FROM maven:3.6.3-jdk-11 as build
+FROM maven:3.6.3-jdk-11-slim
 
 ## download dependencies
 ADD pom.xml /
@@ -9,7 +9,7 @@ ADD . /
 RUN mvn package
 
 # Part 2: use the JAR file used in the first part and copy it across ready to RUN
-FROM openjdk:11.0.11-jdk
+FROM openjdk:11-jdk-slim
 WORKDIR /root/
 ## COPY packaged JAR file and rename as app.jar
 ## → this relies on your MAVEN package command building a jar
