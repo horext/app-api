@@ -41,10 +41,10 @@ deploy:
     - cat $FILE_ENV >> .env
     - ssh  $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh  $SERVER_USER@$SERVER_IP "docker pull $TAG_COMMIT"
-    - ssh  $SERVER_USER@$SERVER_IP "mkdir -p $DOCKER_COMPOSE_FILE_PATH"
-    - scp  /builds/horext-app/$DOCKER_COMPOSE_FILE_PATH $SERVER_USER@$SERVER_IP:$DOCKER_COMPOSE_FILE_PATH
+    - ssh  $SERVER_USER@$SERVER_IP "mkdir -p $CI_PROJECT_PATH"
+    - scp  /builds/$CI_PROJECT_PATH/$DOCKER_COMPOSE_FILE_PATH $SERVER_USER@$SERVER_IP:$CI_PROJECT_PATH/$DOCKER_COMPOSE_FILE_PATH
     - scp  $ENV_FILE  $SERVER_USER@$SERVER_IP:$ENV_FILE_PATH
-    - ssh  $SERVER_USER@$SERVER_IP "docker-compose -f $DOCKER_COMPOSE_FILE_PATH up -d horext-api-server --env-file $ENV_FILE_PATH"
+    - ssh  $SERVER_USER@$SERVER_IP "docker-compose -f $CI_PROJECT_PATH/$DOCKER_COMPOSE_FILE_PATH up -d horext-api-server --env-file $ENV_FILE_PATH"
     - ssh  $SERVER_USER@$SERVER_IP "docker image prune --force"
   only:
     - main
