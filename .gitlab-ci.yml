@@ -1,0 +1,50 @@
+image:  docker:latest
+services:
+  - docker:dind
+
+stages:
+  - publish
+  - deploy
+
+variables:
+  TAG_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:latest
+  TAG_COMMIT: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+
+publish:
+  stage: publish
+  script:
+    - docker build -t $TAG_COMMIT -t $TAG_LATEST .
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker push $TAG_COMMIT
+    - docker push $TAG_LATEST
+  tags:
+    - docker
+
+deploy:
+  stage: deploy
+  tags:
+    - deployment
+  script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - cat $FILE_ENV >> .env
+    - ssh  $SERVER_USER@$SERVER_IP "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh  $SERVER_USER@$SERVER_IP "docker pull $TAG_COMMIT"
+    - ssh  $SERVER_USER@$SERVER_IP "mkdir -p $DOCKER_COMPOSE_FILE_PATH"
+    - scp  /builds/horext-app/$DOCKER_COMPOSE_FILE_PATH $SERVER_USER@$SERVER_IP:$DOCKER_COMPOSE_FILE_PATH
+    - scp  $ENV_FILE  $SERVER_USER@$SERVER_IP:$ENV_FILE_PATH
+    - ssh  $SERVER_USER@$SERVER_IP "docker-compose -f $DOCKER_COMPOSE_FILE_PATH up -d horext-api-server --env-file $ENV_FILE_PATH"
+    - ssh  $SERVER_USER@$SERVER_IP "docker image prune --force"
+  only:
+    - master
