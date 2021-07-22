@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("specialities")
 class SpecialityController(val organizationUnitService: OrganizationUnitService) {
 
-    @GetMapping("{id}")
-    fun getAllByFacultyId( @PathVariable id: Long): ResponseEntity<List<OrganizationUnit>> {
+    @GetMapping
+    fun getAllByFacultyId(   @RequestParam(name = "faculty")  id: Long): ResponseEntity<List<OrganizationUnit>> {
         return ResponseEntity<List<OrganizationUnit>>(
                 organizationUnitService.getAllSpecialityByFacultyId(id),
                 HttpStatus.OK)
