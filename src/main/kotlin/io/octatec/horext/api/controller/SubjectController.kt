@@ -1,5 +1,7 @@
 package io.octatec.horext.api.controller
 
+import io.octatec.horext.api.config.AppConstants
+import io.octatec.horext.api.dto.PageDTO
 import io.octatec.horext.api.model.Subject
 import io.octatec.horext.api.service.SubjectService
 import org.springframework.http.HttpStatus
@@ -21,5 +23,17 @@ class SubjectController(val subjectService: SubjectService) {
         return ResponseEntity<List<Subject>>(
                 subjectService.getAllBySpecialityId(specialityId,hourlyLoadId),
                 HttpStatus.OK)
+    }
+
+    @GetMapping(params = ["search"])
+    fun getPolls(
+        @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) page: Int,
+        @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) size: Int,
+        @RequestParam(value = "search", required = true) search: String
+    ): PageDTO<Subject> {
+        return if(search.isNotEmpty())
+            subjectService.getAllBySearch(page, size, search)
+        else
+            subjectService.getAll(page, size)
     }
 }

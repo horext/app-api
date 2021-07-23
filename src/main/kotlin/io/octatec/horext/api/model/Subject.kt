@@ -19,8 +19,8 @@ class Subject {
     var requiredCredits: Int? = null
     var note: String? = null
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    var course: Course? = null
+    @ManyToOne(fetch = FetchType.EAGER)
+    var course: Course = Course()
 
     @ManyToOne(fetch = FetchType.LAZY)
     var subjectType: SubjectType? = null
@@ -52,6 +52,13 @@ class Subject {
     constructor(weeklyPracticeLaboratoryHours: Int?, totalWeeklyHours: Int?) {
         this.weeklyPracticeLaboratoryHours = weeklyPracticeLaboratoryHours
         this.totalWeeklyHours = totalWeeklyHours
+    }
+
+    constructor(id: Long?, cycle: Int?, credits: Int?, course: Course){
+        this.id = id
+        this.cycle = cycle
+        this.credits = credits
+        this.course = Course(course.id, course.name)
     }
 
 

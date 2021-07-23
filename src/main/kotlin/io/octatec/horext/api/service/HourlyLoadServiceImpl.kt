@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service
 class HourlyLoadServiceImpl(val hourlyLoadRepository: HourlyLoadRepository) : HourlyLoadService {
     override fun getLatestByFaculty(facultyId: Long): HourlyLoad {
         val hourlyLoad = hourlyLoadRepository.getLatestByOrganizationUnitId(facultyId)
-        println("facultad: $facultyId")
         return HourlyLoad(hourlyLoad.id,hourlyLoad.publishedAt)
     }
 }
