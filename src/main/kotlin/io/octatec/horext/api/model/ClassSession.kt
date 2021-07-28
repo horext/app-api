@@ -4,15 +4,13 @@ import org.hibernate.annotations.SQLDelete
 import org.hibernate.annotations.Where
 import java.sql.Time
 import java.time.Instant
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.Id
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 
 @Entity
 class ClassSession {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
 
     @ManyToOne

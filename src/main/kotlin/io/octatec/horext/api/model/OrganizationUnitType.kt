@@ -5,7 +5,8 @@ import javax.persistence.*
 
 @Entity
 class OrganizationUnitType {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
     var name: String?= null
 
@@ -21,6 +22,8 @@ class OrganizationUnitType {
         this.name = name
         this.organizationUnits = organizationUnits
     }
+
+    constructor()
 
 
 }

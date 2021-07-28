@@ -14,7 +14,7 @@ class OrganizationUnit {
     var name: String? = null
 
     @ManyToOne( fetch = FetchType.LAZY)
-    var organizationUnitType: OrganizationUnitType? = null
+    var organizationUnitType: OrganizationUnitType = OrganizationUnitType()
 
     @OneToMany(mappedBy = "organizationUnit", fetch = FetchType.LAZY)
      var organizationUnitTeachers: List<OrganizationUnitTeacher>? = ArrayList()
@@ -46,7 +46,7 @@ class OrganizationUnit {
 
     constructor()
 
-    constructor(id: Long?, code: String?, name: String?, organizationUnitType: OrganizationUnitType?) {
+    constructor(id: Long?, code: String?, name: String?, organizationUnitType: OrganizationUnitType) {
         this.id = id
         this.code = code
         this.name = name
@@ -57,9 +57,9 @@ class OrganizationUnit {
         id: Long?,
         code: String?,
         name: String?,
-        organizationUnitType: OrganizationUnitType?,
+        organizationUnitType: OrganizationUnitType,
         organizationUnitTeachers: List<OrganizationUnitTeacher>?,
-        studyPlans: List<StudyPlan>?,
+        studyPlans: List<StudyPlan>,
         academicPeriodOrganizationUnits: List<AcademicPeriodOrganizationUnit>?,
         sections: List<Section>?,
         parentOrganization: OrganizationUnit?,

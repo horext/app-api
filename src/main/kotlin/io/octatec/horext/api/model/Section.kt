@@ -7,6 +7,7 @@ import javax.persistence.*
 @Table(name = "section")
 class Section {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: String? = null
 
     @OneToMany(mappedBy = "section", fetch = FetchType.LAZY)

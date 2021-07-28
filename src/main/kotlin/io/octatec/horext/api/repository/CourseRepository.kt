@@ -14,7 +14,7 @@ interface CourseRepository : JpaRepository<Course, Long> {
 
 
     @Query(
-        "SELECT p FROM Course p WHERE fts( p.id|| p.name, :name ) = true",
+        "SELECT p FROM Course p WHERE fts( p.id||' '|| p.name, :name ) = true",
         countQuery = "SELECT  count(p) FROM Course p WHERE fts( p.id|| p.name, :name ) = true"
     )
     fun getAllBySearch(@Param("name")  name: String , pageable: Pageable) : Page<Course>

@@ -13,7 +13,7 @@ class SqlFunctionsMetadataBuilderContributor : MetadataBuilderContributor {
             "fts",
             SQLFunctionTemplate(
                 BooleanType.INSTANCE,
-                "to_tsvector( unaccent( ?1 :: text ) ) @@ to_tsquery( 'simple' , unaccent( ?2 :: text ) || ':*' )"
+                "to_tsvector( unaccent( ?1 ) ) @@ to_tsquery( 'simple' , regexp_replace(unaccent( ?2 ),'\\s+', '&', 'g') || ':*' )"
             )
         )
     }

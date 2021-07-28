@@ -2,11 +2,10 @@ package io.octatec.horext.api.service
 
 import io.octatec.horext.api.dto.PageDTO
 import io.octatec.horext.api.model.Subject
+import org.springframework.data.domain.Pageable
 
 interface SubjectService {
-    fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject>
+    fun getAllBySearch(pageable: Pageable, search: String, specialityId: Long, hourlyLoadId: Long): PageDTO<Subject>
 
-    fun getAllBySearch(page: Int, size: Int, search: String): PageDTO<Subject>
-
-    fun getAll(page: Int, size: Int): PageDTO<Subject>
+    fun getAll(pageable: Pageable, specialityId: Long, hourlyLoadId: Long): PageDTO<Subject>
 }

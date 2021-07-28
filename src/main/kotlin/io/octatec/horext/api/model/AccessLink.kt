@@ -7,7 +7,7 @@ import javax.persistence.*
 @Entity
 class AccessLink {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     var uuid: UUID? = null
 
     @JoinTable(name = "access_link_schedule_subject",

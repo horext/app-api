@@ -5,8 +5,9 @@ import javax.persistence.*
 @Entity
 class Subject {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     var id: Long? = null
+
     var weeklyTheoryHours: Int? = null
     var weeklyPracticeHours: Int? = null
     var weeklyLaboratoryHours: Int? = null
@@ -19,8 +20,9 @@ class Subject {
     var requiredCredits: Int? = null
     var note: String? = null
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    var course: Course = Course()
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    var course: Course? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     var subjectType: SubjectType? = null
@@ -29,13 +31,13 @@ class Subject {
     var studyPlan: StudyPlan? = null
 
     @OneToMany(mappedBy = "fromSubject",fetch = FetchType.LAZY)
-    var fromSubjectRelationships: List<SubjectRelationship>? = null
+    var fromSubjectRelationships: List<SubjectRelationship> ? = null
 
     @OneToMany(mappedBy = "toSubject",fetch = FetchType.LAZY)
-    var toSubjectRelationships: List<SubjectRelationship>? = null
+    var toSubjectRelationships: List<SubjectRelationship> ? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
-    var evaluationSystem: EvaluationSystem? = null
+    var evaluationSystem: EvaluationSystem ? = null
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.LAZY)
     var scheduleSubjects: List<ScheduleSubject>? = null
@@ -59,6 +61,48 @@ class Subject {
         this.cycle = cycle
         this.credits = credits
         this.course = Course(course.id, course.name)
+    }
+
+    constructor(
+        id: Long?,
+        weeklyTheoryHours: Int?,
+        weeklyPracticeHours: Int?,
+        weeklyLaboratoryHours: Int?,
+        weeklyPracticeLaboratoryHours: Int?,
+        totalWeeklyHours: Int?,
+        cycle: Int?,
+        minCycle: Int?,
+        maxCycle: Int?,
+        credits: Int?,
+        requiredCredits: Int?,
+        note: String?,
+        course: Course?,
+        subjectType: SubjectType?,
+        studyPlan: StudyPlan?,
+        fromSubjectRelationships: List<SubjectRelationship>?,
+        toSubjectRelationships: List<SubjectRelationship>?,
+        evaluationSystem: EvaluationSystem?,
+        scheduleSubjects: List<ScheduleSubject>?
+    ) {
+        this.id = id
+        this.weeklyTheoryHours = weeklyTheoryHours
+        this.weeklyPracticeHours = weeklyPracticeHours
+        this.weeklyLaboratoryHours = weeklyLaboratoryHours
+        this.weeklyPracticeLaboratoryHours = weeklyPracticeLaboratoryHours
+        this.totalWeeklyHours = totalWeeklyHours
+        this.cycle = cycle
+        this.minCycle = minCycle
+        this.maxCycle = maxCycle
+        this.credits = credits
+        this.requiredCredits = requiredCredits
+        this.note = note
+        this.course = course
+        this.subjectType = subjectType
+        this.studyPlan = studyPlan
+        this.fromSubjectRelationships = fromSubjectRelationships
+        this.toSubjectRelationships = toSubjectRelationships
+        this.evaluationSystem = evaluationSystem
+        this.scheduleSubjects = scheduleSubjects
     }
 
 
