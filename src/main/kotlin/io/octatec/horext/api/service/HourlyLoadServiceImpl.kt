@@ -1,6 +1,7 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.HourlyLoads.publishedAt
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.entity.find
@@ -16,13 +17,17 @@ class HourlyLoadServiceImpl() : HourlyLoadService {
     lateinit var database: Database
 
     override fun getLatestByFaculty(facultyId: Long): HourlyLoad? {
-        return database.hourlyLoads.find {
-            val apou = it.academicPeriodOrganizationUnitId.referenceTable  as AcademicPeriodOrganizationUnits
-            (apou.organizationUnitId eq facultyId) and
-                    (it.publishedAt lessEq Instant.now()) and
-                    (apou.toDate.isNull()) and
-                    (apou.fromDate lessEq Instant.now())
-        }
-    }
+        val hl = HourlyLoads
+        val apou = hl.academicPeriodOrganizationUnitId.referenceTable as AcademicPeriodOrganizationUnits
+        return database
+            .from(hl)
+            .leftJoin(apou, on = hl.academicPeriodOrganizationUnitId eq apou.id)
+            .select()
+            .where{(apou.organizationUnitId eq facultyId) and
+                (hl.publishedAt lessEq Instant.now()) and
+                        (apou.toDate.isNull()) and
+                        (apou.fromDate lessEq Instant.now())}
+            .map { row -> hl.createEntity(row) }[0]
 
+    }
 }
