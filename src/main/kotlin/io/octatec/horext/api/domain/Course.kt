@@ -8,19 +8,26 @@ import org.ktorm.schema.int
 import org.ktorm.schema.long
 import org.ktorm.schema.varchar
 
-interface OrganizationUnitType : Entity<OrganizationUnitType> {
-    companion object : Entity.Factory<OrganizationUnitType>()
+/**
+ * The organization unit entity.
+ */
+interface Course : Entity<Course> {
+    companion object : Entity.Factory<Course>()
 
     val id: Long
+
+    var code: String
 
     var name: String
 }
 
-object OrganizationUnitTypes : Table<OrganizationUnitType>("organization_unit_type") {
+object Courses : Table<Course>("course") {
 
     val id = long("id").primaryKey().bindTo { it.id }
+
+    val code = varchar("code").bindTo { it.code }
 
     val name = varchar("name").bindTo { it.name }
 }
 
-val Database.organizationUnitTypes get() = this.sequenceOf(OrganizationUnitTypes)
+val Database.courses get() = this.sequenceOf(Courses)

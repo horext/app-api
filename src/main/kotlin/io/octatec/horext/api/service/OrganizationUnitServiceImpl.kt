@@ -16,10 +16,10 @@ class OrganizationUnitServiceImpl : OrganizationUnitService {
     lateinit var database: Database
 
     override fun getAllSpeciality(): List<OrganizationUnit> {
-       return database.organizationUnits.filter { it.typeId eq 3 }.toList()
+       return database.organizationUnits.filter { it.typeId eq 3L }.toList()
     }
     override fun getAllFaculty(): List<OrganizationUnit> {
-        return database.organizationUnits.filter { it.typeId eq 2 }.toList()
+        return database.organizationUnits.filter { it.typeId eq 2L }.toList()
     }
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> {
