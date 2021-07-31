@@ -15,8 +15,13 @@ class HourlyLoadController(val hourlyLoadService: HourlyLoadService) {
     fun getLatestBySpeciality(
             @RequestParam(name = "faculty") facultyId:Long
     ): ResponseEntity<HourlyLoad> {
-        return ResponseEntity<HourlyLoad>(
+        return try {
+            ResponseEntity<HourlyLoad>(
                 hourlyLoadService.getLatestByFaculty(facultyId),
                 HttpStatus.OK)
+        }catch (e: Exception){
+
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 }

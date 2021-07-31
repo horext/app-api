@@ -12,7 +12,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 @Service
-class HourlyLoadServiceImpl() : HourlyLoadService {
+class HourlyLoadServiceImpl : HourlyLoadService {
     @Autowired
     lateinit var database: Database
 
@@ -24,10 +24,10 @@ class HourlyLoadServiceImpl() : HourlyLoadService {
             .leftJoin(apou, on = hl.academicPeriodOrganizationUnitId eq apou.id)
             .select()
             .where{(apou.organizationUnitId eq facultyId) and
-                (hl.publishedAt lessEq Instant.now()) and
-                        (apou.toDate.isNull()) and
-                        (apou.fromDate lessEq Instant.now())}
-            .map { row -> hl.createEntity(row) }[0]
+                    (hl.publishedAt lessEq Instant.now()) and
+                    (apou.toDate.isNull()) and
+                    (apou.fromDate lessEq Instant.now())}
+            .map { row -> hl.createEntity(row) }.first()
 
     }
 }

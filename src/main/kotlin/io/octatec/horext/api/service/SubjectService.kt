@@ -4,5 +4,5 @@ import io.octatec.horext.api.model.Subject
 import org.springframework.util.MultiValueMap
 
 interface SubjectService {
-    fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject>
+    fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<io.octatec.horext.api.domain.Subject>
 }

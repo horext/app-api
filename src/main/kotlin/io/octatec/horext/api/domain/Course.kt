@@ -14,16 +14,18 @@ import org.ktorm.schema.varchar
 interface Course : Entity<Course> {
     companion object : Entity.Factory<Course>()
 
-    val id: Long
+    val id: String
 
     var code: String
 
     var name: String
 }
 
-object Courses : Table<Course>("course") {
+open class Courses(alias: String?)  : Table<Course>("course", alias) {
+    companion object : Courses(null)
+    override fun aliased(alias: String) = Courses(alias)
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val id = varchar("id").primaryKey().bindTo { it.id }
 
     val code = varchar("code").bindTo { it.code }
 

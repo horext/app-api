@@ -19,6 +19,8 @@ interface Subject : Entity<Subject> {
     var name: String
 
     var course: Course
+
+    var studyPlan: StudyPlan
 }
 
 object Subjects : Table<Subject>("subject") {
@@ -29,7 +31,9 @@ object Subjects : Table<Subject>("subject") {
 
     val name = varchar("name").bindTo { it.name }
 
-    val course = int("course_id").references(Courses) { it.course }
+    val courseId = varchar("course_id").references(Courses) { it.course }
+
+    val studyPlanId = long("study_plan_id").references(StudyPlans) { it.studyPlan }
 }
 
 val Database.subjects get() = this.sequenceOf(Subjects)

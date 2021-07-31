@@ -1,6 +1,6 @@
 package io.octatec.horext.api.controller
 
-import io.octatec.horext.api.model.Subject
+import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.service.SubjectService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
