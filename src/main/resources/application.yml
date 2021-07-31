@@ -14,3 +14,4 @@ server:
     context-path: /
 app:
   firebase-config: ${FIREBASE_JSON}
+  thread-api-url: ${THREAD_API_URL}
