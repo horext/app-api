@@ -1,7 +1,10 @@
 package io.octatec.horext.api.config
 
 import com.fasterxml.jackson.databind.Module
+import io.octatec.horext.api.util.CustomSqlFormatter
 import org.ktorm.database.Database
+import org.ktorm.database.SqlDialect
+import org.ktorm.expression.SqlFormatter
 import org.ktorm.jackson.KtormModule
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -21,7 +24,16 @@ class KtormConfiguration {
      */
     @Bean
     fun database(): Database {
-        return Database.connectWithSpringSupport(dataSource)
+        return Database.connectWithSpringSupport(dataSource,
+            dialect = object : SqlDialect {
+                override fun createSqlFormatter(
+                    database: Database,
+                    beautifySql: Boolean,
+                    indentSize: Int
+                ): SqlFormatter {
+                    return CustomSqlFormatter(database, beautifySql, indentSize)
+                }
+            })
     }
 
     /**
