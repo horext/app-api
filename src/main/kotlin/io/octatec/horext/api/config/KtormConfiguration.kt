@@ -1,19 +1,18 @@
 package io.octatec.horext.api.config
 
 import com.fasterxml.jackson.databind.Module
-import io.octatec.horext.api.util.CustomSqlFormatter
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.SqlFormatter
 import org.ktorm.jackson.KtormModule
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.logging.LogLevel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import javax.sql.DataSource
 
-/**
- * Created by vince on May 17, 2019.
- */
+
 @Configuration
 class KtormConfiguration {
     @Autowired
@@ -25,15 +24,8 @@ class KtormConfiguration {
     @Bean
     fun database(): Database {
         return Database.connectWithSpringSupport(dataSource,
-            dialect = object : SqlDialect {
-                override fun createSqlFormatter(
-                    database: Database,
-                    beautifySql: Boolean,
-                    indentSize: Int
-                ): SqlFormatter {
-                    return CustomSqlFormatter(database, beautifySql, indentSize)
-                }
-            })
+            logger = ConsoleLogger(threshold = LogLevel.DEBUG)
+        )
     }
 
     /**
