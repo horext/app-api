@@ -19,20 +19,22 @@ interface ScheduleSubject : Entity<ScheduleSubject> {
 
     var hourlyLoad: HourlyLoad
 
-    var organizationUnit: OrganizationUnit
+    var schedule: Schedule
 }
 
 object ScheduleSubjects : Table<ScheduleSubject>("schedule_subject") {
 
     val id = long("id").primaryKey().bindTo { it.id }
 
-    val fromDate = timestamp("from_date").bindTo { it.fromDate }
+    val fromDate = timestamp("from_datetime").bindTo { it.fromDate }
 
-    val toDate = timestamp("to_date").bindTo { it.toDate }
+    val toDate = timestamp("to_datetime").bindTo { it.toDate }
 
     val subjectId = long("subject_id").references(Subjects) { it.subject }
 
     val hourlyLoadId = long("hourly_load_id").references(HourlyLoads) { it.hourlyLoad }
 
-    val organizationUnitId = long("organization_unit_id").references(OrganizationUnits) { it.organizationUnit }
+    val scheduleId = long("schedule_id").references(Schedules) { it.schedule }
 }
+
+val Database.scheduleSubjects get() = this.sequenceOf(ScheduleSubjects)

@@ -16,8 +16,6 @@ interface Course : Entity<Course> {
 
     val id: String
 
-    var code: String
-
     var name: String
 }
 
@@ -26,8 +24,6 @@ open class Courses(alias: String?)  : Table<Course>("course", alias) {
     override fun aliased(alias: String) = Courses(alias)
 
     val id = varchar("id").primaryKey().bindTo { it.id }
-
-    val code = varchar("code").bindTo { it.code }
 
     val name = varchar("name").bindTo { it.name }
 }

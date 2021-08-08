@@ -14,10 +14,6 @@ interface Subject : Entity<Subject> {
 
     val id: Long
 
-    var code: String
-
-    var name: String
-
     var course: Course
 
     var studyPlan: StudyPlan
@@ -30,10 +26,6 @@ interface Subject : Entity<Subject> {
 object Subjects : Table<Subject>("subject") {
 
     val id = long("id").primaryKey().bindTo { it.id }
-
-    val code = varchar("code").bindTo { it.code }
-
-    val name = varchar("name").bindTo { it.name }
 
     val courseId = varchar("course_id").references(Courses) { it.course }
 
