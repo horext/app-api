@@ -10,6 +10,7 @@ interface Section : Entity<Section> {
     companion object : Entity.Factory<Section>()
 
     val id: String
+
 }
 
 object Sections : Table<Section>("section") {
