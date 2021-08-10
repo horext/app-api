@@ -1,17 +1,10 @@
 package io.octatec.horext.api.domain
 
-import io.octatec.horext.api.domain.ScheduleSubjects.references
 import org.ktorm.database.Database
-import org.ktorm.dsl.eq
 import org.ktorm.entity.Entity
-import org.ktorm.entity.filter
 import org.ktorm.entity.sequenceOf
-import org.ktorm.entity.toList
 import org.ktorm.schema.*
-import java.sql.Time
-import java.time.Instant
 import java.time.LocalTime
-import javax.print.attribute.IntegerSyntax
 
 interface ClassSession : Entity<ClassSession> {
     companion object : Entity.Factory<ClassSession>()
@@ -20,7 +13,7 @@ interface ClassSession : Entity<ClassSession> {
 
     var schedule: Schedule
 
-    var classSessionType: ClassSessionType
+    var type: ClassSessionType
 
     var classroom: Classroom
 
@@ -45,7 +38,7 @@ open class ClassSessions(alias: String?)  : Table<ClassSession>("class_session",
 
     val teacherId = long("teacher_id").references(Teachers) { it.teacher }
 
-    val classSessionTypeId = long("class_session_type_id").references(ClassSessionTypes) { it.classSessionType }
+    val classSessionTypeId = long("class_session_type_id").references(ClassSessionTypes) { it.type }
 
     val day = int("day").bindTo { it.day }
 
