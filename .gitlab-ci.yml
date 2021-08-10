@@ -25,7 +25,11 @@ publish:
     - docker push $TAG_LATEST
   tags:
     - docker
-
+  only:
+    - main
+    - develop
+    - next
+    
 deploy:
   stage: deploy
   tags:
