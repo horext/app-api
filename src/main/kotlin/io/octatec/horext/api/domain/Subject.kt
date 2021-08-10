@@ -1,13 +1,9 @@
 package io.octatec.horext.api.domain
 
-import io.octatec.horext.api.domain.OrganizationUnits.references
 import org.ktorm.database.Database
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.int
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.ktorm.schema.*
 
 interface Subject : Entity<Subject> {
     companion object : Entity.Factory<Subject>()
@@ -23,7 +19,9 @@ interface Subject : Entity<Subject> {
     var cycle: Int
 }
 
-object Subjects : Table<Subject>("subject") {
+open class Subjects(alias: String?)  : Table<Subject>("subject", alias) {
+    companion object : Subjects(null)
+    override fun aliased(alias: String) = Subjects(alias)
 
     val id = long("id").primaryKey().bindTo { it.id }
 
