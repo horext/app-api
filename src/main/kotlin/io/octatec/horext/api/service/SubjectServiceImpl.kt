@@ -75,7 +75,7 @@ class SubjectServiceImpl : SubjectService {
                 (sp.organizationUnitId eq specialityId) and
                         (sp.fromDate less Instant.now()) and
                         (sp.toDate.isNull()) and
-                        exists(database.from(ss).select()
+                        exists(database.from(ss).select(ss.id)
                             .where { (ss.subjectId eq s.id) and
                                     (ss.hourlyLoadId eq hourlyLoadId) }
                         ) and
