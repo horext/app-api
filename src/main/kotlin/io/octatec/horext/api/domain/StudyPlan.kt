@@ -11,6 +11,8 @@ interface StudyPlan : Entity<StudyPlan> {
 
     val id: Long
 
+    val code: String
+
     var fromDate: Instant
 
     var toDate: Instant
@@ -25,6 +27,8 @@ open class StudyPlans(alias: String?)  : Table<StudyPlan>("study_plan", alias) {
     val id = long("id").primaryKey().bindTo { it.id }
 
     val fromDate = timestamp("from_date").bindTo { it.fromDate }
+
+    val code = varchar("code").bindTo { it.code }
 
     val toDate = timestamp("to_date").bindTo { it.toDate }
 
