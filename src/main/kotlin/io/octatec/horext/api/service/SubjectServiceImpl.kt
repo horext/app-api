@@ -80,7 +80,7 @@ class SubjectServiceImpl : SubjectService {
                                     (ss.hourlyLoadId eq hourlyLoadId) }
                         ) and
                         (concat(" ",c.name,c.id).unaccent().lower() like ("%$search%").lowercase().unaccent())
-            }.limit(limit).offset(offset)
+            }.limit(offset,limit)
 
         val list = queryResult.map { row -> s.createEntity(row) }
         return Page(offset, limit, queryResult.totalRecords, content = list.toList())
