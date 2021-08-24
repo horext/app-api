@@ -1,11 +1,8 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
-import io.octatec.horext.api.domain.HourlyLoads.publishedAt
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
-import org.ktorm.entity.find
-import org.ktorm.entity.map
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
