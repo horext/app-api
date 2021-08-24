@@ -15,6 +15,8 @@ interface HourlyLoad : Entity<HourlyLoad> {
 
     var checkedAt: Instant
 
+    var updatedAt: Instant
+
     var publishedAt: Instant
 
     var academicPeriodOrganizationUnit: AcademicPeriodOrganizationUnit
@@ -29,6 +31,9 @@ object HourlyLoads : Table<HourlyLoad>("hourly_load") {
     val name = varchar("name").bindTo { it.name }
 
     val checkedAt = timestamp("checked_at").bindTo { it.checkedAt }
+
+
+    val updatedAt = timestamp("updated_at").bindTo { it.updatedAt }
 
     val publishedAt = timestamp("published_at").bindTo { it.publishedAt }
 
