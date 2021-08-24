@@ -35,6 +35,8 @@ class SubjectController(val subjectService: SubjectService) {
             @RequestParam(name = "offset", defaultValue= "0") offset: Int,
             @RequestParam(name = "limit", defaultValue= "10") limit: Int
     ): ResponseEntity<Page<Subject>> {
+        println(offset)
+        println(limit)
         Pagination.validatePageNumberAndSize(offset,limit)
         val page = subjectService.getAllBySearchAndSpecialityIdAndHourlyLoad(
             search,specialityId,hourlyLoadId,offset,limit)
