@@ -27,7 +27,7 @@ class ScheduleSubjectServiceImpl : ScheduleSubjectService {
             .leftJoin(s, on = s.id eq ss.scheduleId)
             .select(ss.columns+s.columns)
             .where{(ss.subjectId eq subjectId) and
-                    (ss.hourlyLoadId eq hourlyLoadId) }
+                    (ss.hourlyLoadId eq hourlyLoadId) and (s.deleteAt.isNull()) }
             .map { row -> ss.createEntity(row) }
 
     }

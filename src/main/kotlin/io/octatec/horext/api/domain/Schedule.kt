@@ -16,6 +16,8 @@ interface Schedule : Entity<Schedule> {
 
     var section: Section
 
+    var deleteAt: Instant
+
     fun schedulesSubjects(db: Database) = db.scheduleSubjects.filter { it.scheduleId eq id }.toList()
 
     fun classSessions(db: Database) = db.classSessions.filter { it.scheduleId eq id }.toList()
@@ -26,6 +28,8 @@ open class Schedules(alias: String?)  : Table<Schedule>("schedule", alias) {
     override fun aliased(alias: String) = Schedules(alias)
 
     val id = long("id").primaryKey().bindTo { it.id }
+
+    val deleteAt = timestamp("delete_at").bindTo { it.deleteAt }
 
     val sectionId = varchar("section_id").references(Sections) { it.section }
 }
