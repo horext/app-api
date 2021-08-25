@@ -23,8 +23,9 @@ class KtormConfiguration {
      */
     @Bean
     fun database(): Database {
-        return Database.connectWithSpringSupport(dataSource,
-            logger = ConsoleLogger(threshold = LogLevel.DEBUG)
+        return Database.connectWithSpringSupport(
+            dataSource = dataSource,
+            //logger = ConsoleLogger(threshold = LogLevel.DEBUG)
         )
     }
 
