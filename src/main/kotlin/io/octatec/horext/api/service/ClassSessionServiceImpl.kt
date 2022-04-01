@@ -18,9 +18,9 @@ class ClassSessionServiceImpl : ClassSessionService {
         val t = cs.teacherId.referenceTable as Teachers
         return database
             .from(cs)
-            .innerJoin(cst, on = cst.id eq cs.classSessionTypeId)
-            .innerJoin(cr, on = cr.id eq cs.classroomId)
-            .innerJoin(t, on = t.id eq cs.teacherId)
+            .leftJoin(cst, on = cst.id eq cs.classSessionTypeId)
+            .leftJoin(cr, on = cr.id eq cs.classroomId)
+            .leftJoin(t, on = t.id eq cs.teacherId)
             .select()
             .where(cs.scheduleId eq scheduleId)
             .map { row -> cs.createEntity(row) }
@@ -35,9 +35,9 @@ class ClassSessionServiceImpl : ClassSessionService {
         val t = cs.teacherId.referenceTable as Teachers
         return database
             .from(cs)
-            .innerJoin(cst, on = cst.id eq cs.classSessionTypeId)
-            .innerJoin(cr, on = cr.id eq cs.classroomId)
-            .innerJoin(t, on = t.id eq cs.teacherId)
+            .leftJoin(cst, on = cst.id eq cs.classSessionTypeId)
+            .leftJoin(cr, on = cr.id eq cs.classroomId)
+            .leftJoin(t, on = t.id eq cs.teacherId)
             .select()
             .where(cs.scheduleId.inList(scheduleIds))
             .map { row -> cs.createEntity(row) }
