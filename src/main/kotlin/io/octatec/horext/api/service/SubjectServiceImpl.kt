@@ -83,7 +83,7 @@ class SubjectServiceImpl : SubjectService {
             .from(s)
             .innerJoin(c, on = s.courseId eq c.id)
             .innerJoin(sp, on = sp.id eq s.studyPlanId)
-            .innerJoin(st, on = st.id eq s.typeId)
+            .leftJoin(st, on = st.id eq s.typeId)
             .select()
             .where {
                 (sp.organizationUnitId eq specialityId) and
