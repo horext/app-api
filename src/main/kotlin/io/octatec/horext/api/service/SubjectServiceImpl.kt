@@ -65,11 +65,13 @@ class SubjectServiceImpl : SubjectService {
         val s = Subjects
         val c = s.courseId.referenceTable as Courses
         val sp = s.studyPlanId.referenceTable as StudyPlans
+        val st = s.typeId.referenceTable as SubjectTypes
         val ss = ScheduleSubjects
         val queryResult = database
             .from(s)
             .innerJoin(c, on = s.courseId eq c.id)
             .innerJoin(sp, on = sp.id eq s.studyPlanId)
+            .leftJoin(st, on = st.id eq s.typeId)
             .select()
             .where {
                 (sp.organizationUnitId eq specialityId) and

@@ -14,6 +14,8 @@ interface Subject : Entity<Subject> {
 
     var studyPlan: StudyPlan
 
+    var type: SubjectType
+
     var credits: Int
 
     var cycle: Int
@@ -26,6 +28,8 @@ open class Subjects(alias: String?)  : Table<Subject>("subject", alias) {
     val id = long("id").primaryKey().bindTo { it.id }
 
     val courseId = varchar("course_id").references(Courses) { it.course }
+
+    val typeId = long("subject_type_id").references(SubjectTypes) { it.type }
 
     val studyPlanId = long("study_plan_id").references(StudyPlans) { it.studyPlan }
 
