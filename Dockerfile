@@ -1,5 +1,5 @@
 # Part 1: Build the app using Maven
-FROM openjdk:16-jdk-alpine3.12 as build
+FROM eclipse-temurin:17-jdk-alpine as build
 
 # Copy maven executable to the image
 COPY mvnw .
@@ -20,7 +20,7 @@ COPY src src
 RUN ./mvnw package -DskipTests
 
 # Part 2: use the JAR file used in the first part and copy it across ready to RUN
-FROM openjdk:11-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /root/
 ## COPY packaged JAR file and rename as app.jar
 ## → this relies on your MAVEN package command building a jar
