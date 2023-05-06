@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class ApiForHorextApplication
+class HorextApiApplication
 
 fun main(args: Array<String>) {
-	runApplication<ApiForHorextApplication>(*args)
+	runApplication<HorextApiApplication>(*args)
 }
