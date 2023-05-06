@@ -2,6 +2,7 @@ package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.OrganizationUnit
 import io.octatec.horext.api.domain.organizationUnits
+import io.octatec.horext.api.domain.ORGANIZATION_UNIT_TYPES
 import org.ktorm.database.Database
 import org.ktorm.dsl.eq
 import org.ktorm.entity.filter
@@ -16,10 +17,14 @@ class OrganizationUnitServiceImpl : OrganizationUnitService {
     lateinit var database: Database
 
     override fun getAllSpeciality(): List<OrganizationUnit> {
-       return database.organizationUnits.filter { it.typeId eq 3L }.toList()
+        return database.organizationUnits
+                .filter { it.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id}
+                .toList()
     }
     override fun getAllFaculty(): List<OrganizationUnit> {
-        return database.organizationUnits.filter { it.typeId eq 2L }.toList()
+        return database.organizationUnits
+                .filter { it.typeId eq ORGANIZATION_UNIT_TYPES.FACULTY.id }
+                .toList()
     }
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> {

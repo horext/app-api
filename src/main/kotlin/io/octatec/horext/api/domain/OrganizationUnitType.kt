@@ -24,3 +24,8 @@ object OrganizationUnitTypes : Table<OrganizationUnitType>("organization_unit_ty
 }
 
 val Database.organizationUnitTypes get() = this.sequenceOf(OrganizationUnitTypes)
+
+enum class ORGANIZATION_UNIT_TYPES(val id: Long) {
+    FACULTY(2L),
+    SPECIALITY(3L),
+}
