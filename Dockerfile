@@ -1,29 +1,17 @@
-# Part 1: Build the app using Maven
-FROM openjdk:16-jdk-alpine3.12 as build
+# syntax=docker/dockerfile:experimental
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /workspace/app
 
-# Copy maven executable to the image
-COPY mvnw .
-COPY .mvn .mvn
+COPY . /workspace/app
+RUN --mount=type=cache,target=/root/.gradle chmod +x ./gradlew && ./gradlew clean build -x test 
+RUN mkdir -p build/dependency && (cd build/dependency; jar -xf ../libs/*-SNAPSHOT.jar)
 
-# Copy the pom.xml file
-COPY pom.xml .
-
-# Build all the dependencies in preparation to go offline.
-# This is a separate step so the dependencies will be cached unless
-# the pom.xml file has changed.
-RUN chmod +x ./mvnw && ./mvnw dependency:go-offline -B
-
-# Copy the project source
-COPY src src
-
-# Package the application
-RUN ./mvnw package -DskipTests
-
-# Part 2: use the JAR file used in the first part and copy it across ready to RUN
-FROM openjdk:11-jdk-slim
-WORKDIR /root/
-## COPY packaged JAR file and rename as app.jar
-## → this relies on your MAVEN package command building a jar
-## that matches *-jar-with-dependencies.jar with a single match
-COPY --from=0 /target/*.jar app.jar
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","./app.jar"]
+FROM eclipse-temurin:17-jdk-alpine
+RUN addgroup -S demo && adduser -S demo -G demo
+USER demo
+VOLUME /tmp
+ARG DEPENDENCY=/workspace/app/build/dependency
+COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+ENTRYPOINT ["java","-cp","app:app/lib/*","io.octatec.horext.api.HorextApiApplicationKt"]
