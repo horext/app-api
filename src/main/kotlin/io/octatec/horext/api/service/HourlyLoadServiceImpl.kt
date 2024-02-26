@@ -13,7 +13,7 @@ class HourlyLoadServiceImpl : HourlyLoadService {
     @Autowired
     lateinit var database: Database
 
-    override fun getLatestByFaculty(facultyId: Long): HourlyLoad? {
+    override fun getLatestByFaculty(facultyId: Long): HourlyLoad {
         val hl = HourlyLoads
         val apou = hl.academicPeriodOrganizationUnitId.referenceTable as AcademicPeriodOrganizationUnits
         return database
