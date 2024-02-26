@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 class FacultyController(val organizationUnitService: OrganizationUnitService) {
 
     @GetMapping
-    fun getAll(): ResponseEntity<List<OrganizationUnit>> {
-        return ResponseEntity<List<OrganizationUnit>>(
-                organizationUnitService.getAllFaculty(),
-                HttpStatus.OK)
+    fun getAll(): List<OrganizationUnit> {
+        return organizationUnitService.getAllFaculty()
     }
 }
