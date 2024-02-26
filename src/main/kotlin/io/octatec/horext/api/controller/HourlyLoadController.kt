@@ -1,6 +1,7 @@
 package io.octatec.horext.api.controller
 
 import io.octatec.horext.api.domain.HourlyLoad
+import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.service.HourlyLoadService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,14 +15,12 @@ class HourlyLoadController(val hourlyLoadService: HourlyLoadService) {
     @GetMapping("/latest")
     fun getLatestBySpeciality(
             @RequestParam(name = "faculty") facultyId:Long
-    ): ResponseEntity<HourlyLoad> {
+    ): HourlyLoad {
          try {
-             return ResponseEntity<HourlyLoad>(
-                hourlyLoadService.getLatestByFaculty(facultyId),
-                HttpStatus.OK)
-        }catch (e: Exception){
+             return hourlyLoadService.getLatestByFaculty(facultyId)
+        } catch (e: Exception){
             e.printStackTrace()
-           return ResponseEntity(HttpStatus.NOT_FOUND)
+            throw ResourceNotFoundException("HourlyLoad")
         }
     }
 }
