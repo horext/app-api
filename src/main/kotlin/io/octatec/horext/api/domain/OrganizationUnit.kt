@@ -33,7 +33,7 @@ object OrganizationUnits : Table<OrganizationUnit>("organization_unit") {
 
     val name = varchar("name").bindTo { it.name }
 
-    val typeId = long("organization_unit_type_id").references(OrganizationUnitTypes) { it.type }
+    val typeId = long("organization_unit_type_id").bindTo{ it.type.id }
 }
 
 val Database.organizationUnits get() = this.sequenceOf(OrganizationUnits)
