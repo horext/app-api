@@ -6,15 +6,22 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-
 @RestController
 @RequestMapping("specialities")
 class SpecialityController(val organizationUnitService: OrganizationUnitService) {
 
     @GetMapping
-    fun getAllByFacultyId(   @RequestParam(name = "faculty")  id: Long): ResponseEntity<List<OrganizationUnit>> {
-        return ResponseEntity<List<OrganizationUnit>>(
-                organizationUnitService.getAllSpecialityByFacultyId(id),
-                HttpStatus.OK)
+    fun getAllByFacultyId(
+            @RequestParam(name = "faculty") id: Long
+    ): ResponseEntity<List<OrganizationUnit>> {
+        try {
+            return ResponseEntity<List<OrganizationUnit>>(
+                    organizationUnitService.getAllSpecialityByFacultyId(id),
+                    HttpStatus.OK
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 }
