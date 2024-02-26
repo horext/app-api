@@ -17,22 +17,16 @@ class ScheduleSubjectController(val scheduleSubjectService: ScheduleSubjectServi
     @GetMapping(params = ["ids"])
     fun getAllByIds(
         @RequestParam(name = "ids") ids: List<Long>
-    ): ResponseEntity<List<ScheduleSubject>> {
-        return ResponseEntity<List<ScheduleSubject>>(
-            scheduleSubjectService.getAllByIds(ids),
-            HttpStatus.OK
-        )
+    ): List<ScheduleSubject> {
+        return  scheduleSubjectService.getAllByIds(ids)
     }
 
     @GetMapping(params = ["subject", "hourlyLoad"])
     fun getAllBySpeciality(
         @RequestParam(name = "subject") subjectId: Long,
         @RequestParam(name = "hourlyLoad") hourlyLoadId: Long
-    ): ResponseEntity<List<ScheduleSubject>> {
-        return ResponseEntity<List<ScheduleSubject>>(
-            scheduleSubjectService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId),
-            HttpStatus.OK
-        )
+    ): List<ScheduleSubject> {
+        return scheduleSubjectService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
     }
 
 }

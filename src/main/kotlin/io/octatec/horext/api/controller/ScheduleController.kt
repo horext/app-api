@@ -24,11 +24,8 @@ class ScheduleController(val scheduleService: ScheduleService) {
     fun getAllBySpeciality(
         @RequestParam(name = "subject") subjectId: Long,
         @RequestParam(name = "hourlyLoad") hourlyLoadId: Long
-    ): ResponseEntity<List<Schedule>> {
-        return ResponseEntity<List<Schedule>>(
-            scheduleService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId),
-            HttpStatus.OK
-        )
+    ): List<Schedule> {
+        return scheduleService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
     }
 
 }

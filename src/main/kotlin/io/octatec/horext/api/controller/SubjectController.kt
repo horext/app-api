@@ -20,10 +20,8 @@ class SubjectController(val subjectService: SubjectService) {
     fun getAllBySpeciality(
             @RequestParam(name = "speciality") specialityId:Long,
             @RequestParam(name = "hourlyLoad") hourlyLoadId:Long
-    ): ResponseEntity<List<Subject>> {
-        return ResponseEntity<List<Subject>>(
-                subjectService.getAllBySpecialityId(specialityId,hourlyLoadId),
-                HttpStatus.OK)
+    ): List<Subject> {
+        return subjectService.getAllBySpecialityId(specialityId,hourlyLoadId)
     }
 
 
@@ -34,12 +32,12 @@ class SubjectController(val subjectService: SubjectService) {
             @RequestParam(name = "hourlyLoad") hourlyLoadId:Long,
             @RequestParam(name = "offset", defaultValue= "0") offset: Int,
             @RequestParam(name = "limit", defaultValue= "10") limit: Int
-    ): ResponseEntity<Page<Subject>> {
+    ): Page<Subject> {
         println(offset)
         println(limit)
         Pagination.validatePageNumberAndSize(offset,limit)
         val page = subjectService.getAllBySearchAndSpecialityIdAndHourlyLoad(
             search,specialityId,hourlyLoadId,offset,limit)
-        return ResponseEntity<Page<Subject>>(page , HttpStatus.OK)
+        return page
     }
 }
