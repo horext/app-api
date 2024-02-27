@@ -3,7 +3,7 @@ services:
   - docker:dind
 
 stages:
-  - publish
+  - build
   - deploy
 
 variables:
