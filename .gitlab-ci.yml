@@ -22,6 +22,7 @@ build:
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
   stage: build
+  image: azul/zulu-openjdk
   script:
     - docker pull $IMAGE_NAME_LATEST || true
     - chmod +x ./gradlew
