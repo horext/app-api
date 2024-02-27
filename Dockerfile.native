@@ -3,8 +3,8 @@ FROM ghcr.io/graalvm/native-image-community:21 AS build
 
 # Update package lists and Install Maven
 RUN microdnf update -y && \
-microdnf install -y gcc glibc-devel zlib-devel libstdc++-devel gcc-c++ findutils && \
-microdnf clean all
+    microdnf install -y gcc glibc-devel zlib-devel libstdc++-devel gcc-c++ findutils && \
+    microdnf clean all
 
 WORKDIR /usr/src/app
 
@@ -22,4 +22,4 @@ WORKDIR /app
 COPY --from=build /usr/src/app/build/native/nativeCompile/api /app/api
 
 # Run the application
-CMD ["/app/api"]
+ENTRYPOINT ["/app/api"]
