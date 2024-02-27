@@ -8,8 +8,10 @@ stages:
 
 variables:
   IMAGE_NAME: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME
-  IMAGE_NAME_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:latest
-  IMAGE_NAME_TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+  TAG_LATEST: latest
+  TAG_COMMIT: $CI_COMMIT_SHORT_SHA
+  IMAGE_NAME_LATEST: $IMAGE_NAME:$TAG_LATEST
+  IMAGE_NAME_TAG: $IMAGE_NAME:TAG_COMMIT
 
 before_script:
   - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
@@ -22,6 +24,7 @@ build:
   stage: build
   script:
     - docker pull $IMAGE_NAME_LATEST || true
+    - ./gradlew bootBuildImage --imageName="$IMAGE_NAME"
     - docker build --cache-from $IMAGE_NAME_LATEST -t $IMAGE_NAME_TAG -t $IMAGE_NAME_LATEST .
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $IMAGE_NAME_TAG
