@@ -1,22 +1,17 @@
 # syntax=docker/dockerfile:experimental
-FROM ghcr.io/graalvm/jdk:22.3.2 AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /workspace/app
 
-RUN microdnf install -y findutils
+COPY . /workspace/app
+RUN --mount=type=cache,target=/root/.gradle chmod +x ./gradlew && ./gradlew clean build -x test 
+RUN mkdir -p build/dependency && (cd build/dependency; jar -xf ../libs/*-SNAPSHOT.jar)
 
-WORKDIR /usr/src/app
-
-COPY . .
-# Update package lists and Install Gradle
-RUN chmod +x ./gradlew
-RUN ./gradlew nativeCompile
-
-FROM debian:bookworm-slim
-
-WORKDIR /app
+FROM eclipse-temurin:17-jdk-alpine
 RUN addgroup -S demo && adduser -S demo -G demo
 USER demo
-# Copy the native binary from the build stage
-COPY --from=build /usr/src/app/target/api /app/api
-
-# Run the application
-CMD ["/app/api"]
+VOLUME /tmp
+ARG DEPENDENCY=/workspace/app/build/dependency
+COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
+COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+ENTRYPOINT ["java","-cp","app:app/lib/*","io.octatec.horext.api.HorextApiApplicationKt"]
