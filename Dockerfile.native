@@ -21,4 +21,4 @@ WORKDIR /app
 COPY --from=build /usr/src/app/build/native/nativeCompile/api /app
 
 # Run the application
-ENTRYPOINT ["./app"]
+ENTRYPOINT ["/app"]
