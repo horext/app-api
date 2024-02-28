@@ -13,11 +13,9 @@ RUN chmod +x ./gradlew
 RUN ./gradlew nativeCompile --no-daemon
 
 # Second stage: Lightweight debian-slim image
-FROM debian:bookworm-slim
-
-WORKDIR /app
+FROM container-registry.oracle.com/os/oraclelinux:8-slim
 
 # Copy the native binary from the build stage
-COPY --from=build /usr/src/app/build/native/nativeCompile/api /app/api
+COPY --from=build /usr/src/app/build/native/nativeCompile/api app
 # Run the application
-ENTRYPOINT ["/app/api"]
+ENTRYPOINT ["/app"]
