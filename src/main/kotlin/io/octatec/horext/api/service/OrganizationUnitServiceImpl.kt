@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class OrganizationUnitServiceImpl : OrganizationUnitService {
-
-    @Autowired
-    lateinit var database: Database
+class OrganizationUnitServiceImpl(val database: Database) : OrganizationUnitService {
 
     override fun getAllSpeciality(): List<OrganizationUnit> {
         return database.organizationUnits

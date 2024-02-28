@@ -9,9 +9,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 @Service
-class HourlyLoadServiceImpl : HourlyLoadService {
-    @Autowired
-    lateinit var database: Database
+class HourlyLoadServiceImpl(val database: Database) : HourlyLoadService {
 
     override fun getLatestByFaculty(facultyId: Long): HourlyLoad {
         val hl = HourlyLoads

@@ -12,9 +12,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
-class SubjectServiceImpl : SubjectService {
-    @Autowired
-    lateinit var database: Database
+class SubjectServiceImpl(val database: Database): SubjectService {
 
     override fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject> {
         val s = Subjects

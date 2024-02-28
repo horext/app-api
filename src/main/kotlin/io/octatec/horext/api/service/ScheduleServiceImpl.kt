@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class ScheduleServiceImpl : ScheduleService {
-    @Autowired
-    lateinit var database: Database
+class ScheduleServiceImpl(val database: Database) : ScheduleService {
 
     override fun findBySubjectIdAndHourlyLoadId(subjectId: Long, hourlyLoadId: Long): List<Schedule> {
         val ss = ScheduleSubjects

@@ -14,10 +14,7 @@ import java.time.Instant
 
 
 @Service
-class ScheduleSubjectServiceImpl : ScheduleSubjectService {
-    @Autowired
-    lateinit var database: Database
-
+class ScheduleSubjectServiceImpl(val database: Database) : ScheduleSubjectService {
     override fun findBySubjectIdAndHourlyLoadId(subjectId: Long, hourlyLoadId: Long): List<ScheduleSubject> {
 
         val ss = ScheduleSubjects
