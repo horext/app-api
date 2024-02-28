@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 RUN chmod +x ./gradlew
-RUN ./gradlew nativeCompile --no-daemon
+RUN --mount=type=cache,target=/root/.gradle ./gradlew nativeCompile --no-daemon
 
 # Second stage: Lightweight debian-slim image
 FROM container-registry.oracle.com/os/oraclelinux:8-slim
