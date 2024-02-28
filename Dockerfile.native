@@ -14,7 +14,7 @@ RUN sed -i -e 's/\r$//' ./gradlew
 RUN ./gradlew nativeBuild
 
 # Second stage: Lightweight debian-slim image
-FROM debian:bookworm-slim
+FROM container-registry.oracle.com/os/oraclelinux:8-slim
 
 WORKDIR /app
 
