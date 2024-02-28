@@ -20,7 +20,10 @@ build:
   variables:
     DOCKER_HOST: tcp://docker:2376
     DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_DRIVER: overlay2
+    
     DOCKER_BUILDKIT: 1
+    BUILDKIT_INLINE_CACHE: 1
   stage: build
   script:
     - docker pull $IMAGE_NAME_LATEST || true
