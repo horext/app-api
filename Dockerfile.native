@@ -2,10 +2,8 @@
 # First stage: JDK with GraalVM
 FROM ghcr.io/graalvm/native-image-community:21 AS build
 
-# Update package lists and Install Maven
-RUN microdnf update -y && \
-    microdnf install -y findutils && \
-    microdnf clean all
+#  Install the native-image tool
+RUN microdnf install -y findutils
 
 WORKDIR /usr/src/app
 
