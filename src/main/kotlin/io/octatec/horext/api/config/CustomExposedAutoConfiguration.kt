@@ -6,11 +6,9 @@ import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
 import org.springframework.aot.hint.TypeReference
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.context.annotation.ImportRuntimeHints
 import java.util.*
-import kotlin.collections.LinkedHashMap
 
 @Configuration
 @ImportAutoConfiguration(
@@ -24,8 +22,10 @@ open class CustomExposedAutoConfiguration {
             // see https://github.com/spring-projects/spring-boot/issues/34206
             hints.reflection().registerType(Collections::class.java, *MemberCategory.entries.toTypedArray())
             hints.reflection()
-                .registerType(TypeReference.of("java.util.Collections\$Entry"),
-                    *MemberCategory.entries.toTypedArray())
+                .registerType(
+                    TypeReference.of("java.util.Collections\$Entry"),
+                    *MemberCategory.entries.toTypedArray()
+                )
         }
     }
 }
