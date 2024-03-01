@@ -1,33 +1,32 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
-interface ClassSessionType : Entity<ClassSessionType> {
-    companion object : Entity.Factory<ClassSessionType>()
+data class ClassSessionType(
+    val id: Long,
 
-    val id: Long
+    var code: String?,
 
-    var code: String
+    var name: String?,
+) {
 
-    var name: String
-}
-
-open class ClassSessionTypes(alias: String?)  : Table<ClassSessionType>("class_session_type", alias) {
-    companion object : ClassSessionTypes(null)
-
-    override fun aliased(alias: String) = ClassSessionTypes(alias)
-
-    val id = long("id").primaryKey().bindTo { it.id }
-
-    val name = varchar("name").bindTo { it.name }
-
-    val code = varchar("code").bindTo { it.code }
+    constructor(id: Long) : this(id, null, null)
 }
 
 
-val Database.classSessionsTypes get() = this.sequenceOf(ClassSessionTypes)
+object ClassSessionTypes : LongIdTable("class_session_type") {
+
+
+    val name = varchar("name", length = 100)
+
+    val code = varchar("code", length = 50)
+
+    fun createEntity(row: ResultRow): ClassSessionType {
+        return ClassSessionType(
+            row[ClassSessionTypes.id].value,
+            row[code],
+            row[name]
+        )
+    }
+}

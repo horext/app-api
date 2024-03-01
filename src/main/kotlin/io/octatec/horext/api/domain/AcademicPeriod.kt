@@ -1,29 +1,23 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.*
-import java.time.LocalDate
 
-interface AcademicPeriod : Entity<AcademicPeriod> {
-    companion object : Entity.Factory<AcademicPeriod>()
+import org.jetbrains.exposed.dao.id.LongIdTable
 
-    val id: Long
+data class AcademicPeriod(
 
-    var code: String
+    val id: Long,
 
-    var name: String
+    var code: String?,
 
+    var name: String?
+
+) {
+    constructor(id: Long) : this(id, null, null)
 }
 
-object AcademicPeriods : Table<AcademicPeriod>("academic_period") {
+object AcademicPeriods : LongIdTable("academic_period") {
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val code = varchar("code", length = 50)
 
-    val code = varchar("code").bindTo { it.code }
-
-    val name = varchar("name").bindTo { it.name }
+    val name = varchar("name", length = 50)
 }
-
-val Database.academicPeriods get() = this.sequenceOf(AcademicPeriods)

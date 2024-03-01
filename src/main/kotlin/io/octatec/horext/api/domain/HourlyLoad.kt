@@ -1,45 +1,52 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.*
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
-interface HourlyLoad : Entity<HourlyLoad> {
-    companion object : Entity.Factory<HourlyLoad>()
+data class HourlyLoad(
 
-    val id: Long
+    val id: Long,
 
-    var name: String
+    var name: String?,
 
-    var checkedAt: Instant
+    var checkedAt: Instant?,
 
-    var updatedAt: Instant
+    var updatedAt: Instant?,
 
-    var publishedAt: Instant
+    var publishedAt: Instant?,
 
-    var academicPeriodOrganizationUnit: AcademicPeriodOrganizationUnit
+    var academicPeriodOrganizationUnit: AcademicPeriodOrganizationUnit?
 
+) {
+
+    constructor(id: Long) : this(id, null, null, null, null, null)
 }
 
-object HourlyLoads : Table<HourlyLoad>("hourly_load") {
+object HourlyLoads : LongIdTable("hourly_load") {
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val name = varchar("name", length = 100)
 
-
-    val name = varchar("name").bindTo { it.name }
-
-    val checkedAt = timestamp("checked_at").bindTo { it.checkedAt }
+    val checkedAt = timestamp("checked_at")
 
 
-    val updatedAt = timestamp("updated_at").bindTo { it.updatedAt }
+    val updatedAt = timestamp("updated_at")
 
-    val publishedAt = timestamp("published_at").bindTo { it.publishedAt }
+    val publishedAt = timestamp("published_at")
 
-    val academicPeriodOrganizationUnitId = long("academic_period_organization_unit_id")
-        .references(AcademicPeriodOrganizationUnits) { it.academicPeriodOrganizationUnit }
+    val academicPeriodOrganizationUnitId =
+        reference("academic_period_organization_unit_id", AcademicPeriodOrganizationUnits)
+
+    fun createEntity(it: ResultRow): HourlyLoad {
+        return HourlyLoad(
+            id = it[id].value,
+            name = it[name],
+            checkedAt = it[checkedAt],
+            updatedAt = it[updatedAt],
+            publishedAt = it[publishedAt],
+            academicPeriodOrganizationUnit = AcademicPeriodOrganizationUnits.createEntity(it)
+        )
+    }
 
 }
-
-val Database.hourlyLoads get() = this.sequenceOf(HourlyLoads)

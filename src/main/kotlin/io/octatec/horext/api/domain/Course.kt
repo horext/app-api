@@ -1,31 +1,36 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.int
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.sql.ResultRow
 
 /**
  * The organization unit entity.
  */
-interface Course : Entity<Course> {
-    companion object : Entity.Factory<Course>()
+data class Course(
 
-    val id: String
+    val id: String,
 
-    var name: String
+    var name: String?
+) {
+
+    constructor(id: String) : this(id, null)
 }
 
-open class Courses(alias: String?)  : Table<Course>("course", alias) {
-    companion object : Courses(null)
-    override fun aliased(alias: String) = Courses(alias)
+object Courses : IdTable<String>("course") {
+    override val id = varchar(
+        "id",
+        length = 50
+    ).entityId()
 
-    val id = varchar("id").primaryKey().bindTo { it.id }
+    override val primaryKey = PrimaryKey(id)
 
-    val name = varchar("name").bindTo { it.name }
+    val name = varchar("name", length = 100)
+
+    fun createEntity(row: ResultRow): Course {
+        return Course(
+            row[id].value,
+            row[name]
+        )
+    }
+
 }
-
-val Database.courses get() = this.sequenceOf(Courses)

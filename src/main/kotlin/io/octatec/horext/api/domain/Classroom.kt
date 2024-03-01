@@ -1,33 +1,33 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
-interface Classroom : Entity<Classroom> {
-    companion object : Entity.Factory<Classroom>()
+data class Classroom(
 
-    val id: Long
+    val id: Long,
 
-    var code: String
+    var code: String?,
 
-    var name: String
+    var name: String?,
+) {
+
+    constructor(id: Long) : this(id, null, null)
 }
 
-open class Classrooms(alias: String?)  : Table<Classroom>("classroom", alias) {
-    companion object : Classrooms(null)
+object Classrooms : LongIdTable("classroom") {
 
-    override fun aliased(alias: String) = Classrooms(alias)
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val name = varchar("name", length = 100)
 
-    val name = varchar("name").bindTo { it.name }
+    val code = varchar("code", length = 50)
 
-    val code = varchar("code").bindTo { it.code }
+    fun createEntity(row: ResultRow): Classroom {
+        return Classroom(
+            row[Classrooms.id].value,
+            row[code],
+            row[name]
+        )
+    }
 }
 
-
-val Database.classrooms get() = this.sequenceOf(Classrooms)

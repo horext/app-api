@@ -1,41 +1,49 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.*
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
-interface Subject : Entity<Subject> {
-    companion object : Entity.Factory<Subject>()
+data class Subject(
 
-    val id: Long
+    val id: Long,
 
-    var course: Course
+    var course: Course?,
 
-    var studyPlan: StudyPlan
+    var studyPlan: StudyPlan?,
 
-    var type: SubjectType
+    var type: SubjectType?,
 
-    var credits: Int
+    var credits: Int?,
 
-    var cycle: Int
+    var cycle: Int?
+) {
+
+    constructor(id: Long) : this(id, null, null, null, null, null)
 }
 
-open class Subjects(alias: String?)  : Table<Subject>("subject", alias) {
-    companion object : Subjects(null)
-    override fun aliased(alias: String) = Subjects(alias)
+object Subjects : LongIdTable("subject") {
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val courseId = reference("course_id", Courses)
 
-    val courseId = varchar("course_id").references(Courses) { it.course }
+    val typeId = reference("subject_type_id", SubjectTypes)
 
-    val typeId = long("subject_type_id").references(SubjectTypes) { it.type }
+    val studyPlanId = reference("study_plan_id", StudyPlans)
 
-    val studyPlanId = long("study_plan_id").references(StudyPlans) { it.studyPlan }
+    val credits = integer("credits")
 
-    val credits = int("credits").bindTo { it.credits }
+    val cycle = integer("cycle")
 
-    val cycle = int("cycle").bindTo { it.cycle }
+    fun createEntity(row: ResultRow): Subject {
+        return Subject(
+            id = row[id].value,
+            course = runCatching { Courses.createEntity(row) }
+                .getOrElse { Course(id = row[courseId].value) },
+            studyPlan = runCatching { StudyPlans.createEntity(row) }
+                .getOrElse { StudyPlan(id = row[studyPlanId].value) },
+            type = runCatching { SubjectTypes.createEntity(row) }
+                .getOrElse { SubjectType(id = row[typeId].value) },
+            credits = row[credits],
+            cycle = row[cycle]
+        )
+    }
 }
-
-val Database.subjects get() = this.sequenceOf(Subjects)
