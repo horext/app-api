@@ -1,30 +1,36 @@
 package io.octatec.horext.api.service
 
-import io.octatec.horext.api.domain.OrganizationUnit
-import io.octatec.horext.api.domain.organizationUnits
 import io.octatec.horext.api.domain.ORGANIZATION_UNIT_TYPES
-import org.ktorm.database.Database
-import org.ktorm.dsl.eq
-import org.ktorm.entity.filter
-import org.ktorm.entity.toList
-import org.springframework.beans.factory.annotation.Autowired
+import io.octatec.horext.api.domain.OrganizationUnit
+import io.octatec.horext.api.domain.OrganizationUnits
+import org.jetbrains.exposed.sql.selectAll
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
-class OrganizationUnitServiceImpl(val database: Database) : OrganizationUnitService {
+@Transactional
+class OrganizationUnitServiceImpl() : OrganizationUnitService {
 
     override fun getAllSpeciality(): List<OrganizationUnit> {
-        return database.organizationUnits
-                .filter { it.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id}
-                .toList()
+        return OrganizationUnits.selectAll()
+            .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id }
+            .map { row ->
+                OrganizationUnits.createEntity(row)
+            }
     }
+
     override fun getAllFaculty(): List<OrganizationUnit> {
-        return database.organizationUnits
-                .filter { it.typeId eq ORGANIZATION_UNIT_TYPES.FACULTY.id }
-                .toList()
+        return OrganizationUnits.selectAll()
+            .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.FACULTY.id }
+            .map { row ->
+                OrganizationUnits.createEntity(row)
+            }
     }
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> {
-        return database.organizationUnits.filter { it.parentOrganizationId eq id}.toList()
+        return OrganizationUnits.selectAll()
+            .where { OrganizationUnits.parentOrganizationId eq id }.map { row ->
+                OrganizationUnits.createEntity(row)
+            }
     }
 }

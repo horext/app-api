@@ -2,33 +2,34 @@ package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
 import io.octatec.horext.api.dto.Page
-import io.octatec.horext.api.util.lower
+import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
-import org.ktorm.database.Database
-import org.ktorm.dsl.*
-import org.ktorm.support.postgresql.ilike
-import org.springframework.beans.factory.annotation.Autowired
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.exists
+import org.jetbrains.exposed.sql.or
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Service
-class SubjectServiceImpl(val database: Database): SubjectService {
+@Transactional
+class SubjectServiceImpl() : SubjectService {
 
     override fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject> {
         val s = Subjects
-        val c = s.courseId.referenceTable as Courses
-        val sp = s.studyPlanId.referenceTable as StudyPlans
+        val c = Courses
+        val sp = StudyPlans
         val ss = ScheduleSubjects
-        return database
-            .from(s)
-            .innerJoin(c, on = s.courseId eq c.id)
-            .innerJoin(sp, on = sp.id eq s.studyPlanId)
-            .select()
+        val st = SubjectTypes
+        return s
+            .innerJoin(c)
+            .innerJoin(sp)
+            .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
                         (sp.fromDate less Instant.now()) and
                         (sp.toDate.isNull()) and
-                        exists(database.from(ss).select()
+                        exists(ss.select(ss.columns)
                             .where { (ss.subjectId eq s.id) and (ss.hourlyLoadId eq hourlyLoadId) }
                         )
             }
@@ -41,25 +42,25 @@ class SubjectServiceImpl(val database: Database): SubjectService {
         hourlyLoadId: Long
     ): List<Subject> {
         val s = Subjects
-        val c = s.courseId.referenceTable as Courses
-        val sp = s.studyPlanId.referenceTable as StudyPlans
+        val c = Courses
+        val sp = StudyPlans
         val ss = ScheduleSubjects
-        return database
-            .from(s)
-            .innerJoin(c, on = s.courseId eq c.id)
-            .innerJoin(sp, on = sp.id eq s.studyPlanId)
-            .select()
+        val st = SubjectTypes
+        return s
+            .innerJoin(c)
+            .innerJoin(sp)
+            .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
                         (sp.fromDate less Instant.now()) and
                         (sp.toDate.isNull()) and
-                        exists(database.from(ss).select()
+                        exists(ss.select(ss.columns)
                             .where {
                                 (ss.subjectId eq s.id) and
                                         (ss.hourlyLoadId eq hourlyLoadId)
                             }
                         ) and
-                        (c.name.unaccent().lower() like ("%$search%").lowercase().unaccent())
+                        (c.name.unaccent() ilike ("%$search%").unaccent())
             }
             .map { row -> s.createEntity(row) }
 
@@ -73,36 +74,39 @@ class SubjectServiceImpl(val database: Database): SubjectService {
         limit: Int
     ): Page<Subject> {
         val s = Subjects
-        val c = s.courseId.referenceTable as Courses
-        val sp = s.studyPlanId.referenceTable as StudyPlans
-        val st = s.typeId.referenceTable as SubjectTypes
+        val c = Courses
+        val sp = StudyPlans
+        val st = SubjectTypes
         val ss = ScheduleSubjects
-        val queryResult = database
-            .from(s)
-            .innerJoin(c, on = s.courseId eq c.id)
-            .innerJoin(sp, on = sp.id eq s.studyPlanId)
-            .leftJoin(st, on = st.id eq s.typeId)
-            .select()
+        val query = s
+            .innerJoin(c)
+            .innerJoin(sp)
+            .leftJoin(st)
+            .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
                         (sp.fromDate less Instant.now()) and
                         (sp.toDate.isNull()) and
-                        exists(database.from(ss).select(ss.id)
+                        exists(ss.select(ss.id)
                             .where {
                                 (ss.subjectId eq s.id) and
                                         (ss.hourlyLoadId eq hourlyLoadId)
                             }
                         ) and
                         searchCourse(c, search)
-            }.limit(offset, limit)
+            }
+        val queryResultCount = query.count()
+        val queryResult = query.limit(n = limit, offset = offset.toLong())
 
         val list = queryResult.map { row -> s.createEntity(row) }
-        return Page(offset, limit, queryResult.totalRecords, content = list.toList())
+        return Page(offset, limit, queryResultCount.toInt(), content = list.toList())
 
     }
+
 
     private fun searchCourse(
         c: Courses,
         search: String
     ) = (c.name.unaccent() ilike ("%$search%").unaccent()) or (c.id ilike ("%$search%"))
 }
+
