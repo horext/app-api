@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class HorextApiApplication
 
 fun main(args: Array<String>) {
-	runApplication<HorextApiApplication>(*args)
+    runApplication<HorextApiApplication>(*args)
 }
