@@ -27,9 +27,8 @@ dependencies {
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	implementation("org.ktorm:ktorm-core:3.6.0")
-    implementation("org.ktorm:ktorm-jackson:3.6.0")
-    implementation("org.ktorm:ktorm-support-postgresql:3.6.0")
+	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.48.0")
+	implementation("org.jetbrains.exposed:exposed-java-time:0.48.0")
 }
 
 tasks.withType<KotlinCompile> {
