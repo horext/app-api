@@ -27,7 +27,7 @@ build:
   stage: build
   script:
     - docker pull $IMAGE_NAME_LATEST || true
-    - docker build -f Dockerfile.native --cache-from $IMAGE_NAME_LATEST -t $IMAGE_NAME_TAG -t $IMAGE_NAME_LATEST .
+    - docker build -f Dockerfile --cache-from $IMAGE_NAME_LATEST -t $IMAGE_NAME_TAG -t $IMAGE_NAME_LATEST .
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $IMAGE_NAME_TAG
     - docker push $IMAGE_NAME_LATEST
