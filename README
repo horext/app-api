@@ -4,6 +4,36 @@
 
 ## Getting Started
 
+### Development setup
+
+#### Prerequisites
+
+Requirements to run the project:
+
+- [Java JDK 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+- [Gradle](https://gradle.org/)
+- [PostgreSQL](https://www.postgresql.org/)
+
+Optional requirements:
+
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [Dev Container](https://code.visualstudio.com/docs/remote/containers)
+
+#### Running the project
+
+For live reload, run the following command (recommended):
+
+```bash
+./gradlew compileKotlin --continuous --parallel --build-cache --configuration-cache
+```
+
+Next, run the following command to start the application:
+
+```bash
+./gradlew bootRun
+```
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:
