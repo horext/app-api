@@ -2,6 +2,7 @@ package io.octatec.horext.api.config
 
 import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
 import org.jetbrains.exposed.sql.LongColumnType
+import org.jetbrains.exposed.sql.VarCharColumnType
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
@@ -29,7 +30,7 @@ open class CustomExposedAutoConfiguration {
                     *MemberCategory.entries.toTypedArray()
                 )
             hints.reflection().registerType(LongColumnType::class.java, *MemberCategory.entries.toTypedArray())
-
+            hints.reflection().registerType(VarCharColumnType::class.java, *MemberCategory.entries.toTypedArray())
         }
     }
 }
