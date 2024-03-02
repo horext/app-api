@@ -15,6 +15,20 @@ import java.time.Instant
 @Transactional
 class SubjectServiceImpl() : SubjectService {
 
+    override fun getAllByStudyPlanId(studyPlanId: Long): List<Subject> {
+        val s = Subjects
+        val c = Courses
+        val st = SubjectTypes
+        return s
+            .innerJoin(c)
+            .innerJoin(st)
+            .select(s.columns + c.columns  + st.columns)
+            .where {
+                (s.studyPlanId eq studyPlanId)
+            }
+            .map { row -> s.createEntity(row) }
+    }
+
     override fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject> {
         val s = Subjects
         val c = Courses
