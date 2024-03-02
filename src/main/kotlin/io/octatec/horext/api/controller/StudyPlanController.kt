@@ -4,6 +4,7 @@ import io.octatec.horext.api.domain.StudyPlan
 import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.service.StudyPlanService
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
