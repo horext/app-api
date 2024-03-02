@@ -37,7 +37,8 @@ object StudyPlans : LongIdTable("study_plan") {
             row[code],
             row[fromDate],
             row[toDate],
-            OrganizationUnits.createEntity(row)
+            runCatching { OrganizationUnits.createEntity(row) }
+                .getOrElse { OrganizationUnit(id = row[organizationUnitId].value) },
         )
     }
 }
