@@ -1,6 +1,7 @@
 package io.octatec.horext.api.config
 
 import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
+import org.jetbrains.exposed.sql.LongColumnType
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
@@ -26,6 +27,8 @@ open class CustomExposedAutoConfiguration {
                     TypeReference.of("java.util.Collections\$Entry"),
                     *MemberCategory.entries.toTypedArray()
                 )
+            hints.reflection().registerType(LongColumnType::class.java, *MemberCategory.entries.toTypedArray())
+
         }
     }
 }
