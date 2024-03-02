@@ -21,6 +21,7 @@ open class CustomExposedAutoConfiguration {
     class ExposedAutoConfigurationRuntimeHints : RuntimeHintsRegistrar {
         override fun registerHints(hints: RuntimeHints, classLoader: ClassLoader?) {
             // see https://github.com/spring-projects/spring-boot/issues/34206
+            // see https://github.com/JetBrains/Exposed/issues/1274
             hints.reflection().registerType(Collections::class.java, *MemberCategory.entries.toTypedArray())
             hints.reflection()
                 .registerType(
