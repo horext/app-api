@@ -19,6 +19,8 @@ class StudyPlanServiceImpl() : StudyPlanService {
     override fun getStudyPlanById(id: Long): List<StudyPlan> {
         val sp = StudyPlans
         val ou = OrganizationUnits
-        return sp.select(sp.columns+ou.columns).where { (sp.id eq id) }.map { row -> sp.createEntity(row) }
+        return sp.leftJoin(ou)
+        .select( sp.columns + ou.columns)
+        .where { (sp.id eq id) }.map { row -> sp.createEntity(row) }
     }
 }
