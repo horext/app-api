@@ -24,6 +24,8 @@ Optional requirements:
 
 For live reload, run the following command (recommended):
 
+> For Windows use: `gradlew` instead of `./gradlew`
+
 ```bash
 ./gradlew compileKotlin --continuous --parallel --build-cache --configuration-cache
 ```
