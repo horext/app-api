@@ -11,8 +11,8 @@ data class SubjectRelationship(
 )
 
 object SubjectRelationships: LongIdTable("subject_relationship") {
-    val subjectId = long("from_subject_id")
-    val relatedSubjectId = long("to_subject_id")
+    val subjectId = long("to_subject_id")
+    val relatedSubjectId = long("from_subject_id")
     val relationshipTypeId = long("subject_relationship_type_id").nullable()
 
     fun createEntity(row: ResultRow): SubjectRelationship {
