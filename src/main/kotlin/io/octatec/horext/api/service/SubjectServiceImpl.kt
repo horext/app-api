@@ -19,7 +19,8 @@ class SubjectServiceImpl() : SubjectService {
         val s = Subjects
         val c = Courses
         val st = SubjectTypes
-        return s
+        val sr = SubjectRelationships
+        val subjects = s
             .innerJoin(c)
             .innerJoin(st)
             .select(s.columns + c.columns  + st.columns)
@@ -27,6 +28,15 @@ class SubjectServiceImpl() : SubjectService {
                 (s.studyPlanId eq studyPlanId)
             }
             .map { row -> s.createEntity(row) }
+        val relationships = sr
+            .select(sr.columns)
+            .where { sr.subjectId inList subjects.map { it.id } }
+            .map { row -> sr.createEntity(row) }
+
+        subjects.forEach { subject ->
+            subject.relationships = relationships.filter { it.subjectId == subject.id }
+        }
+        return subjects
     }
 
     override fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject> {
