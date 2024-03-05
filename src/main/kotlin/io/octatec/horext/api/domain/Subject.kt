@@ -15,7 +15,9 @@ data class Subject(
 
     var credits: Int?,
 
-    var cycle: Int?
+    var cycle: Int?,
+
+    var relationships: List<SubjectRelationship> = emptyList()
 ) {
 
     constructor(id: Long) : this(id, null, null, null, null, null)
