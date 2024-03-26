@@ -1,0 +1,32 @@
+name: CI/CD Develop
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [develop]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+  cd:
+    name: CD
+    needs: ci
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/cd.yml
+    with:
+      environment: develop
+    secrets:
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+      ENV_FILE_PATH: ${{ secrets.ENV_FILE_PATH }}
+      DOCKER_PROJECT_NAME: ${{ secrets.DOCKER_PROJECT_NAME }}
