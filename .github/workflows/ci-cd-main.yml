@@ -1,4 +1,4 @@
-name: CD Main
+name: CI/CD Main
 
 # Controls when the workflow will run
 on:
@@ -11,6 +11,9 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  ci:
+    name: Continuous Integration
+    uses: ./.github/workflows/ci.yml
   cd:
     name: Continuous Delivery
     permissions:
