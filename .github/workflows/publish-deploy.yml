@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -90,7 +90,7 @@ jobs:
       DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
     steps:     
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Create project folder
         uses: appleboy/ssh-action@v1.0.3
