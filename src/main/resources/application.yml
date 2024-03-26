@@ -4,6 +4,11 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+  flyway:
+    locations: classpath:db/migration
+    clean-disabled: true
+  profiles:
+    active: default
 server:
   port: 8081
   servlet:
