@@ -21,7 +21,7 @@ jobs:
     env:
       THREAD_API_URL: test
       SPRING_ALLOWED_ORIGINS: http://localhost:3000
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://${{ vars.SPRING_DATASOURCE_HOST }}:${{ vars.SPRING_DATASOURCE_PORT }}/${{ vars.SPRING_DATASOURCE_DATABASE }}" 
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:5432/mydb" 
     services:
       postgres:
         image: postgres:latest
