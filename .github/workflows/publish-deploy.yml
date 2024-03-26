@@ -73,7 +73,10 @@ jobs:
     env:
       PROJECT_FOLDER: ${{ github.repository}}/${{ github.ref_name }}
       DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
-    steps:
+    steps:     
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        
       - name: Create project folder
         uses: appleboy/ssh-action@v1.0.3
         with:
