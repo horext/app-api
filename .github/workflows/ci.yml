@@ -51,7 +51,10 @@ jobs:
         
       - name: Make Gradlew executable
         run: chmod +x gradlew
-        
+
+      - name: Migrate the database
+        run: ./gradlew flywayMigrate -i
+
       - name: Build with Gradle
         run: ./gradlew build
 
