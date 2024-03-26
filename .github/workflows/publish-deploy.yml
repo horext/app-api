@@ -95,7 +95,7 @@ jobs:
           target: ${{ env.PROJECT_FOLDER }}
         
       - name: Pull and start docker
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v1.0.3
         env:
           DOCKER_COMPOSE_TEMPLATE: ${{ env.PROJECT_FOLDER }}/${{ env.DOCKER_COMPOSE_TEMPLATE_PATH }}
           ENV_PATH: ${{ env.PROJECT_FOLDER }}/${{ secrets.ENV_FILE_PATH }}
