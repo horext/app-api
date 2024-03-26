@@ -72,7 +72,7 @@ jobs:
     environment: main
     env:
       PROJECT_FOLDER: ${{ github.event.repository.name }}/${{ github.ref_name }}+
-      DOCKER_COMPOSE_TEMPLATE_PATH: /deploy/docker-compose.yml
+      DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
     steps:
       - name: Create project folder
         uses: appleboy/ssh-action@v1.0.3
