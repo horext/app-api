@@ -1,0 +1,50 @@
+name: CI 
+
+on:
+  push:
+    branches: [main, next, dev]
+  pull_request:
+    branches: [main, next, dev]
+
+jobs:
+  ci:
+    name: Continous Integration
+    runs-on: ubuntu-latest
+
+    env:
+      SPRING_DATASOURCE_DATABASE: mydb
+      SPRING_DATASOURCE_HOST: localhost
+      SPRING_DATASOURCE_PORT: 5432
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      THREAD_API_URL: test
+      SPRING_ALLOWED_ORIGINS: http://localhost:3000
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ env.SPRING_DATASOURCE_DATABASE }}
+          POSTGRES_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
+          POSTGRES_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+        ports:
+          - "5432:5432"
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+        
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Test with Gradle
+        run: ./gradlew test
+
+      - name: Prepare the application
+        run: ./gradlew assemble
