@@ -78,9 +78,6 @@ jobs:
       - name: Setup SSH Agent
         run: eval "$(ssh-agent -s)"
 
-      - name: Add SSH Private Key
-        run: echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
-
       - name: Prepare SSH
         run: |
           mkdir -p ~/.ssh
@@ -88,6 +85,9 @@ jobs:
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
+      - name: Add SSH Private Key
+        run: echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+        
       - name: Deploy to Server
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo '${{ secrets.CI_REGISTRY_PASSWORD }}' | docker login ${{ secrets.CI_REGISTRY }} -u ${{ secrets.CI_REGISTRY_USER }} --password-stdin"
