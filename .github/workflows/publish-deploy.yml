@@ -71,7 +71,7 @@ jobs:
     needs: build-publish
     environment: main
     env:
-      PROJECT_FOLDER: ${{ github.event.repository.name }}/${{ github.ref_name }}+
+      PROJECT_FOLDER: ${{ github.repository}}/${{ github.ref_name }}
       DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
     steps:
       - name: Create project folder
@@ -83,9 +83,7 @@ jobs:
           script:  mkdir -p ${{ env.PROJECT_FOLDER }}
 
       - name: Upload Docker Compose
-        uses: appleboy/scp-action@master        
-        env:
-          PROJECT_FOLDER: ${{ github.event.repository }}/${{ github.ref }}
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
