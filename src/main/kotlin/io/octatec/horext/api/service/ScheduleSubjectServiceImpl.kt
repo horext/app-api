@@ -1,48 +1,39 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
-import io.octatec.horext.api.dto.Page
-import io.octatec.horext.api.util.concat
-import io.octatec.horext.api.util.lower
-import io.octatec.horext.api.util.unaccent
-import org.ktorm.database.Database
-import org.ktorm.dsl.*
-import org.ktorm.entity.*
-import org.springframework.beans.factory.annotation.Autowired
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.and
 import org.springframework.stereotype.Service
-import java.time.Instant
+import org.springframework.transaction.annotation.Transactional
 
 
 @Service
-class ScheduleSubjectServiceImpl : ScheduleSubjectService {
-    @Autowired
-    lateinit var database: Database
-
+@Transactional
+class ScheduleSubjectServiceImpl() : ScheduleSubjectService {
     override fun findBySubjectIdAndHourlyLoadId(subjectId: Long, hourlyLoadId: Long): List<ScheduleSubject> {
-
         val ss = ScheduleSubjects
-        val s = ss.scheduleId.referenceTable as Schedules
-        return database
-            .from(ss)
-            .leftJoin(s, on = s.id eq ss.scheduleId)
-            .select(ss.columns+s.columns)
-            .where{(ss.subjectId eq subjectId) and
-                    (ss.hourlyLoadId eq hourlyLoadId) and (s.deleteAt.isNull()) }
+        val s = Schedules
+        return ss
+            .leftJoin(s)
+            .select(ss.columns + s.columns)
+            .where {
+                (ss.subjectId eq subjectId) and
+                        (ss.hourlyLoadId eq hourlyLoadId) and (s.deleteAt.isNull())
+            }
             .map { row -> ss.createEntity(row) }
 
     }
 
     override fun getAllByIds(ids: List<Long>): List<ScheduleSubject> {
         val ss = ScheduleSubjects
-        val s = ss.subjectId.referenceTable as Subjects
-        val c = s.courseId.referenceTable as Courses
-        val skt = ss.scheduleId.referenceTable as Schedules
-        return database
-            .from(ss)
-            .innerJoin(s, on = ss.subjectId eq s.id)
-            .innerJoin(c, on = s.courseId eq c.id)
-            .innerJoin(skt, on = ss.scheduleId eq skt.id)
-            .select()
+        val s = Subjects
+        val c = Courses
+        val skt = Schedules
+        return ss
+            .innerJoin(s)
+            .innerJoin(c)
+            .innerJoin(skt)
+            .select(ss.columns + s.columns + c.columns + skt.columns)
             .where(ss.id.inList(ids))
             .map { row -> ss.createEntity(row) }
     }

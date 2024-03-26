@@ -1,17 +1,19 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.entity.Entity
-import org.ktorm.schema.*
+import org.jetbrains.exposed.dao.id.IdTable
 
-interface Section : Entity<Section> {
-    companion object : Entity.Factory<Section>()
+data class Section(
 
     val id: String
 
-}
+)
 
-object Sections : Table<Section>("section") {
+object Sections : IdTable<String>("section") {
 
-    val id = varchar("id").primaryKey().bindTo { it.id }
+    override val id = varchar(
+        "id",
+        length = 50
+    ).entityId()
 
+    override val primaryKey = PrimaryKey(id)
 }

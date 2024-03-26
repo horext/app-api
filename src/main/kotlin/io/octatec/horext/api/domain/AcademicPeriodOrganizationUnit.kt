@@ -1,36 +1,47 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.*
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
-interface AcademicPeriodOrganizationUnit : Entity<AcademicPeriodOrganizationUnit> {
-    companion object : Entity.Factory<AcademicPeriodOrganizationUnit>()
+data class AcademicPeriodOrganizationUnit(
 
-    val id: Long
+    val id: Long,
 
-    var fromDate: Instant
+    var fromDate: Instant?,
 
-    var toDate: Instant
+    var toDate: Instant?,
 
-    var academicPeriod: AcademicPeriod
+    var academicPeriod: AcademicPeriod?,
 
-    var organizationUnit: OrganizationUnit
+    var organizationUnit: OrganizationUnit?
+) {
+
+    constructor(id: Long) : this(id, null, null, null, null)
 }
 
-open class AcademicPeriodOrganizationUnits(alias: String?)  : Table<AcademicPeriodOrganizationUnit>("academic_period_organization_unit", alias) {
-    companion object : AcademicPeriodOrganizationUnits(null)
-    override fun aliased(alias: String) = AcademicPeriodOrganizationUnits(alias)
+object AcademicPeriodOrganizationUnits : LongIdTable("academic_period_organization_unit") {
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val fromDate = timestamp("from_date")
 
-    val fromDate = timestamp("from_date").bindTo { it.fromDate }
+    val toDate = timestamp("to_date")
 
-    val toDate = timestamp("to_date").bindTo { it.toDate }
+    val academicPeriodId = reference("academic_period_id", AcademicPeriods)
 
-    val academicPeriodId = long("academic_period_id").references(AcademicPeriods){it.academicPeriod}
+    val organizationUnitId = reference("organization_unit_id", OrganizationUnits)
 
-    val organizationUnitId = long("organization_unit_id").references(OrganizationUnits) { it.organizationUnit }
+    fun createEntity(row: ResultRow): AcademicPeriodOrganizationUnit {
+        return AcademicPeriodOrganizationUnit(
+            id = row[id].value,
+            fromDate = row[fromDate],
+            toDate = row[toDate],
+            academicPeriod = AcademicPeriod(
+                id = row[academicPeriodId].value,
+            ),
+            organizationUnit = OrganizationUnit(
+                id = row[organizationUnitId].value,
+            )
+        )
+    }
 }

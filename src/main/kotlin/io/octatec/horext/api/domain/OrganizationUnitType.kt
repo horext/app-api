@@ -1,26 +1,31 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.int
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
-interface OrganizationUnitType : Entity<OrganizationUnitType> {
-    companion object : Entity.Factory<OrganizationUnitType>()
+data class OrganizationUnitType(
 
-    val id: Long
+    val id: Long,
 
-    var name: String
+    val name: String?
+) {
+
+    constructor(id: Long) : this(id, null)
 }
 
-object OrganizationUnitTypes : Table<OrganizationUnitType>("organization_unit_type") {
+object OrganizationUnitTypes : LongIdTable("organization_unit_type") {
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val name = varchar("name", length = 100)
 
-    val name = varchar("name").bindTo { it.name }
+    fun createEntity(row: ResultRow): OrganizationUnitType {
+        return OrganizationUnitType(
+            row[id].value,
+            row[name]
+        )
+    }
 }
 
-val Database.organizationUnitTypes get() = this.sequenceOf(OrganizationUnitTypes)
+enum class ORGANIZATION_UNIT_TYPES(val id: Long) {
+    FACULTY(2L),
+    SPECIALITY(3L),
+}

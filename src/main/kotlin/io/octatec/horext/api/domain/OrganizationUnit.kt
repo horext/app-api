@@ -1,39 +1,45 @@
 package io.octatec.horext.api.domain
 
-import org.ktorm.database.Database
-import org.ktorm.entity.Entity
-import org.ktorm.entity.sequenceOf
-import org.ktorm.schema.Table
-import org.ktorm.schema.int
-import org.ktorm.schema.long
-import org.ktorm.schema.varchar
+import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.ResultRow
 
-interface OrganizationUnit : Entity<OrganizationUnit> {
-    companion object : Entity.Factory<OrganizationUnit>()
+data class OrganizationUnit(
 
-    val id: Long
+    var id: Long,
 
-    var parentOrganizationUnit: OrganizationUnit?
+    var parentOrganizationUnit: OrganizationUnit?,
 
-    var code: String
+    var code: String?,
 
-    var name: String
+    var name: String?,
 
-    var type: OrganizationUnitType
+    var type: OrganizationUnitType?,
 
+    ) {
+    constructor(id: Long) : this(id, null, null, null, null)
 }
 
-object OrganizationUnits : Table<OrganizationUnit>("organization_unit") {
+object OrganizationUnits : LongIdTable("organization_unit") {
+    val parentOrganizationId = long("parent_organization_id")
 
-    val id = long("id").primaryKey().bindTo { it.id }
+    val code = varchar("code", length = 50)
 
-    val parentOrganizationId = long("parent_organization_id").bindTo { it.parentOrganizationUnit?.id }
+    val name = varchar("name", length = 50)
 
-    val code = varchar("code").bindTo { it.code }
+    val typeId = reference("organization_unit_type_id", OrganizationUnitTypes)
 
-    val name = varchar("name").bindTo { it.name }
 
-    val typeId = long("organization_unit_type_id").references(OrganizationUnitTypes) { it.type }
+    fun createEntity(row: ResultRow): OrganizationUnit {
+        return OrganizationUnit(
+            id = row[id].value,
+            code = row[code],
+            name = row[name],
+            type = runCatching {
+                OrganizationUnitTypes.createEntity(row)
+            }.getOrElse { OrganizationUnitType(id = row[typeId].value) },
+            parentOrganizationUnit = OrganizationUnit(
+                id = row[parentOrganizationId],
+            )
+        )
+    }
 }
-
-val Database.organizationUnits get() = this.sequenceOf(OrganizationUnits)

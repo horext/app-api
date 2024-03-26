@@ -13,7 +13,7 @@ import java.util.*
 @Service
 class ThreadServiceImpl : ThreadService {
     @Value("\${app.thread-api-url}")
-    val baseUrl= ""
+    val baseUrl = ""
 
     @Autowired
     private val restTemplate: RestTemplate? = null

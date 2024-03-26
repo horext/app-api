@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api-server:
-    image:  ${IMAGE_NAME}
+    image: ${IMAGE_NAME}
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
@@ -22,8 +22,8 @@ services:
       - letsencrypt
 networks:
   letsencrypt:
-    external:
-      name: letsencrypt
+    name: letsencrypt
+    external: true
   horext-api-network:
-    external:
-      name: pg-database
+    name: pg-database
+    external: true
