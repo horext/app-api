@@ -97,7 +97,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.8
         env:
           DOCKER_COMPOSE_TEMPLATE: ${{ env.PROJECT_FOLDER }}/${{ env.DOCKER_COMPOSE_TEMPLATE_PATH }}
-          ENV_PATH: ${{ env.PROJECT_FOLDER }}/${{ secrets.$ENV_FILE_PATH }}
+          ENV_PATH: ${{ env.PROJECT_FOLDER }}/${{ secrets.ENV_FILE_PATH }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
