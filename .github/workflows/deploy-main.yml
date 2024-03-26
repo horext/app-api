@@ -12,6 +12,9 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-deploy:
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/publish-deploy.yml
     with:
       environment: main
