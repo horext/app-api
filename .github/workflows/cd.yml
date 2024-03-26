@@ -42,7 +42,9 @@ env:
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
