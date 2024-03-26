@@ -13,8 +13,8 @@ env:
   SPRING_DATASOURCE_PASSWORD: password
   
 jobs:
-  ci:
-    name: Continuous Integration
+  build-test:
+    name: Build and Test
     runs-on: ubuntu-latest
     
     env:
