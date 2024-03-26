@@ -15,7 +15,7 @@ env:
   
 jobs:
   ci:
-    name: Continous Integration
+    name: Continuous Integration
     runs-on: ubuntu-latest
     
     env:
