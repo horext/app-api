@@ -22,7 +22,7 @@ jobs:
       packages: write
     uses: ./.github/workflows/cd.yml
     with:
-      environment: develop
+      environment: dev
     secrets:
       SERVER_IP: ${{ secrets.SERVER_IP }}
       SERVER_USER: ${{ secrets.SERVER_USER }}
