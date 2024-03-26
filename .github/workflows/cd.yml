@@ -130,6 +130,7 @@ jobs:
           script: |
             cat ${{ env.DOCKER_COMPOSE_TEMPLATE }}
             echo "${{ secrets.ENV_FILE }}" > ${{ env.ENV_PATH }}
+            echo "IMAGE_NAME=${{ needs.release.outputs.tags }}" >> ${{ env.ENV_PATH }}
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
             docker pull ${{ needs.release.outputs.tags }}
             docker compose --env-file ${{ env.ENV_PATH }} -p ${{ secrets.DOCKER_PROJECT_NAME }} -f ${{ env.DOCKER_COMPOSE_TEMPLATE }} up -d
