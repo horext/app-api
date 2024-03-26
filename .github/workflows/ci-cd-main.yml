@@ -12,10 +12,11 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   ci:
-    name: Continuous Integration
+    name: CI
     uses: ./.github/workflows/ci.yml
   cd:
-    name: Continuous Delivery
+    name: CD
+    needs: ci
     permissions:
       contents: read
       packages: write
