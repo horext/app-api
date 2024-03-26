@@ -5,18 +5,20 @@ on:
     branches: [main, next, dev]
   pull_request:
     branches: [main, next, dev]
-
+    
+env:
+  SPRING_DATASOURCE_DATABASE: mydb
+  SPRING_DATASOURCE_HOST: localhost
+  SPRING_DATASOURCE_PORT: 5432
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: password
+  
 jobs:
   ci:
     name: Continous Integration
     runs-on: ubuntu-latest
-
+    
     env:
-      SPRING_DATASOURCE_DATABASE: mydb
-      SPRING_DATASOURCE_HOST: localhost
-      SPRING_DATASOURCE_PORT: 5432
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
       THREAD_API_URL: test
       SPRING_ALLOWED_ORIGINS: http://localhost:3000
       SPRING_DATASOURCE_URL: "jdbc:postgresql://$SPRING_DATASOURCE_HOST:$SPRING_DATASOURCE_PORT/$SPRING_DATASOURCE_DATABASE"
