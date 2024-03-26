@@ -3,7 +3,8 @@ name: CI Pipeline
 on:
   pull_request:
     branches: [main, next, dev]
-    
+  workflow_call:   
+  
 env:
   SPRING_DATASOURCE_DATABASE: mydb
   SPRING_DATASOURCE_HOST: localhost
