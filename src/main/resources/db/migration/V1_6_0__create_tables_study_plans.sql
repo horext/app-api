@@ -9,7 +9,10 @@ create table study_plan
     to_date              timestamp,
     organization_unit_id bigint
         constraint study_plan_organization_unit_id_fkey
-            references organization_unit
+            references organization_unit,
+    created_at           timestamp,
+    updated_at           timestamp,
+    deleted_at           timestamp
 );
 
 create index study_plan_from_date_idx
