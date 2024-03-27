@@ -64,8 +64,8 @@ jobs:
         env:
           FLYWAY_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
           FLYWAY_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
-          FLYWAY_URL: jdbc:postgresql://${{ env.SPRING_DATASOURCE_HOST }}:${{ env.SPRING_DATASOURCE_PORT }}/${{ env.SPRING_DATASOURCE_DATABASE }}
-          FLYWAY_SCHEMAS: ${{ env.SPRING_DATASOURCE_DATABASE }}
+          FLYWAY_URL: jdbc:postgresql://${{ env.SPRING_DATASOURCE_HOST }}:${{ env.SPRING_DATASOURCE_PORT }}/${{ env.SPRING_DATASOURCE_DATABASE }}?schema=public
+          FLYWAY_SCHEMAS: public
           FLYWAY_DRIVER: org.postgresql.Driver
 
       - name: Build with Gradle
