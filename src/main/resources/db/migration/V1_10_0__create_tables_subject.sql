@@ -39,5 +39,6 @@ create table subject
             references study_plan,
     subject_type_id                  bigint
         constraint subject_subject_type_id_fkey
-            references subject_type
+            references subject_type,
+    order                           integer
 );
