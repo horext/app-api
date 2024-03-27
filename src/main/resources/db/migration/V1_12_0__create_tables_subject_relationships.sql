@@ -20,5 +20,7 @@ create table subject_relationship
             references subject_relationship_type,
     to_subject_id                bigint
         constraint subject_relationship_to_subject_id_fkey
-            references subject
+            references subject,
+    created_at                   timestamp,
+    updated_at                   timestamp
 );
