@@ -31,6 +31,7 @@ jobs:
           POSTGRES_DB: ${{ env.SPRING_DATASOURCE_DATABASE }}
           POSTGRES_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
           POSTGRES_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+          POSTGRES_PORT: ${{ env.SPRING_DATASOURCE_PORT }}
         ports:
           - "5432:5432"
         # Set health checks to wait until postgres has started
