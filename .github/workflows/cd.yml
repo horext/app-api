@@ -69,14 +69,14 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew assemble
+
+      - name: Migrate Database
+        run: gradle flywayMigrate -i
         env:
           FLYWAY_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           FLYWAY_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           FLYWAY_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           FLYWAY_SCHEMAS: ${{ secrets.SPRING_DATASOURCE_SCHEMA }}
-
-      - name: Migrate Database
-        run: gradle flywayMigrate -i
 
   release:
     name: Release
