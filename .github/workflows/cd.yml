@@ -63,7 +63,7 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
-      
+
       - name: Make Gradlew executable
         run: chmod +x gradlew
 
@@ -71,12 +71,12 @@ jobs:
         run: ./gradlew assemble
 
       - name: Migrate Database
-        run: gradle flywayMigrate -i
+        run: ./gradlew flywayMigrate -i
         env:
-          FLYWAY_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          FLYWAY_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          FLYWAY_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          FLYWAY_SCHEMAS: ${{ secrets.SPRING_DATASOURCE_SCHEMA }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_SCHEMA: ${{ secrets.SPRING_DATASOURCE_SCHEMA }}
 
   release:
     name: Release
