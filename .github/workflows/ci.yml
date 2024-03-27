@@ -5,7 +5,7 @@ on:
   
 env:
   SPRING_DATASOURCE_DATABASE: mydb
-  SPRING_DATASOURCE_HOST: localhost
+  SPRING_DATASOURCE_HOST: postgres
   SPRING_DATASOURCE_PORT: 5432
   SPRING_DATASOURCE_USERNAME: postgres
   SPRING_DATASOURCE_PASSWORD: password
@@ -27,12 +27,18 @@ jobs:
       postgres:
         image: postgres:latest
         env:
+          POSTGRES_HOST: ${{ env.SPRING_DATASOURCE_HOST }}
           POSTGRES_DB: ${{ env.SPRING_DATASOURCE_DATABASE }}
           POSTGRES_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
           POSTGRES_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
         ports:
           - "5432:5432"
-
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       fail-fast: false
 
