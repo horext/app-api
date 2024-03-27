@@ -21,6 +21,6 @@ create table subject_relationship
     to_subject_id                bigint
         constraint subject_relationship_to_subject_id_fkey
             references subject,
-    created_at                   timestamp,
-    updated_at                   timestamp
+    created_at                   timestamp default now(),
+    updated_at                   timestamp default now(),
 );
