@@ -5,5 +5,6 @@ create table course
             primary key,
     created_at timestamp,
     updated_at timestamp,
-    name       varchar(255)
+    name       varchar(255),
+    code  varchar(100)
 );
