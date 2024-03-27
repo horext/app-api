@@ -51,3 +51,41 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+fun getEnvLines(): List<String> {
+	val envFile = file(".env")
+	return if (envFile.exists()) {
+		envFile.readLines()
+	} else {
+		emptyList()
+	}
+}
+
+tasks.withType<JavaExec> {
+    doFirst {
+		val envLines = getEnvLines()
+		for (envLine in envLines) {
+			val (key, value) = envLine.split("=", limit = 2)
+			environment[key] = value
+		}
+    }
+}
+
+fun getEnv(key: String): String? {
+	val envLines = getEnvLines()
+	for (envLine in envLines) {
+		val (envKey, envValue) = envLine.split("=", limit = 2)
+		if (envKey == key) {
+			return envValue
+		}
+	}
+	return System.getenv(key)
+}
+
+flyway {	
+    password = getEnv("SPRING_DATASOURCE_PASSWORD")
+	url = getEnv("SPRING_DATASOURCE_URL")
+	user = getEnv("SPRING_DATASOURCE_USERNAME")
+	driver = "org.postgresql.Driver"
+	schemas = arrayOf(getEnv("SPRING_DATASOURCE_SCHEMA"))
+}
