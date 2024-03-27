@@ -19,6 +19,17 @@ Optional requirements:
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 - [Dev Container](https://code.visualstudio.com/docs/remote/containers)
+- 
+#### Create .env file
+
+- Copy .env.example to .env file via command below
+
+```bash
+cp .env.example .env
+```
+
+- Fill in the environment variables in the .env file
+- Do you need to create the database and setup in .env
 
 #### Running the project
 
