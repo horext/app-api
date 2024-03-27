@@ -10,8 +10,8 @@ create table study_plan
     organization_unit_id bigint
         constraint study_plan_organization_unit_id_fkey
             references organization_unit,
-    created_at           timestamp,
-    updated_at           timestamp,
+    created_at           timestamp default now(),
+    updated_at           timestamp default now(),
     deleted_at           timestamp
 );
 
