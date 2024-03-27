@@ -30,7 +30,6 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.48.0")
 	implementation("org.jetbrains.exposed:exposed-java-time:0.48.0")
-	implementation("org.flywaydb:flyway-core:10.0.0")
 }
 
 buildscript {
