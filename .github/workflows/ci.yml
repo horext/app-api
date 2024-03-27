@@ -59,6 +59,10 @@ jobs:
       - name: Make Gradlew executable
         run: chmod +x gradlew
 
+
+      - name: Build with Gradle
+        run: ./gradlew assemble
+
       - name: Migrate the database
         run: ./gradlew flywayMigrate -i
         env:
@@ -68,11 +72,8 @@ jobs:
           FLYWAY_SCHEMAS: public
           FLYWAY_DRIVER: org.postgresql.Driver
 
-      - name: Build with Gradle
-        run: ./gradlew build
-
       - name: Test with Gradle
         run: ./gradlew test
 
       - name: Prepare the application
-        run: ./gradlew assemble
+        run: ./gradlew build
