@@ -30,6 +30,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.48.0")
 	implementation("org.jetbrains.exposed:exposed-java-time:0.48.0")
+	implementation("org.flywaydb:flyway-core:10.10.0")
 }
 
 buildscript {
@@ -88,4 +89,5 @@ flyway {
 	user = getEnv("SPRING_DATASOURCE_USERNAME")
 	driver = "org.postgresql.Driver"
 	schemas = arrayOf(getEnv("SPRING_DATASOURCE_SCHEMA"))
+	locations = arrayOf("classpath:db/migration")
 }
