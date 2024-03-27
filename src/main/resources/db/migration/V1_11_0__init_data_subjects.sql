@@ -1,4 +1,4 @@
-insert into subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours, weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours, weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, "order")
+insert into subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours, weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours, weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, position)
 values  (3305, 3, 5, null, null, null, null, null, null, null, null, null, 'ST113', 7, 7, 1, null),
         (3306, 3, 5, null, null, null, null, 4, null, null, 2, 2, 'TE603', 6, 3, 1, null),
         (3307, 5, 1, null, null, null, null, 6, null, null, 2, 4, 'BMA01', 6, 3, 1, null),

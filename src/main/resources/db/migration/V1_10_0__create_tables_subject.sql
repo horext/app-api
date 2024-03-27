@@ -40,5 +40,5 @@ create table subject
     subject_type_id                  bigint
         constraint subject_subject_type_id_fkey
             references subject_type,
-    order                           integer
+    position                         integer
 );
