@@ -22,5 +22,5 @@ create table subject_relationship
         constraint subject_relationship_to_subject_id_fkey
             references subject,
     created_at                   timestamp default now(),
-    updated_at                   timestamp default now(),
+    updated_at                   timestamp default now()
 );
