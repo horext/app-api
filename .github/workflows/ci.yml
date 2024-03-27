@@ -5,7 +5,7 @@ on:
   
 env:
   SPRING_DATASOURCE_DATABASE: mydb
-  SPRING_DATASOURCE_HOST: postgres
+  SPRING_DATASOURCE_HOST: localhost
   SPRING_DATASOURCE_PORT: 5432
   SPRING_DATASOURCE_USERNAME: postgres
   SPRING_DATASOURCE_PASSWORD: password
@@ -31,6 +31,7 @@ jobs:
           POSTGRES_DB: ${{ env.SPRING_DATASOURCE_DATABASE }}
           POSTGRES_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
           POSTGRES_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+          POSTGRES_PORT: ${{ env.SPRING_DATASOURCE_PORT }}
         ports:
           - "5432:5432"
         # Set health checks to wait until postgres has started
@@ -57,7 +58,16 @@ jobs:
         
       - name: Make Gradlew executable
         run: chmod +x gradlew
-        
+
+      - name: Migrate the database
+        run: ./gradlew flywayMigrate -i
+        env:
+          FLYWAY_USER: ${{ env.SPRING_DATASOURCE_USERNAME }}
+          FLYWAY_PASSWORD: ${{ env.SPRING_DATASOURCE_PASSWORD }}
+          FLYWAY_URL: jdbc:postgresql://${{ env.SPRING_DATASOURCE_HOST }}:${{ env.SPRING_DATASOURCE_PORT }}/${{ env.SPRING_DATASOURCE_DATABASE }}?schema=public
+          FLYWAY_SCHEMAS: public
+          FLYWAY_DRIVER: org.postgresql.Driver
+
       - name: Build with Gradle
         run: ./gradlew build
 
