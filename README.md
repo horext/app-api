@@ -22,9 +22,15 @@ Optional requirements:
 
 #### Running the project
 
-For live reload, run the following command (recommended):
-
 > For Windows use: `gradlew` instead of `./gradlew`
+
+Initialize the database by running the following command:
+
+```bash
+./gradlew flywayMigrate -i
+```
+
+For live reload, run the following command (recommended):
 
 ```bash
 ./gradlew compileKotlin --continuous --parallel --build-cache --configuration-cache
