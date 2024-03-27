@@ -3,7 +3,7 @@ values (10, '2016-1_I1', '2021-03-22 18:42:43.146000', null, null, 11);
 
 insert into subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours,
                      weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours,
-                     weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, order)
+                     weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, position)
 values (3599, 3, 1, null, null, null, null, 4, null, null, 2, 2, 'GP101', 7, 10, 1, null),
        (3598, 3, 1, null, null, null, null, 5, null, null, 3, 2, 'TP301', 5, 10, 1, null),
        (3600, 2, 1, null, null, null, null, 3, null, null, 2, 1, 'HS101', 4, 10, 1, null),

@@ -3,7 +3,7 @@ values (15, '2020-1_I1', '2021-03-22 18:42:43.146000', null, null, 11);
 
 insert into public.subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours,
                             weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours,
-                            weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, order)
+                            weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, position)
 values (4138, 5, 1, null, null, null, null, 6, null, 2, null, 4, 'BQU01', 7, 15, 1, null),
        (4137, 5, 1, null, null, null, null, 6, null, 2, null, 4, 'BMA01', 6, 15, 1, null),
        (4143, 3, 1, null, null, null, null, 4, null, 2, null, 2, 'GE101', 7, 15, 1, null),

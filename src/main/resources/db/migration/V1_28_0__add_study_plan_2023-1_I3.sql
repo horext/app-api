@@ -3,7 +3,7 @@ values (4, '2023-2_I3', '2023-08-01 18:20:00.000000', null, null, 2);
 
 insert into public.subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours,
                             weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours,
-                            weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, order)
+                            weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, position)
 values (10, 2, 1, null, null, null, null, null, null, null, null, null, 'HU102', null, 4, 1, null),
        (9, 2, 1, null, null, null, null, null, null, null, null, null, 'BIC01', null, 4, 1, null),
        (8, 3, 1, null, null, null, null, null, null, null, null, null, 'SW101', null, 4, 1, null),
