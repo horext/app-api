@@ -48,6 +48,7 @@ class SubjectServiceImpl() : SubjectService {
         return s
             .innerJoin(c)
             .innerJoin(sp)
+            .leftJoin(st)
             .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
