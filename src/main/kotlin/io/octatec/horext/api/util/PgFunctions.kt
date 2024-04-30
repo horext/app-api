@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.Function
 
 class Unaccent<T : String?>(
     private val expression: Expression<T>
-) : Function<T>(TextColumnType()) {
+) : Function<String>(TextColumnType()) {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) {
         queryBuilder { append("unaccent(", expression, ")") }
     }
@@ -23,7 +23,7 @@ class UnaccentString(
         queryBuilder { append("unaccent(", stringParam(value), ")") }
     }
 
-    override val columnType: IColumnType = VarCharColumnType()
+    override val columnType: IColumnType<String> = VarCharColumnType()
 }
 
 fun String.unaccent(): ExpressionWithColumnType<String> {
