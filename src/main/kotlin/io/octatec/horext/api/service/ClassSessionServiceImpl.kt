@@ -1,7 +1,7 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
-import io.octatec.horext.api.util.inList
+import org.jetbrains.exposed.sql.anyFrom
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,7 +35,7 @@ class ClassSessionServiceImpl() : ClassSessionService {
             .leftJoin(cr)
             .leftJoin(t)
             .select(cs.columns + cst.columns + cr.columns + t.columns)
-            .where { cs.scheduleId.inList(scheduleIds) }
+            .where { cs.scheduleId eq anyFrom(scheduleIds)  }
             .map { row -> cs.createEntity(row) }
     }
 }

@@ -72,6 +72,3 @@ infix fun <T : String?> Expression<T>.ilike(expression: ExpressionWithColumnType
 infix fun Expression<EntityID<String>>.ilike(expression: ExpressionWithColumnType<String>): IlikeEscapeOp =
     IlikeEscapeOp(this, expression, true, null)
 
-
-infix fun <T:Comparable<T>> ExpressionWithColumnType<EntityID<T>>.inList(list: List<T>)
-        = SingleValueInListOp(this, list, isInList = true)
