@@ -1,7 +1,7 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import io.octatec.horext.api.util.inList
 import org.jetbrains.exposed.sql.and
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

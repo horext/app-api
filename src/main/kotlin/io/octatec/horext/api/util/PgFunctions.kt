@@ -3,6 +3,7 @@ package io.octatec.horext.api.util
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Function
+import org.jetbrains.exposed.sql.ops.SingleValueInListOp
 
 
 class Unaccent<T : String?>(
@@ -72,3 +73,5 @@ infix fun Expression<EntityID<String>>.ilike(expression: ExpressionWithColumnTyp
     IlikeEscapeOp(this, expression, true, null)
 
 
+infix fun <T:Comparable<T>> ExpressionWithColumnType<EntityID<T>>.inList(list: List<T>)
+        = SingleValueInListOp(this, list, isInList = true)
