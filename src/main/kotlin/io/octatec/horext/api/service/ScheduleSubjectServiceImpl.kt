@@ -2,7 +2,9 @@ package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.*
 import io.octatec.horext.api.util.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.anyFrom
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -34,7 +36,7 @@ class ScheduleSubjectServiceImpl() : ScheduleSubjectService {
             .innerJoin(c)
             .innerJoin(skt)
             .select(ss.columns + s.columns + c.columns + skt.columns)
-            .where(ss.id.inList(ids))
+            .where(ss.id eq anyFrom(ids))
             .map { row -> ss.createEntity(row) }
     }
 
