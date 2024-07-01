@@ -38,7 +38,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:10.15.0")
+        classpath("org.flywaydb:flyway-database-postgresql:10.15.2")
     }
 }
 
