@@ -131,6 +131,7 @@ jobs:
         env:
           DOCKER_COMPOSE_TEMPLATE: ${{ env.PROJECT_FOLDER }}/${{ env.DOCKER_COMPOSE_TEMPLATE_PATH }}
           ENV_PATH: ${{ env.PROJECT_FOLDER }}/${{ secrets.ENV_FILE_PATH }}
+        timeout-minutes: 5
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -141,7 +142,7 @@ jobs:
             echo "IMAGE_NAME=${{ needs.release.outputs.tags }}" >> ${{ env.ENV_PATH }}
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
             docker pull ${{ needs.release.outputs.tags }}
-            docker compose --env-file ${{ env.ENV_PATH }} -p ${{ secrets.DOCKER_PROJECT_NAME }} -f ${{ env.DOCKER_COMPOSE_TEMPLATE }} up -d
+            docker compose --env-file ${{ env.ENV_PATH }} -p ${{ secrets.DOCKER_PROJECT_NAME }} -f ${{ env.DOCKER_COMPOSE_TEMPLATE }} up --wait
             docker system prune --force
 
   migrate-db:
