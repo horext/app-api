@@ -17,6 +17,7 @@ data class OrganizationUnit(
 
     ) {
     constructor(id: Long) : this(id, null, null, null, null)
+    constructor(id: Long, name: String) : this(id, null, null, name, null)
 }
 
 object OrganizationUnits : LongIdTable("organization_unit") {
