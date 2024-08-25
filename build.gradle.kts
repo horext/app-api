@@ -4,7 +4,7 @@ plugins {
 	id("org.graalvm.buildtools.native") version "0.10.2"
 	kotlin("jvm") version "2.0.20"
 	kotlin("plugin.spring") version "2.0.20"
-	id("org.flywaydb.flyway") version "10.17.1"
+	id("org.flywaydb.flyway") version "10.17.2"
 }
 
 group = "io.octatec.horext"
