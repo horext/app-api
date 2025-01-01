@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 # First stage: JDK with GraalVM
-FROM ghcr.io/graalvm/native-image-community:21 AS build
+FROM ghcr.io/graalvm/native-image-community:22 AS build
 
 # Update package lists and Install Maven
 RUN microdnf install -y findutils
