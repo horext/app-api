@@ -61,6 +61,13 @@ To check the code style using ktlint, run the following command:
 ./gradlew ktlintCheck
 ```
 
+
+To format the code using ktlint, run the following command:
+
+```bash
+./gradlew ktlintFormat
+```
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:
