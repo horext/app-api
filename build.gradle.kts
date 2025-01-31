@@ -1,3 +1,5 @@
+val ktlint by configurations.creating
+
 plugins {
 	id("org.springframework.boot") version "3.4.2"
 	id("io.spring.dependency-management") version "1.1.7"
@@ -5,7 +7,6 @@ plugins {
 	kotlin("jvm") version "2.1.10"
 	kotlin("plugin.spring") version "2.1.10"
 	id("org.flywaydb.flyway") version "11.3.0"
-	id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
 }
 
 group = "io.octatec.horext"
@@ -34,6 +35,11 @@ dependencies {
 	implementation("org.jetbrains.exposed:exposed-java-time:0.58.0")
 	implementation("org.flywaydb:flyway-core:11.3.0")
 	implementation("org.jlleitschuh.gradle:ktlint-gradle:11.3.1")
+	ktlint("com.pinterest.ktlint:ktlint-cli:1.5.0") {
+		attributes {
+		    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+		}
+	}
 }
 
 buildscript {
@@ -100,10 +106,34 @@ flyway {
 	locations = arrayOf("classpath:db/migration")
 }
 
-tasks.register("ktlintCheck", JavaExec::class) {
-    group = "verification"
-    description = "Check Kotlin code style."
-    classpath = configurations["ktlint"]
-    main = "com.pinterest.ktlint.Main"
-    args("src/**/*.kt")
+val ktlintCheck by tasks.registering(JavaExec::class) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Check Kotlin code style"
+    classpath = ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
+    args(
+        "**/src/**/*.kt",
+        "**.kts",
+        "!**/build/**",
+    )
+}
+
+asks.check {
+    dependsOn(ktlintCheck)
+}
+
+tasks.register<JavaExec>("ktlintFormat") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Check Kotlin code style and format"
+    classpath = ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    jvmArgs("--add-opens=java.base/java.lang=ALL-UNNAMED")
+    // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
+    args(
+        "-F",
+        "**/src/**/*.kt",
+        "**.kts",
+        "!**/build/**",
+    )
 }
