@@ -5,6 +5,7 @@ plugins {
 	kotlin("jvm") version "2.1.10"
 	kotlin("plugin.spring") version "2.1.10"
 	id("org.flywaydb.flyway") version "11.3.0"
+	id("org.jlleitschuh.gradle.ktlint") version "11.3.1"
 }
 
 group = "io.octatec.horext"
@@ -32,6 +33,7 @@ dependencies {
 	implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.58.0")
 	implementation("org.jetbrains.exposed:exposed-java-time:0.58.0")
 	implementation("org.flywaydb:flyway-core:11.3.0")
+	implementation("org.jlleitschuh.gradle:ktlint-gradle:11.3.1")
 }
 
 buildscript {
@@ -96,4 +98,12 @@ flyway {
 	driver = "org.postgresql.Driver"
 	schemas = arrayOf(getEnv("SPRING_DATASOURCE_SCHEMA"))
 	locations = arrayOf("classpath:db/migration")
+}
+
+tasks.register("ktlintCheck", JavaExec::class) {
+    group = "verification"
+    description = "Check Kotlin code style."
+    classpath = configurations["ktlint"]
+    main = "com.pinterest.ktlint.Main"
+    args("src/**/*.kt")
 }
