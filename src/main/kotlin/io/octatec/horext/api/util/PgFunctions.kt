@@ -9,7 +9,9 @@ import org.jetbrains.exposed.sql.QueryBuilder
 import org.jetbrains.exposed.sql.TextColumnType
 import org.jetbrains.exposed.sql.VarCharColumnType
 import org.jetbrains.exposed.sql.stringParam
-import org.jetbrains.exposed.sql.with
+import org.jetbrains.exposed.sql.append
+import org.jetbrains.exposed.sql.ComparisonOp
+import org.jetbrains.exposed.sql.LikePattern
 
 class Unaccent<T : String?>(
     private val expression: Expression<T>,
