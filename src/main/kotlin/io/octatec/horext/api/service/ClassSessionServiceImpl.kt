@@ -7,13 +7,10 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class ClassSessionServiceImpl(private val classSessionRepository: ClassSessionRepository) : ClassSessionService {
+class ClassSessionServiceImpl(
+    private val classSessionRepository: ClassSessionRepository,
+) : ClassSessionService {
+    override fun findByScheduleId(scheduleId: Long): List<ClassSession> = classSessionRepository.findByScheduleId(scheduleId)
 
-    override fun findByScheduleId(scheduleId: Long): List<ClassSession> {
-        return classSessionRepository.findByScheduleId(scheduleId)
-    }
-
-    override fun findByScheduleIds(scheduleIds: List<Long>): List<ClassSession> {
-        return classSessionRepository.findByScheduleIds(scheduleIds)
-    }
+    override fun findByScheduleIds(scheduleIds: List<Long>): List<ClassSession> = classSessionRepository.findByScheduleIds(scheduleIds)
 }

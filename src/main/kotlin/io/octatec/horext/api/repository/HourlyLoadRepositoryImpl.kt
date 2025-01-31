@@ -9,7 +9,6 @@ import java.time.Instant
 
 @Repository
 class HourlyLoadRepositoryImpl : HourlyLoadRepository {
-
     override fun getLatestByFaculty(facultyId: Long): HourlyLoad {
         val hl = HourlyLoads
         val apou = AcademicPeriodOrganizationUnits
@@ -18,8 +17,8 @@ class HourlyLoadRepositoryImpl : HourlyLoadRepository {
             .select(hl.columns + apou.columns)
             .where {
                 (apou.organizationUnitId eq facultyId) and
-                        (hl.publishedAt lessEq Instant.now())
-            }
-            .map { row -> hl.createEntity(row) }.first()
+                    (hl.publishedAt lessEq Instant.now())
+            }.map { row -> hl.createEntity(row) }
+            .first()
     }
 }

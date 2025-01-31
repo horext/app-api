@@ -10,8 +10,10 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 @Transactional
 class ScheduleRepositoryImpl : ScheduleRepository {
-
-    override fun findBySubjectIdAndHourlyLoadId(subjectId: Long, hourlyLoadId: Long): List<Schedule> {
+    override fun findBySubjectIdAndHourlyLoadId(
+        subjectId: Long,
+        hourlyLoadId: Long,
+    ): List<Schedule> {
         val ss = ScheduleSubjects
         val s = Schedules
         return s
@@ -19,8 +21,7 @@ class ScheduleRepositoryImpl : ScheduleRepository {
             .select(ss.columns)
             .where {
                 (ss.subjectId eq subjectId) and
-                        (ss.hourlyLoadId eq hourlyLoadId)
-            }
-            .map { row -> s.createEntity(row) }
+                    (ss.hourlyLoadId eq hourlyLoadId)
+            }.map { row -> s.createEntity(row) }
     }
 }

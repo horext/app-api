@@ -9,22 +9,17 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("scheduleSubjects")
-class ScheduleSubjectController(val scheduleSubjectService: ScheduleSubjectService) {
-
-
+class ScheduleSubjectController(
+    val scheduleSubjectService: ScheduleSubjectService,
+) {
     @GetMapping(params = ["ids"])
     fun getAllByIds(
-        @RequestParam(name = "ids") ids: List<Long>
-    ): List<ScheduleSubject> {
-        return scheduleSubjectService.getAllByIds(ids)
-    }
+        @RequestParam(name = "ids") ids: List<Long>,
+    ): List<ScheduleSubject> = scheduleSubjectService.getAllByIds(ids)
 
     @GetMapping(params = ["subject", "hourlyLoad"])
     fun getAllBySpeciality(
         @RequestParam(name = "subject") subjectId: Long,
-        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long
-    ): List<ScheduleSubject> {
-        return scheduleSubjectService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
-    }
-
+        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+    ): List<ScheduleSubject> = scheduleSubjectService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
 }

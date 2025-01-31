@@ -7,24 +7,16 @@ import java.time.LocalTime
 
 data class ClassSession(
     val id: Long,
-
     var schedule: Schedule,
-
     var type: ClassSessionType,
-
     var classroom: Classroom,
-
     var teacher: Teacher,
-
     var day: Int,
-
     var startTime: LocalTime,
-
-    var endTime: LocalTime
+    var endTime: LocalTime,
 )
 
 object ClassSessions : LongIdTable("class_session") {
-
     val scheduleId = reference("schedule_id", Schedules)
 
     val classroomId = reference("classroom_id", Classrooms)
@@ -39,34 +31,31 @@ object ClassSessions : LongIdTable("class_session") {
 
     val endTime = time("end_time")
 
-
-    fun createEntity(row: ResultRow): ClassSession {
-        return ClassSession(
+    fun createEntity(row: ResultRow): ClassSession =
+        ClassSession(
             row[id].value,
             runCatching { Schedules.createEntity(row) }.getOrElse {
                 Schedule(
-                    id = row[scheduleId].value
+                    id = row[scheduleId].value,
                 )
             },
             runCatching { ClassSessionTypes.createEntity(row) }.getOrElse {
                 ClassSessionType(
-                    id = row[classSessionTypeId].value
+                    id = row[classSessionTypeId].value,
                 )
             },
             runCatching { Classrooms.createEntity(row) }.getOrElse {
                 Classroom(
-                    id = row[classroomId].value
+                    id = row[classroomId].value,
                 )
             },
             runCatching { Teachers.createEntity(row) }.getOrElse {
                 Teacher(
-                    id = row[teacherId].value
+                    id = row[teacherId].value,
                 )
             },
             row[day],
             row[startTime],
-            row[endTime]
+            row[endTime],
         )
-
-    }
 }

@@ -8,31 +8,27 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class SubjectServiceImpl(private val subjectRepository: SubjectRepository) : SubjectService {
+class SubjectServiceImpl(
+    private val subjectRepository: SubjectRepository,
+) : SubjectService {
+    override fun getAllByStudyPlanId(studyPlanId: Long): List<Subject> = subjectRepository.getAllByStudyPlanId(studyPlanId)
 
-    override fun getAllByStudyPlanId(studyPlanId: Long): List<Subject> {
-        return subjectRepository.getAllByStudyPlanId(studyPlanId)
-    }
-
-    override fun getAllBySpecialityId(specialityId: Long, hourlyLoadId: Long): List<Subject> {
-        return subjectRepository.getAllBySpecialityId(specialityId, hourlyLoadId)
-    }
+    override fun getAllBySpecialityId(
+        specialityId: Long,
+        hourlyLoadId: Long,
+    ): List<Subject> = subjectRepository.getAllBySpecialityId(specialityId, hourlyLoadId)
 
     override fun getAllBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,
-        hourlyLoadId: Long
-    ): List<Subject> {
-        return subjectRepository.getAllBySearchAndSpecialityIdAndHourlyLoad(search, specialityId, hourlyLoadId)
-    }
+        hourlyLoadId: Long,
+    ): List<Subject> = subjectRepository.getAllBySearchAndSpecialityIdAndHourlyLoad(search, specialityId, hourlyLoadId)
 
     override fun getAllBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,
         hourlyLoadId: Long,
         offset: Int,
-        limit: Int
-    ): Page<Subject> {
-        return subjectRepository.getAllBySearchAndSpecialityIdAndHourlyLoad(search, specialityId, hourlyLoadId, offset, limit)
-    }
+        limit: Int,
+    ): Page<Subject> = subjectRepository.getAllBySearchAndSpecialityIdAndHourlyLoad(search, specialityId, hourlyLoadId, offset, limit)
 }

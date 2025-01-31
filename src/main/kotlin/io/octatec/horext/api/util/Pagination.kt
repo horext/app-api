@@ -4,8 +4,10 @@ import io.octatec.horext.api.config.AppConstants
 import io.octatec.horext.api.exception.BadRequestException
 
 object Pagination {
-
-    fun validatePageNumberAndSize(page: Int, size: Int) {
+    fun validatePageNumberAndSize(
+        page: Int,
+        size: Int,
+    ) {
         if (page < 0) {
             throw BadRequestException("Page number cannot be less than zero.")
         }

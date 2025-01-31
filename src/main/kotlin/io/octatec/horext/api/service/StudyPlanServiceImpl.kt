@@ -7,13 +7,10 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class StudyPlanServiceImpl(private val studyPlanRepository: StudyPlanRepository) : StudyPlanService {
+class StudyPlanServiceImpl(
+    private val studyPlanRepository: StudyPlanRepository,
+) : StudyPlanService {
+    override fun getAllStudyPlan(): List<StudyPlan> = studyPlanRepository.getAllStudyPlan()
 
-    override fun getAllStudyPlan(): List<StudyPlan> {
-        return studyPlanRepository.getAllStudyPlan()
-    }
-
-    override fun getStudyPlanById(id: Long): List<StudyPlan> {
-        return studyPlanRepository.getStudyPlanById(id)
-    }
+    override fun getStudyPlanById(id: Long): List<StudyPlan> = studyPlanRepository.getStudyPlanById(id)
 }

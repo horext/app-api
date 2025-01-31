@@ -7,9 +7,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class HourlyLoadServiceImpl(private val hourlyLoadRepository: HourlyLoadRepository) : HourlyLoadService {
-
-    override fun getLatestByFaculty(facultyId: Long): HourlyLoad {
-        return hourlyLoadRepository.getLatestByFaculty(facultyId)
-    }
+class HourlyLoadServiceImpl(
+    private val hourlyLoadRepository: HourlyLoadRepository,
+) : HourlyLoadService {
+    override fun getLatestByFaculty(facultyId: Long): HourlyLoad = hourlyLoadRepository.getLatestByFaculty(facultyId)
 }

@@ -7,9 +7,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class ScheduleServiceImpl(private val scheduleRepository: ScheduleRepository) : ScheduleService {
-
-    override fun findBySubjectIdAndHourlyLoadId(subjectId: Long, hourlyLoadId: Long): List<Schedule> {
-        return scheduleRepository.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
-    }
+class ScheduleServiceImpl(
+    private val scheduleRepository: ScheduleRepository,
+) : ScheduleService {
+    override fun findBySubjectIdAndHourlyLoadId(
+        subjectId: Long,
+        hourlyLoadId: Long,
+    ): List<Schedule> = scheduleRepository.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
 }

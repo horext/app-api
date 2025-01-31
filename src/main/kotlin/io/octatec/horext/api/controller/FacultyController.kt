@@ -8,21 +8,19 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-
 @RestController
 @RequestMapping("faculties")
-class FacultyController(val organizationUnitService: OrganizationUnitService) {
-
+class FacultyController(
+    val organizationUnitService: OrganizationUnitService,
+) {
     @GetMapping
-    fun getAll(): List<OrganizationUnit> {
-        return organizationUnitService.getAllFaculty()
-    }
+    fun getAll(): List<OrganizationUnit> = organizationUnitService.getAllFaculty()
 
     @GetMapping(
-        "{facultyId}/specialities"
+        "{facultyId}/specialities",
     )
     fun getAllSpecialitiesByFacultyId(
-        @PathVariable(name = "facultyId") facultyId: Long
+        @PathVariable(name = "facultyId") facultyId: Long,
     ): List<OrganizationUnit> {
         try {
             return organizationUnitService.getAllSpecialityByFacultyId(facultyId)

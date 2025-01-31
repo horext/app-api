@@ -9,31 +9,29 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
-
-    override fun getAllSpeciality(): List<OrganizationUnit> {
-        return OrganizationUnits.selectAll()
+    override fun getAllSpeciality(): List<OrganizationUnit> =
+        OrganizationUnits
+            .selectAll()
             .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id }
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
-    }
 
-    override fun getAllFaculty(): List<OrganizationUnit> {
-        return OrganizationUnits.selectAll()
+    override fun getAllFaculty(): List<OrganizationUnit> =
+        OrganizationUnits
+            .selectAll()
             .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.FACULTY.id }
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
-    }
 
-    override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> {
-        return OrganizationUnits.selectAll()
+    override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> =
+        OrganizationUnits
+            .selectAll()
             .where {
                 (OrganizationUnits.parentOrganizationId eq id) and
-                        (OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id)
-            }
-            .map { row ->
+                    (OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id)
+            }.map { row ->
                 OrganizationUnits.createEntity(row)
             }
-    }
 }

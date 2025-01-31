@@ -14,20 +14,23 @@ import java.util.*
 
 @Configuration
 @ImportAutoConfiguration(
-    value = [ExposedAutoConfiguration::class]
+    value = [ExposedAutoConfiguration::class],
 )
 @ImportRuntimeHints(CustomExposedAutoConfiguration.ExposedAutoConfigurationRuntimeHints::class)
 open class CustomExposedAutoConfiguration {
-
     class ExposedAutoConfigurationRuntimeHints : RuntimeHintsRegistrar {
-        override fun registerHints(hints: RuntimeHints, classLoader: ClassLoader?) {
+        override fun registerHints(
+            hints: RuntimeHints,
+            classLoader: ClassLoader?,
+        ) {
             // see https://github.com/spring-projects/spring-boot/issues/34206
             // see https://github.com/JetBrains/Exposed/issues/1274
             hints.reflection().registerType(Collections::class.java, *MemberCategory.entries.toTypedArray())
-            hints.reflection()
+            hints
+                .reflection()
                 .registerType(
                     TypeReference.of("java.util.Collections\$Entry"),
-                    *MemberCategory.entries.toTypedArray()
+                    *MemberCategory.entries.toTypedArray(),
                 )
             hints.reflection().registerType(LongColumnType::class.java, *MemberCategory.entries.toTypedArray())
             hints.reflection().registerType(VarCharColumnType::class.java, *MemberCategory.entries.toTypedArray())

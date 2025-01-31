@@ -3,12 +3,10 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.*
 import org.jetbrains.exposed.sql.anyFrom
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.springframework.stereotype.Repository
 
 @Repository
 class ClassSessionRepositoryImpl : ClassSessionRepository {
-
     override fun findByScheduleId(scheduleId: Long): List<ClassSession> {
         val cs = ClassSessions
         val cst = ClassSessionTypes

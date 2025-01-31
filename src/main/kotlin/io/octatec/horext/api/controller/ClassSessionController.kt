@@ -9,20 +9,16 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("classSessions")
-class ClassSessionController(val classSessionService: ClassSessionService) {
-
+class ClassSessionController(
+    val classSessionService: ClassSessionService,
+) {
     @GetMapping(params = ["schedule"])
     fun getAllBySpeciality(
         @RequestParam(name = "schedule") scheduleId: Long,
-    ): List<ClassSession> {
-        return classSessionService.findByScheduleId(scheduleId)
-    }
+    ): List<ClassSession> = classSessionService.findByScheduleId(scheduleId)
 
     @GetMapping(params = ["schedules"])
     fun getAllBySchedulesId(
         @RequestParam(name = "schedules") scheduleIds: List<Long>,
-    ): List<ClassSession> {
-        return classSessionService.findByScheduleIds(scheduleIds)
-    }
-
+    ): List<ClassSession> = classSessionService.findByScheduleIds(scheduleIds)
 }

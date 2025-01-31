@@ -10,10 +10,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import org.springframework.web.bind.annotation.PathVariable
 
 class FacultyControllerTest {
-
     @Mock
     private lateinit var organizationUnitService: OrganizationUnitService
 
@@ -27,10 +25,11 @@ class FacultyControllerTest {
 
     @Test
     fun testGetAll() {
-        val expectedFacultyList = listOf(
-            OrganizationUnit(id = 1, name = "Faculty 1"),
-            OrganizationUnit(id = 2, name = "Faculty 2")
-        )
+        val expectedFacultyList =
+            listOf(
+                OrganizationUnit(id = 1, name = "Faculty 1"),
+                OrganizationUnit(id = 2, name = "Faculty 2"),
+            )
         `when`(organizationUnitService.getAllFaculty()).thenReturn(expectedFacultyList)
 
         val actualFacultyList = facultyController.getAll()
@@ -41,10 +40,11 @@ class FacultyControllerTest {
     @Test
     fun testGetAllSpecialitiesByFacultyId() {
         val facultyId = 1L
-        val expectedSpecialityList = listOf(
-            OrganizationUnit(id = 1, name = "Speciality 1"),
-            OrganizationUnit(id = 2, name = "Speciality 2")
-        )
+        val expectedSpecialityList =
+            listOf(
+                OrganizationUnit(id = 1, name = "Speciality 1"),
+                OrganizationUnit(id = 2, name = "Speciality 2"),
+            )
         `when`(organizationUnitService.getAllSpecialityByFacultyId(facultyId)).thenReturn(expectedSpecialityList)
 
         val actualSpecialityList = facultyController.getAllSpecialitiesByFacultyId(facultyId)
