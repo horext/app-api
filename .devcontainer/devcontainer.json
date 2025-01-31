@@ -7,11 +7,22 @@
 
 	"features": {
 		"ghcr.io/devcontainers/features/java:1": {
-			"version": "none",
+			"version": "23",
 			"installMaven": "false",
 			"installGradle": "true"
 		}
-	}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"mathiasfrohlich.Kotlin",
+				"vscjava.vscode-gradle",
+				"vscjava.vscode-java-pack"
+			]
+		}
+	},
+
+	// change 
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
