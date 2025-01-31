@@ -1,6 +1,12 @@
 package io.octatec.horext.api.repository
 
-import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.Courses
+import io.octatec.horext.api.domain.ScheduleSubjects
+import io.octatec.horext.api.domain.StudyPlans
+import io.octatec.horext.api.domain.Subject
+import io.octatec.horext.api.domain.SubjectRelationships
+import io.octatec.horext.api.domain.SubjectTypes
+import io.octatec.horext.api.domain.Subjects
 import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent

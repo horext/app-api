@@ -1,6 +1,6 @@
 package io.octatec.horext.api.service
 
-import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.ScheduleSubject
 import io.octatec.horext.api.repository.ScheduleSubjectRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

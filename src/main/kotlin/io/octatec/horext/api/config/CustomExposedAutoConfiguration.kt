@@ -10,7 +10,7 @@ import org.springframework.aot.hint.TypeReference
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.ImportRuntimeHints
-import java.util.*
+import java.util.Collections
 
 @Configuration
 @ImportAutoConfiguration(

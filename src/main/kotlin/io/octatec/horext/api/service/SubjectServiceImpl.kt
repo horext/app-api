@@ -1,6 +1,6 @@
 package io.octatec.horext.api.service
 
-import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.repository.SubjectRepository
 import org.springframework.stereotype.Service

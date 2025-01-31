@@ -1,6 +1,10 @@
 package io.octatec.horext.api.repository
 
-import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.ClassSession
+import io.octatec.horext.api.domain.ClassSessionTypes
+import io.octatec.horext.api.domain.ClassSessions
+import io.octatec.horext.api.domain.Classrooms
+import io.octatec.horext.api.domain.Teachers
 import org.jetbrains.exposed.sql.anyFrom
 import org.jetbrains.exposed.sql.select
 import org.springframework.stereotype.Repository

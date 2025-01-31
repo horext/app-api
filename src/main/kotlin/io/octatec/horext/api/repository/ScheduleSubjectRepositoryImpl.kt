@@ -1,6 +1,10 @@
 package io.octatec.horext.api.repository
 
-import io.octatec.horext.api.domain.*
+import io.octatec.horext.api.domain.Courses
+import io.octatec.horext.api.domain.ScheduleSubject
+import io.octatec.horext.api.domain.ScheduleSubjects
+import io.octatec.horext.api.domain.Schedules
+import io.octatec.horext.api.domain.Subjects
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.anyFrom

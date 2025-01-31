@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("studyPlans")
-class StudyPlan(
+class StudyPlanController(
     val studyPlanService: StudyPlanService,
     val subjectService: SubjectService,
 ) {

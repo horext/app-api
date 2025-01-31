@@ -1,7 +1,7 @@
 package io.octatec.horext.api.repository
 
-import io.octatec.horext.api.domain.ORGANIZATION_UNIT_TYPES
 import io.octatec.horext.api.domain.OrganizationUnit
+import io.octatec.horext.api.domain.OrganizationUnitTypeCode
 import io.octatec.horext.api.domain.OrganizationUnits
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -12,7 +12,7 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
     override fun getAllSpeciality(): List<OrganizationUnit> =
         OrganizationUnits
             .selectAll()
-            .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id }
+            .where { OrganizationUnits.typeId eq OrganizationUnitTypeCode.SPECIALITY.id }
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
@@ -20,7 +20,7 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
     override fun getAllFaculty(): List<OrganizationUnit> =
         OrganizationUnits
             .selectAll()
-            .where { OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.FACULTY.id }
+            .where { OrganizationUnits.typeId eq OrganizationUnitTypeCode.FACULTY.id }
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
@@ -30,7 +30,7 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             .selectAll()
             .where {
                 (OrganizationUnits.parentOrganizationId eq id) and
-                    (OrganizationUnits.typeId eq ORGANIZATION_UNIT_TYPES.SPECIALITY.id)
+                    (OrganizationUnits.typeId eq OrganizationUnitTypeCode.SPECIALITY.id)
             }.map { row ->
                 OrganizationUnits.createEntity(row)
             }

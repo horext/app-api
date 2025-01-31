@@ -20,7 +20,7 @@ object OrganizationUnitTypes : LongIdTable("organization_unit_type") {
         )
 }
 
-enum class ORGANIZATION_UNIT_TYPES(
+enum class OrganizationUnitTypeCode(
     val id: Long,
 ) {
     FACULTY(2L),

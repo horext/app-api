@@ -1,8 +1,15 @@
 package io.octatec.horext.api.util
 
 import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Expression
+import org.jetbrains.exposed.sql.ExpressionWithColumnType
 import org.jetbrains.exposed.sql.Function
+import org.jetbrains.exposed.sql.IColumnType
+import org.jetbrains.exposed.sql.QueryBuilder
+import org.jetbrains.exposed.sql.TextColumnType
+import org.jetbrains.exposed.sql.VarCharColumnType
+import org.jetbrains.exposed.sql.stringParam
+import org.jetbrains.exposed.sql.with
 
 class Unaccent<T : String?>(
     private val expression: Expression<T>,
