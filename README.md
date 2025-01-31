@@ -53,6 +53,14 @@ Next, run the following command to start the application:
 ./gradlew bootRun
 ```
 
+### Running ktlint
+
+To check the code style using ktlint, run the following command:
+
+```bash
+./gradlew ktlintCheck
+```
+
 ### Reference Documentation
 
 For further reference, please consider the following sections:
