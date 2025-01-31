@@ -15,9 +15,9 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"mathiasfrohlich.Kotlin",
 				"vscjava.vscode-gradle",
-				"vscjava.vscode-java-pack"
+				"vscjava.vscode-java-pack",
+				"fwcd.kotlin"
 			]
 		}
 	},
