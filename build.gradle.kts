@@ -3,7 +3,7 @@ val ktlint by configurations.creating
 plugins {
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.10.4"
+    id("org.graalvm.buildtools.native") version "0.10.5"
     kotlin("jvm") version "2.1.10"
     kotlin("plugin.spring") version "2.1.10"
     id("org.flywaydb.flyway") version "11.3.1"
