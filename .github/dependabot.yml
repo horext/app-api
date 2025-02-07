@@ -5,10 +5,10 @@
 
 version: 2
 updates:
- - package-ecosystem: "devcontainers"
-   directory: "/"
-   schedule:
-     interval: weekly
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
@@ -23,9 +23,9 @@ updates:
       prefix-development: chore
       include: scope
   - package-ecosystem: github-actions
-    directory: '/'
+    directory: "/"
     schedule:
-      interval:  "daily"
+      interval: "daily"
     open-pull-requests-limit: 10
     reviewers:
       - franz-bendezu
