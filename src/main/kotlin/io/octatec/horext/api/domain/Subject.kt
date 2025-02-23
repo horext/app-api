@@ -10,7 +10,7 @@ data class Subject(
     var type: SubjectType?,
     var credits: Int?,
     var cycle: Int?,
-    var relationships: List<SubjectRelationship> = ArrayList()
+    var relationships: List<SubjectRelationship> = ArrayList(),
 ) {
     constructor(id: Long) : this(id, null, null, null, null, null)
 }
