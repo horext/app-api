@@ -9,18 +9,10 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
-    override fun getAllSpeciality(): List<OrganizationUnit> =
+    override fun getAllByType(typeId: OrganizationUnitTypeCode): List<OrganizationUnit> =
         OrganizationUnits
             .selectAll()
-            .where { OrganizationUnits.typeId eq OrganizationUnitTypeCode.SPECIALITY.id }
-            .map { row ->
-                OrganizationUnits.createEntity(row)
-            }
-
-    override fun getAllFaculty(): List<OrganizationUnit> =
-        OrganizationUnits
-            .selectAll()
-            .where { OrganizationUnits.typeId eq OrganizationUnitTypeCode.FACULTY.id }
+            .where { OrganizationUnits.typeId eq typeId.id }
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
