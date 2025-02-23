@@ -2,7 +2,6 @@ package io.octatec.horext.api.domain
 
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ResultRow
-import kotlin.collections.emptyList
 
 data class Subject(
     val id: Long,
@@ -11,7 +10,7 @@ data class Subject(
     var type: SubjectType?,
     var credits: Int?,
     var cycle: Int?,
-    var relationships: List<SubjectRelationship> = emptyList<SubjectRelationship>(),
+    var relationships: List<SubjectRelationship> = ArrayList()
 ) {
     constructor(id: Long) : this(id, null, null, null, null, null)
 }
