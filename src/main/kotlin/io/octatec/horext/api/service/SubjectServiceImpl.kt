@@ -35,8 +35,6 @@ class SubjectServiceImpl(
     override fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
         specialityId: Long,
         hourlyLoadId: Long,
-        cycleId: Int
-    ): List<Subject> {
-        return subjectRepository.getAllBySpecialityIdAndHourlyLoadIdAndCycleId(specialityId, hourlyLoadId, cycleId)
-    }
+        cycleId: Int,
+    ): List<Subject> = subjectRepository.getAllBySpecialityIdAndHourlyLoadIdAndCycleId(specialityId, hourlyLoadId, cycleId)
 }

@@ -142,7 +142,7 @@ class SubjectRepositoryImpl : SubjectRepository {
     override fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
         specialityId: Long,
         hourlyLoadId: Long,
-        cycleId: Int
+        cycleId: Int,
     ): List<Subject> {
         val s = Subjects
         val c = Courses
