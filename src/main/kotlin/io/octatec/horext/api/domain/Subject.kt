@@ -17,15 +17,15 @@ data class Subject(
 }
 
 object Subjects : LongIdTable("subject") {
-    val courseId = reference("course_id", Courses)
+    private val courseId = reference("course_id", Courses)
 
-    val typeId = reference("subject_type_id", SubjectTypes)
+    private val typeId = reference("subject_type_id", SubjectTypes)
 
     val studyPlanId = reference("study_plan_id", StudyPlans)
 
-    val credits = integer("credits")
+    private val credits = integer("credits")
 
-    val cycle = integer("cycle")
+    private val cycle = integer("cycle")
 
     fun createEntity(row: ResultRow): Subject =
         Subject(
