@@ -100,7 +100,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             }.map { row -> s.createEntity(row) }
     }
 
-    override fun getAllBySearchAndSpecialityIdAndHourlyLoad(
+    override fun getPageBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,
         hourlyLoadId: Long,

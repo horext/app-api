@@ -28,11 +28,9 @@ class SubjectController(
         @RequestParam(name = "offset", defaultValue = "0") offset: Int,
         @RequestParam(name = "limit", defaultValue = "10") limit: Int,
     ): Page<Subject> {
-        println(offset)
-        println(limit)
         Pagination.validatePageNumberAndSize(offset, limit)
         val page =
-            subjectService.getAllBySearchAndSpecialityIdAndHourlyLoad(
+            subjectService.getPageBySearchAndSpecialityIdAndHourlyLoad(
                 search,
                 specialityId,
                 hourlyLoadId,

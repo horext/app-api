@@ -17,7 +17,7 @@ interface SubjectRepository {
         hourlyLoadId: Long,
     ): List<Subject>
 
-    fun getAllBySearchAndSpecialityIdAndHourlyLoad(
+    fun getPageBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,
         hourlyLoadId: Long,
