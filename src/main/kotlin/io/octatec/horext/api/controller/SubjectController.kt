@@ -11,16 +11,14 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("subjects")
-class SubjectController(val subjectService: SubjectService) {
-
+class SubjectController(
+    val subjectService: SubjectService,
+) {
     @GetMapping(params = ["speciality", "hourlyLoad"])
     fun getAllBySpeciality(
         @RequestParam(name = "speciality") specialityId: Long,
-        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long
-    ): List<Subject> {
-        return subjectService.getAllBySpecialityId(specialityId, hourlyLoadId)
-    }
-
+        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+    ): List<Subject> = subjectService.getAllBySpecialityId(specialityId, hourlyLoadId)
 
     @GetMapping(params = ["search", "speciality", "hourlyLoad"])
     fun getAllBySearch(
@@ -28,14 +26,25 @@ class SubjectController(val subjectService: SubjectService) {
         @RequestParam(name = "speciality") specialityId: Long,
         @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
         @RequestParam(name = "offset", defaultValue = "0") offset: Int,
-        @RequestParam(name = "limit", defaultValue = "10") limit: Int
+        @RequestParam(name = "limit", defaultValue = "10") limit: Int,
     ): Page<Subject> {
-        println(offset)
-        println(limit)
         Pagination.validatePageNumberAndSize(offset, limit)
-        val page = subjectService.getAllBySearchAndSpecialityIdAndHourlyLoad(
-            search, specialityId, hourlyLoadId, offset, limit
-        )
+        val page =
+            subjectService.getPageBySearchAndSpecialityIdAndHourlyLoad(
+                search,
+                specialityId,
+                hourlyLoadId,
+                offset,
+                limit,
+            )
         return page
     }
+
+    @GetMapping(params = ["speciality", "hourlyLoad","cycle"])
+    fun getAllBySpecialityAndCycle(
+        @RequestParam(name = "speciality") specialityId: Long,
+        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+        @RequestParam(name = "cycle") cycle: Int,
+    ): List<Subject> = subjectService.getAllBySpecialityIdAndHourlyLoadIdAndCycleId(specialityId, hourlyLoadId, cycle)
+
 }

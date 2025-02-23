@@ -1,7 +1,7 @@
 insert into study_plan (id, code, from_date, name, to_date, organization_unit_id)
 values (3, '2018-1_I1', '2021-03-22 18:42:43.146000', null, null, 11);
 
-insert into public.subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours,
+insert into subject (id, credits, cycle, max_cycle, min_cycle, note, required_credits, total_weekly_hours,
                             weekly_laboratory_hours, weekly_practice_hours, weekly_practice_laboratory_hours,
                             weekly_theory_hours, course_id, evaluation_system_id, study_plan_id, subject_type_id, position)
 values (3310, 2, 1, null, null, null, null, 3, null, null, 2, 1, 'BEF01', 5, 3, 1, null),

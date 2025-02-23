@@ -31,6 +31,7 @@ build:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker push $IMAGE_NAME_TAG
     - docker push $IMAGE_NAME_LATEST
+    - ./gradlew ktlintCheck
   tags:
     - docker
   only:

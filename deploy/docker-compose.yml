@@ -20,6 +20,8 @@ services:
     networks:
       - horext-api-network
       - letsencrypt
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
 networks:
   letsencrypt:
     name: letsencrypt

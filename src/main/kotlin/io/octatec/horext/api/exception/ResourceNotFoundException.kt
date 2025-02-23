@@ -15,7 +15,7 @@ class ResourceNotFoundException : RuntimeException {
     constructor(
         resourceName: String?,
         fieldName: String?,
-        fieldValue: Any?
+        fieldValue: Any?,
     ) : super(String.format("%s no fue encontrado con  %s : '%s'", resourceName, fieldName, fieldValue)) {
         this.resourceName = resourceName
         this.fieldName = fieldName

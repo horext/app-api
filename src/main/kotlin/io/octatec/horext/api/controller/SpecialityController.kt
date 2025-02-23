@@ -10,11 +10,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("specialities")
-class SpecialityController(val organizationUnitService: OrganizationUnitService) {
-
+class SpecialityController(
+    val organizationUnitService: OrganizationUnitService,
+) {
     @GetMapping
     fun getAllByFacultyId(
-        @RequestParam(name = "faculty") id: Long
+        @RequestParam(name = "faculty") id: Long,
     ): List<OrganizationUnit> {
         try {
             return organizationUnitService.getAllSpecialityByFacultyId(id)

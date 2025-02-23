@@ -6,23 +6,16 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
 
 data class AcademicPeriodOrganizationUnit(
-
     val id: Long,
-
     var fromDate: Instant?,
-
     var toDate: Instant?,
-
     var academicPeriod: AcademicPeriod?,
-
-    var organizationUnit: OrganizationUnit?
+    var organizationUnit: OrganizationUnit?,
 ) {
-
     constructor(id: Long) : this(id, null, null, null, null)
 }
 
 object AcademicPeriodOrganizationUnits : LongIdTable("academic_period_organization_unit") {
-
     val fromDate = timestamp("from_date")
 
     val toDate = timestamp("to_date")
@@ -31,17 +24,18 @@ object AcademicPeriodOrganizationUnits : LongIdTable("academic_period_organizati
 
     val organizationUnitId = reference("organization_unit_id", OrganizationUnits)
 
-    fun createEntity(row: ResultRow): AcademicPeriodOrganizationUnit {
-        return AcademicPeriodOrganizationUnit(
+    fun createEntity(row: ResultRow): AcademicPeriodOrganizationUnit =
+        AcademicPeriodOrganizationUnit(
             id = row[id].value,
             fromDate = row[fromDate],
             toDate = row[toDate],
-            academicPeriod = AcademicPeriod(
-                id = row[academicPeriodId].value,
-            ),
-            organizationUnit = OrganizationUnit(
-                id = row[organizationUnitId].value,
-            )
+            academicPeriod =
+                AcademicPeriod(
+                    id = row[academicPeriodId].value,
+                ),
+            organizationUnit =
+                OrganizationUnit(
+                    id = row[organizationUnitId].value,
+                ),
         )
-    }
 }
