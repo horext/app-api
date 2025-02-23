@@ -24,7 +24,7 @@ object Subjects : LongIdTable("subject") {
 
     private val credits = integer("credits")
 
-    private val cycle = integer("cycle")
+    val cycle = integer("cycle")
 
     fun createEntity(row: ResultRow): Subject =
         Subject(

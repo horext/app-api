@@ -139,6 +139,37 @@ class SubjectRepositoryImpl : SubjectRepository {
         return Page(offset, limit, queryResultCount.toInt(), content = list.toList())
     }
 
+    override fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
+        specialityId: Long,
+        hourlyLoadId: Long,
+        cycleId: Int
+    ): List<Subject> {
+        val s = Subjects
+        val c = Courses
+        val sp = StudyPlans
+        val ss = ScheduleSubjects
+        val st = SubjectTypes
+        return s
+            .innerJoin(c)
+            .innerJoin(sp)
+            .leftJoin(st)
+            .select(s.columns + c.columns + sp.columns + st.columns)
+            .where {
+                (sp.organizationUnitId eq specialityId) and
+                    (sp.fromDate less Instant.now()) and
+                    (sp.toDate.isNull()) and
+                    (s.cycle eq cycleId) and
+                    exists(
+                        ss
+                            .select(ss.columns)
+                            .where {
+                                (ss.subjectId eq s.id) and
+                                    (ss.hourlyLoadId eq hourlyLoadId)
+                            },
+                    )
+            }.map { row -> s.createEntity(row) }
+    }
+
     private fun searchCourse(
         c: Courses,
         search: String,

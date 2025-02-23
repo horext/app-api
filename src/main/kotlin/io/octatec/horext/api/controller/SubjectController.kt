@@ -41,4 +41,12 @@ class SubjectController(
             )
         return page
     }
+
+    @GetMapping(params = ["speciality", "hourlyLoad","cycle"])
+    fun getAllBySpecialityAndCycle(
+        @RequestParam(name = "speciality") specialityId: Long,
+        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+        @RequestParam(name = "cycle") cycle: Int,
+    ): List<Subject> = subjectService.getAllBySpecialityIdAndHourlyLoadIdAndCycleId(specialityId, hourlyLoadId, cycle)
+
 }
