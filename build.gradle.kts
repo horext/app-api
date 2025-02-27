@@ -32,7 +32,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.58.0")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.58.0")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.59.0")
     implementation("org.flywaydb:flyway-core:11.3.4")
     ktlint("com.pinterest.ktlint:ktlint-cli:1.5.0") {
         attributes {
