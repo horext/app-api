@@ -110,7 +110,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create project folder
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
@@ -127,7 +127,7 @@ jobs:
           target: ${{ env.PROJECT_FOLDER }}
 
       - name: Pull and start docker
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v1.2.2
         env:
           DOCKER_COMPOSE_TEMPLATE: ${{ env.PROJECT_FOLDER }}/${{ env.DOCKER_COMPOSE_TEMPLATE_PATH }}
           ENV_PATH: ${{ env.PROJECT_FOLDER }}/${{ secrets.ENV_FILE_PATH }}
