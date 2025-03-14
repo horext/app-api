@@ -3,10 +3,10 @@ val ktlint by configurations.creating
 plugins {
     id("org.springframework.boot") version "3.4.3"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.10.5"
+    id("org.graalvm.buildtools.native") version "0.10.6"
     kotlin("jvm") version "2.1.10"
     kotlin("plugin.spring") version "2.1.10"
-    id("org.flywaydb.flyway") version "11.3.3"
+    id("org.flywaydb.flyway") version "11.4.0"
 }
 
 group = "io.octatec.horext"
@@ -31,9 +31,9 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.58.0")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.58.0")
-    implementation("org.flywaydb:flyway-core:11.3.3")
+    implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.60.0")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.60.0")
+    implementation("org.flywaydb:flyway-core:11.4.0")
     ktlint("com.pinterest.ktlint:ktlint-cli:1.5.0") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
@@ -46,7 +46,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.3.3")
+        classpath("org.flywaydb:flyway-database-postgresql:11.4.0")
     }
 }
 
