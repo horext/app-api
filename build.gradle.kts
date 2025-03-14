@@ -56,12 +56,6 @@ kotlin {
     }
 }
 
-graalvmNative {
-    binaries.all {
-        resources.autodetect()
-    }
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
 }
