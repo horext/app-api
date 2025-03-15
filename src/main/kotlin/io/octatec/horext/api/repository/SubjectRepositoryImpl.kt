@@ -135,10 +135,7 @@ class SubjectRepositoryImpl : SubjectRepository {
         val queryResultCount = query.count()
         val queryResult = query.limit(n = limit, offset = offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
-        if (list.isEmpty()) {
-            return Page(offset, limit, queryResultCount.toInt(), content = ArrayList())
-        }
-        return Page(offset, limit, queryResultCount.toInt(), content = list.toList())
+        return Page(offset, limit, queryResultCount.toInt(), content = list))
     }
 
     override fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
