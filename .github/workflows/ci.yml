@@ -59,6 +59,9 @@ jobs:
       - name: Make Gradlew executable
         run: chmod +x gradlew
 
+      - name: Show Gradle deps
+        run: ./gradlew dependencies
+
       - name: Build with Gradle
         run: ./gradlew assemble --stacktrace
 
