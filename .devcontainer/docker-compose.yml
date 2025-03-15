@@ -15,9 +15,9 @@ services:
         POSTGRES_USER: postgres
         POSTGRES_DB: postgres
         POSTGRES_HOSTNAME: postgresdb
-        SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOSTNAME}:5432/${POSTGRES_DB}
-        SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-        SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgresdb:5432/postgres
+        SPRING_DATASOURCE_USERNAME: postgres
+        SPRING_DATASOURCE_PASSWORD: postgres
         SPRING_DATASOURCE_SCHEMA: public
         THREAD_API_URL: http://localhost:8080
 
