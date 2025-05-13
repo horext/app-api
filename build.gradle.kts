@@ -31,7 +31,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.53.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.53.0")
-    implementation("org.flywaydb:flyway-core:11.7.1")
+    implementation("org.flywaydb:flyway-core:11.8.2")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
