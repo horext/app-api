@@ -13,6 +13,8 @@ on:
 jobs:
   ci:
     name: CI
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci.yml
   cd:
     name: CD
