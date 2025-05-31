@@ -20,6 +20,15 @@ services:
     networks:
       - horext-api-network
       - letsencrypt
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'      # Limit to half a CPU core
+          memory: 768M      # Limit to 768MB RAM
+        reservations:
+          cpus: '0.30'
+          memory: 256M
+      replicas: 1           # Only one replica per environment
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
 networks:
