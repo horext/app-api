@@ -1,0 +1,30 @@
+name: Manual Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        type: environment
+        required: true
+      image-tag:
+        description: "Docker image tag (default: latest)"
+        type: string
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: ${{ inputs.environment }}
+      image-tag: ${{ inputs.image-tag == 'latest' && format('{0}/{1}/{2}:latest', 'ghcr.io', github.repository, github.ref_name) || inputs.image-tag }}
+    secrets: inherit
