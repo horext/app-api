@@ -17,7 +17,7 @@ services:
       - ${SERVER_PORT}
     networks:
       - horext-api-network
-      - letsencrypt
+      - proxy
     deploy:
       resources:
         limits:
