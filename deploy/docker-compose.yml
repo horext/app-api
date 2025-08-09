@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api-server:
     image: ${IMAGE_NAME}
@@ -29,6 +27,13 @@ services:
           cpus: '0.30'
           memory: 256M
       replicas: 1           # Only one replica per environment
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers.api-server.entrypoints=websecure"
+      - "traefik.http.routers.api-server.tls.certresolver=le"
+      - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
+      - "traefik.http.services.api-server.loadbalancer.server.scheme=http"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
 networks:
