@@ -27,4 +27,14 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       image-tag: ${{ inputs.image-tag == 'latest' && format('{0}/{1}/{2}:latest', 'ghcr.io', github.repository, github.ref_name) || inputs.image-tag }}
-    secrets: inherit
+    secrets:
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+      SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+      SPRING_DATASOURCE_SCHEMA: ${{ secrets.SPRING_DATASOURCE_SCHEMA }}
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+      ENV_FILE_PATH: ${{ secrets.ENV_FILE_PATH }}
+      DOCKER_PROJECT_NAME: ${{ secrets.DOCKER_PROJECT_NAME }}
