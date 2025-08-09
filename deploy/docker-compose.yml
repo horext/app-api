@@ -20,8 +20,10 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
       - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
       - "traefik.http.routers.api-server.entrypoints=websecure"
+      - "traefik.http.routers.api-server.tls=true"
       - "traefik.http.routers.api-server.tls.certresolver=le"
       - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
     healthcheck:
