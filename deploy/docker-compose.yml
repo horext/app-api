@@ -16,9 +16,19 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
+      # HTTPS router
       - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
       - "traefik.http.routers.api-server.entrypoints=websecure"
+      - "traefik.http.routers.api-server.tls=true"
       - "traefik.http.routers.api-server.tls.certresolver=le"
+      - "traefik.http.routers.api-server.priority=10"
+      # HTTP router (for redirect)
+      - "traefik.http.routers.api-server-http.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers.api-server-http.entrypoints=web"
+      - "traefik.http.routers.api-server-http.middlewares=redirect-to-https"
+      # Middleware for HTTPS redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      # Service configuration
       - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
     ports:
       - ${SERVER_PORT}
