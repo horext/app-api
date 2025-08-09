@@ -45,8 +45,8 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
 networks:
-  letsencrypt:
-    name: letsencrypt
+  proxy:
+    name: proxy
     external: true
   horext-api-network:
     name: pg-database
