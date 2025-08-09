@@ -29,9 +29,9 @@ services:
       replicas: 1
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ssr-client.rule=Host(`${VIRTUAL_HOST}`)"
-      - "traefik.http.routers.ssr-client.entrypoints=websecure"
-      - "traefik.http.routers.ssr-client.tls.certresolver=le"
+      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers.api-server.entrypoints=websecure"
+      - "traefik.http.routers.api-server.tls.certresolver=le"
       - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
     healthcheck:
       test:
