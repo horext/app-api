@@ -13,19 +13,17 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
       LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
       VIRTUAL_HOST: ${VIRTUAL_HOST}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers.api-server.entrypoints=websecure"
+      - "traefik.http.routers.api-server.tls.certresolver=le"
+      - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
     ports:
       - ${SERVER_PORT}
     networks:
-      - horext-api-network
       - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=proxy"
-      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
-      - "traefik.http.routers.api-server.entrypoints=websecure"
-      - "traefik.http.routers.api-server.tls=true"
-      - "traefik.http.routers.api-server.tls.certresolver=le"
-      - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
+      - horext-api-network
     healthcheck:
       test:
         ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
