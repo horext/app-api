@@ -27,12 +27,12 @@ services:
           cpus: "0.30"
           memory: 256M
       replicas: 1
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
-      - "traefik.http.routers.api-server.entrypoints=websecure"
-      - "traefik.http.routers.api-server.tls.certresolver=le"
-      - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
+        - "traefik.http.routers.api-server.entrypoints=websecure"
+        - "traefik.http.routers.api-server.tls.certresolver=le"
+        - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
     healthcheck:
       test:
         ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
