@@ -50,7 +50,7 @@ jobs:
       DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create project folder
         uses: appleboy/ssh-action@v1.2.2
@@ -96,7 +96,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
