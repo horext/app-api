@@ -32,8 +32,9 @@ import javax.sql.DataSource
 @Configuration
 @EnableTransactionManagement
 @ImportRuntimeHints(CustomExposedAutoConfiguration.ExposedAutoConfigurationRuntimeHints::class)
-class CustomExposedAutoConfiguration(private val applicationContext: ApplicationContext) {
-
+class CustomExposedAutoConfiguration(
+    private val applicationContext: ApplicationContext,
+) {
     @Value("\${spring.exposed.excluded-packages:}#{T(java.util.Collections).emptyList()}")
     private lateinit var excludedPackages: List<String>
 
@@ -47,18 +48,17 @@ class CustomExposedAutoConfiguration(private val applicationContext: Application
      * `spring.exposed.show-sql` to `true` in the application.properties file.
      */
     @Bean
-    fun springTransactionManager(datasource: DataSource, databaseConfig: DatabaseConfig): SpringTransactionManager {
-        return SpringTransactionManager(datasource, databaseConfig, showSql)
-    }
+    fun springTransactionManager(
+        datasource: DataSource,
+        databaseConfig: DatabaseConfig,
+    ): SpringTransactionManager = SpringTransactionManager(datasource, databaseConfig, showSql)
 
     /**
      * Database config with default values
      */
     @Bean
     @ConditionalOnMissingBean(DatabaseConfig::class)
-    fun databaseConfig(): DatabaseConfig {
-        return DatabaseConfig {}
-    }
+    fun databaseConfig(): DatabaseConfig = DatabaseConfig {}
 
     /**
      * Returns a [DatabaseInitializer] that auto-creates the database schema, if enabled by the property
