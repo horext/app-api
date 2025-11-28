@@ -1,0 +1,58 @@
+name: Migrate Database
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      java-version:
+        required: false
+        type: string
+        default: "21"
+        description: "Java version to use for migration"
+    secrets:
+      SPRING_DATASOURCE_USERNAME:
+        required: true
+      SPRING_DATASOURCE_PASSWORD:
+        required: true
+      SPRING_DATASOURCE_URL:
+        required: true
+      SPRING_DATASOURCE_SCHEMA:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Run Database Migration
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: ${{ inputs.java-version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make Gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew assemble
+
+      - name: Migrate Database
+        run: ./gradlew flywayMigrate -i
+        env:
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_SCHEMA: ${{ secrets.SPRING_DATASOURCE_SCHEMA }}
+
