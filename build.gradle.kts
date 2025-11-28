@@ -1,11 +1,11 @@
 val ktlint by configurations.creating
 
 plugins {
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.graalvm.buildtools.native") version "0.11.3"
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.spring") version "2.2.21"
     id("org.flywaydb.flyway") version "11.17.1"
 }
 
@@ -14,7 +14,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -23,17 +23,22 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.53.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.53.0")
     implementation("org.flywaydb:flyway-core:11.17.1")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-jdbc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     ktlint("com.pinterest.ktlint:ktlint-cli:1.8.0") {
@@ -54,7 +59,7 @@ buildscript {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
 }
 
