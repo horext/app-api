@@ -133,7 +133,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                         searchCourse(c, search)
                 }
         val queryResultCount = query.count()
-        val queryResult = query.limit(n = limit, offset = offset.toLong())
+        val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
         return Page(offset, limit, queryResultCount.toInt(), content = list)
     }
