@@ -1,6 +1,7 @@
 package io.octatec.horext.api.config
 
 import org.jetbrains.exposed.spring.DatabaseInitializer
+import org.jetbrains.exposed.spring.ExposedSpringTransactionAttributeSource
 import org.jetbrains.exposed.spring.SpringTransactionManager
 import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.LongColumnType
@@ -16,6 +17,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.ImportRuntimeHints
+import org.springframework.context.annotation.Primary
 import org.springframework.transaction.annotation.EnableTransactionManagement
 import java.util.Collections
 import javax.sql.DataSource
@@ -23,16 +25,23 @@ import javax.sql.DataSource
 /**
  * Custom configuration class for Exposed that is compatible with Spring Boot AOT.
  *
- * This is a reimplementation of ExposedAutoConfiguration without the problematic
- * @AutoConfiguration(after = [DataSourceAutoConfiguration::class]) annotation
- * that causes ClassNotFoundException during AOT processing.
+ * This is a reimplementation of ExposedAutoConfiguration without the @AutoConfiguration annotation
+ * that causes ClassNotFoundException during AOT processing. Instead, we use @Configuration which works
+ * correctly with Spring Boot's AOT engine.
+ *
+ * The dependency on DataSourceAutoConfiguration is implicitly handled through constructor injection:
+ * the `springTransactionManager` bean depends on a `DataSource` parameter, so Spring automatically
+ * ensures that the DataSource is created before this configuration is processed.
+ *
+ * This approach provides the same ordering guarantees as `@AutoConfiguration(after = [DataSourceAutoConfiguration::class])`
+ * without the AOT compatibility issues.
  *
  * @property applicationContext The Spring ApplicationContext container responsible for managing beans.
  */
 @Configuration
 @EnableTransactionManagement
 @ImportRuntimeHints(CustomExposedAutoConfiguration.ExposedAutoConfigurationRuntimeHints::class)
-class CustomExposedAutoConfiguration(
+open class CustomExposedAutoConfiguration(
     private val applicationContext: ApplicationContext,
 ) {
     @Value("\${spring.exposed.excluded-packages:}#{T(java.util.Collections).emptyList()}")
@@ -70,6 +79,20 @@ class CustomExposedAutoConfiguration(
     @Bean
     @ConditionalOnProperty("spring.exposed.generate-ddl", havingValue = "true", matchIfMissing = false)
     fun databaseInitializer() = DatabaseInitializer(applicationContext, excludedPackages)
+
+    /**
+     * Returns an [ExposedSpringTransactionAttributeSource] instance.
+     *
+     * To enable rollback when ExposedSQLException is Thrown
+     *
+     * '@Primary' annotation is used to avoid conflict with default TransactionAttributeSource bean
+     * than enable when use '@EnableTransactionManagement'
+     */
+    @Bean
+    @Primary
+    fun exposedSpringTransactionAttributeSource(): ExposedSpringTransactionAttributeSource {
+        return ExposedSpringTransactionAttributeSource()
+    }
 
     /**
      * Runtime hints for GraalVM native image compilation and Spring AOT processing.
