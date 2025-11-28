@@ -57,7 +57,7 @@ open class CustomExposedAutoConfiguration(
      * `spring.exposed.show-sql` to `true` in the application.properties file.
      */
     @Bean
-    fun springTransactionManager(
+    open fun springTransactionManager(
         datasource: DataSource,
         databaseConfig: DatabaseConfig,
     ): SpringTransactionManager = SpringTransactionManager(datasource, databaseConfig, showSql)
@@ -67,7 +67,7 @@ open class CustomExposedAutoConfiguration(
      */
     @Bean
     @ConditionalOnMissingBean(DatabaseConfig::class)
-    fun databaseConfig(): DatabaseConfig = DatabaseConfig {}
+    open fun databaseConfig(): DatabaseConfig = DatabaseConfig {}
 
     /**
      * Returns a [DatabaseInitializer] that auto-creates the database schema, if enabled by the property
@@ -78,7 +78,7 @@ open class CustomExposedAutoConfiguration(
      */
     @Bean
     @ConditionalOnProperty("spring.exposed.generate-ddl", havingValue = "true", matchIfMissing = false)
-    fun databaseInitializer() = DatabaseInitializer(applicationContext, excludedPackages)
+    open fun databaseInitializer() = DatabaseInitializer(applicationContext, excludedPackages)
 
     /**
      * Returns an [ExposedSpringTransactionAttributeSource] instance.
@@ -90,7 +90,7 @@ open class CustomExposedAutoConfiguration(
      */
     @Bean
     @Primary
-    fun exposedSpringTransactionAttributeSource(): ExposedSpringTransactionAttributeSource {
+    open fun exposedSpringTransactionAttributeSource(): ExposedSpringTransactionAttributeSource {
         return ExposedSpringTransactionAttributeSource()
     }
 
