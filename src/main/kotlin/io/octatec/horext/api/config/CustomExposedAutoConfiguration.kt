@@ -90,9 +90,7 @@ open class CustomExposedAutoConfiguration(
      */
     @Bean
     @Primary
-    open fun exposedSpringTransactionAttributeSource(): ExposedSpringTransactionAttributeSource {
-        return ExposedSpringTransactionAttributeSource()
-    }
+    open fun exposedSpringTransactionAttributeSource(): ExposedSpringTransactionAttributeSource = ExposedSpringTransactionAttributeSource()
 
     /**
      * Runtime hints for GraalVM native image compilation and Spring AOT processing.
