@@ -1,7 +1,7 @@
 val ktlint by configurations.creating
 
 plugins {
-    kotlin("jvm") version "2.3.0-RC3"
+    kotlin("jvm") version "2.3.0"
     kotlin("plugin.spring") version "2.3.0-RC3"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
