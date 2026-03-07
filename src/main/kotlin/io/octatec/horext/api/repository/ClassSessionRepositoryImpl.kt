@@ -5,8 +5,9 @@ import io.octatec.horext.api.domain.ClassSessionTypes
 import io.octatec.horext.api.domain.ClassSessions
 import io.octatec.horext.api.domain.Classrooms
 import io.octatec.horext.api.domain.Teachers
-import org.jetbrains.exposed.sql.anyFrom
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.anyFrom
+import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 
 @Repository

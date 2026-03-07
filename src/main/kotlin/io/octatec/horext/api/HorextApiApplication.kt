@@ -1,6 +1,6 @@
 package io.octatec.horext.api
 
-import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
+import org.jetbrains.exposed.v1.spring.boot.autoconfigure.ExposedAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 

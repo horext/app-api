@@ -1,11 +1,11 @@
 package io.octatec.horext.api.config
 
-import org.jetbrains.exposed.spring.DatabaseInitializer
-import org.jetbrains.exposed.spring.ExposedSpringTransactionAttributeSource
-import org.jetbrains.exposed.spring.SpringTransactionManager
-import org.jetbrains.exposed.sql.DatabaseConfig
-import org.jetbrains.exposed.sql.LongColumnType
-import org.jetbrains.exposed.sql.VarCharColumnType
+import org.jetbrains.exposed.v1.spring.boot.DatabaseInitializer
+import org.jetbrains.exposed.v1.spring.transaction.ExposedSpringTransactionAttributeSource
+import org.jetbrains.exposed.v1.spring.transaction.SpringTransactionManager
+import org.jetbrains.exposed.v1.core.DatabaseConfig
+import org.jetbrains.exposed.v1.core.LongColumnType
+import org.jetbrains.exposed.v1.core.VarCharColumnType
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar

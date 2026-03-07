@@ -3,7 +3,8 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.AcademicPeriodOrganizationUnits
 import io.octatec.horext.api.domain.HourlyLoad
 import io.octatec.horext.api.domain.HourlyLoads
-import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 import java.time.Instant
 

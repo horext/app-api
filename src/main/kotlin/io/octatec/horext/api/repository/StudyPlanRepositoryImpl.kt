@@ -3,7 +3,9 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.OrganizationUnits
 import io.octatec.horext.api.domain.StudyPlan
 import io.octatec.horext.api.domain.StudyPlans
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.springframework.stereotype.Repository
 
 @Repository

@@ -1,7 +1,7 @@
 package io.octatec.horext.api.domain
 
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.IdTable
 
 /**
  * The organization unit entity.
