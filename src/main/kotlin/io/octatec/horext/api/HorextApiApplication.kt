@@ -1,10 +1,9 @@
 package io.octatec.horext.api
 
-import org.jetbrains.exposed.v1.spring.boot.autoconfigure.ExposedAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication(exclude = [ExposedAutoConfiguration::class])
+@SpringBootApplication
 class HorextApiApplication
 
 fun main(args: Array<String>) {
