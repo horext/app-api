@@ -5,7 +5,10 @@ import io.octatec.horext.api.domain.ScheduleSubject
 import io.octatec.horext.api.domain.ScheduleSubjects
 import io.octatec.horext.api.domain.Schedules
 import io.octatec.horext.api.domain.Subjects
-import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.anyFrom
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 

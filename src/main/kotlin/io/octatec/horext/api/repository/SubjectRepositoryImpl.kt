@@ -10,7 +10,13 @@ import io.octatec.horext.api.domain.Subjects
 import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
-import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.exists
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 import java.time.Instant
