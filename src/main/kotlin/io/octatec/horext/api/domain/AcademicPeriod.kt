@@ -1,6 +1,6 @@
 package io.octatec.horext.api.domain
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 data class AcademicPeriod(
     val id: Long,
