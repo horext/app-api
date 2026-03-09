@@ -3,11 +3,10 @@
 {
 	"name": "Java",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/java:3.0.0-25-bookworm",
 
 	"features": {
 		"ghcr.io/devcontainers/features/java:1": {
-			"version": "21",
 			"installMaven": "false",
 			"installGradle": "true"
 		}
@@ -22,7 +21,11 @@
 			]
 		}
 	},
-
+	"mounts": [
+		"type=bind,source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,consistency=cached"
+	],
+	
+	"postStartCommand": "git config --global user.signingkey ~/.ssh/id_ed25519.pub || true"
 	// change 
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
