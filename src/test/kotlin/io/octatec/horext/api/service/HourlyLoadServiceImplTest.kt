@@ -1,6 +1,7 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.HourlyLoad
+import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.repository.HourlyLoadRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -32,6 +33,17 @@ class HourlyLoadServiceImplTest {
         val result = service.getLatestByFaculty(facultyId)
 
         assertEquals(expected, result)
+        verify(hourlyLoadRepository).getLatestByFaculty(facultyId)
+    }
+
+    @Test
+    fun getLatestByFaculty_throwsResourceNotFoundWhenRepositoryReturnsNull() {
+        val facultyId = 1L
+        `when`(hourlyLoadRepository.getLatestByFaculty(facultyId)).thenReturn(null)
+
+        assertThrows(ResourceNotFoundException::class.java) {
+            service.getLatestByFaculty(facultyId)
+        }
         verify(hourlyLoadRepository).getLatestByFaculty(facultyId)
     }
 
