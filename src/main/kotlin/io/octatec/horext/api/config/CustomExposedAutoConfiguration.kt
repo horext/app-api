@@ -15,10 +15,11 @@ class CustomExposedRuntimeHints : RuntimeHintsRegistrar {
         hints: RuntimeHints,
         classLoader: ClassLoader?,
     ) {
-        val members = arrayOf(
-            MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-            MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS,
-        )
+        val members =
+            arrayOf(
+                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS,
+            )
 
         // Exposed 1.1.1 native image gap: these types are used via reflection during table cloning/reference.
         hints.reflection().registerTypeIfPresent(
