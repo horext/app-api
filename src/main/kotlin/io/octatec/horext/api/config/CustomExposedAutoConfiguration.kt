@@ -36,6 +36,7 @@ class CustomExposedRuntimeHints : RuntimeHintsRegistrar {
             classLoader,
             "org.jetbrains.exposed.v1.core.VarCharColumnType",
             *members,
+            MemberCategory.INVOKE_PUBLIC_METHODS,
         )
         hints.reflection().registerTypeIfPresent(
             classLoader,
