@@ -16,7 +16,7 @@ class OrganizationUnitServiceImpl(
             OrganizationUnitTypeCode.SPECIALITY,
         )
 
-    override fun getAllFaculty(): List<OrganizationUnit> = organizationUnitRepository.getAllByType(OrganizationUnitTypeCode.FACULTY)
+    override fun getAllFaculty(): List<OrganizationUnit> = organizationUnitRepository.getFacultiesHavingStudyPlans()
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> = organizationUnitRepository.getAllSpecialityByFacultyId(id)
 }

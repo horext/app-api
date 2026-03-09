@@ -7,4 +7,6 @@ interface OrganizationUnitRepository {
     fun getAllByType(typeId: OrganizationUnitTypeCode): List<OrganizationUnit>
 
     fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit>
+
+    fun getFacultiesHavingStudyPlans(): List<OrganizationUnit>
 }
