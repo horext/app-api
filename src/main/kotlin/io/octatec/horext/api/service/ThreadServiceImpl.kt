@@ -8,7 +8,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
-import java.util.Objects
 
 @Service
 class ThreadServiceImpl : ThreadService {
@@ -37,10 +36,6 @@ class ThreadServiceImpl : ThreadService {
                 java.util.HashMap::class.java,
             )
         val entity = (responseEntityStr.body)!!
-        return try {
-            Objects.requireNonNull(entity)["data"]
-        } catch (e: Exception) {
-            throw ResourceNotFoundException("Thread no encontrado")
-        }
+        return entity["data"] ?: throw ResourceNotFoundException("Thread no encontrado")
     }
 }
