@@ -6,6 +6,10 @@ on:
       environment:
         required: true
         type: string
+      java-version:
+        required: false
+        type: string
+        default: "25"
     secrets:
       SERVER_USER:
         required: true
@@ -34,6 +38,11 @@ on:
         description: "Environment to deploy"
         type: environment
         required: true
+      java-version:
+        description: "Java version to use in release and migration"
+        type: string
+        required: false
+        default: "25"
 
 permissions:
   contents: read
@@ -47,6 +56,8 @@ concurrency:
 jobs:
   release:
     uses: ./.github/workflows/release.yml
+    with:
+      java-version: ${{ inputs.java-version }}
     permissions:
       contents: read
       packages: write
@@ -56,7 +67,7 @@ jobs:
     uses: ./.github/workflows/migrate-db.yml
     with:
       environment: ${{ inputs.environment }}
-      java-version: "24"
+      java-version: ${{ inputs.java-version }}
     secrets: inherit
 
   deploy:
