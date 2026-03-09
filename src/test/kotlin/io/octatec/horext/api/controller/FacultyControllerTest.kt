@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
@@ -35,6 +36,7 @@ class FacultyControllerTest {
         val actualFacultyList = facultyController.getAll()
 
         assertEquals(expectedFacultyList, actualFacultyList)
+        verify(organizationUnitService).getAllFaculty()
     }
 
     @Test
@@ -50,6 +52,7 @@ class FacultyControllerTest {
         val actualSpecialityList = facultyController.getAllSpecialitiesByFacultyId(facultyId)
 
         assertEquals(expectedSpecialityList, actualSpecialityList)
+        verify(organizationUnitService).getAllSpecialityByFacultyId(facultyId)
     }
 
     @Test
@@ -60,5 +63,6 @@ class FacultyControllerTest {
         assertThrows(ResourceNotFoundException::class.java) {
             facultyController.getAllSpecialitiesByFacultyId(facultyId)
         }
+        verify(organizationUnitService).getAllSpecialityByFacultyId(facultyId)
     }
 }
