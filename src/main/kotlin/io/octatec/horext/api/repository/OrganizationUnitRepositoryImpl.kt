@@ -49,7 +49,6 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             .where {
                 (OrganizationUnits.typeId eq OrganizationUnitTypeCode.FACULTY.id) and
                     exists(specialityWithStudyPlanExists)
-            }
-            .map { row -> OrganizationUnits.createEntity(row) }
+            }.map { row -> OrganizationUnits.createEntity(row) }
     }
 }
