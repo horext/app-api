@@ -21,5 +21,7 @@ class ScheduleSubjectController(
     fun getAllBySpeciality(
         @RequestParam(name = "subject") subjectId: Long,
         @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
-    ): List<ScheduleSubject> = scheduleSubjectService.findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
+    ): List<ScheduleSubject> =
+        scheduleSubjectService
+            .findBySubjectIdAndHourlyLoadId(subjectId, hourlyLoadId)
 }

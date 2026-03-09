@@ -9,8 +9,9 @@ data class Schedule(
     val id: Long,
     var section: Section?,
     var deleteAt: Instant?,
+    var sessions: List<ClassSession>? = null,
 ) {
-    constructor(id: Long) : this(id, null, null)
+    constructor(id: Long) : this(id, null, null, null)
 }
 
 object Schedules : LongIdTable("schedule") {
