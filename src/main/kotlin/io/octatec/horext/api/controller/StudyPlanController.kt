@@ -2,7 +2,6 @@ package io.octatec.horext.api.controller
 
 import io.octatec.horext.api.domain.StudyPlan
 import io.octatec.horext.api.domain.Subject
-import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.service.StudyPlanService
 import io.octatec.horext.api.service.SubjectService
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,40 +16,19 @@ class StudyPlanController(
     val subjectService: SubjectService,
 ) {
     @GetMapping
-    fun getAllStudyPlans(): List<StudyPlan> {
-        try {
-            return studyPlanService.getAllStudyPlan()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw ResourceNotFoundException("StudyPlans")
-        }
-    }
+    fun getAllStudyPlans(): List<StudyPlan> = studyPlanService.getAllStudyPlan()
 
     @GetMapping(
         "{studyPlanId}",
     )
     fun getAllSpecialitiesByFacultyId(
         @PathVariable(name = "studyPlanId") studyPlanId: Long,
-    ): List<StudyPlan> {
-        try {
-            return studyPlanService.getStudyPlanById(studyPlanId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw ResourceNotFoundException("StudyPlan")
-        }
-    }
+    ): List<StudyPlan> = studyPlanService.getStudyPlanById(studyPlanId)
 
     @GetMapping(
         "{studyPlanId}/subjects",
     )
     fun getAllSubjectsByStudyPlanId(
         @PathVariable(name = "studyPlanId") studyPlanId: Long,
-    ): List<Subject> {
-        try {
-            return subjectService.getAllByStudyPlanId(studyPlanId)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw ResourceNotFoundException("StudyPlan")
-        }
-    }
+    ): List<Subject> = subjectService.getAllByStudyPlanId(studyPlanId)
 }
