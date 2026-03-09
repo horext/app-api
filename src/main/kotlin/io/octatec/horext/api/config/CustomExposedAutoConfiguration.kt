@@ -1,5 +1,9 @@
 package io.octatec.horext.api.config
 
+import org.jetbrains.exposed.v1.core.IntegerColumnType
+import org.jetbrains.exposed.v1.core.LongColumnType
+import org.jetbrains.exposed.v1.core.VarCharColumnType
+import org.jetbrains.exposed.v1.core.dao.id.EntityIDColumnType
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
@@ -22,26 +26,13 @@ class CustomExposedRuntimeHints : RuntimeHintsRegistrar {
             )
 
         // Exposed 1.1.1 native image gap: these types are used via reflection during table cloning/reference.
-        hints.reflection().registerTypeIfPresent(
-            classLoader,
-            "org.jetbrains.exposed.v1.core.LongColumnType",
-            *members,
-        )
-        hints.reflection().registerTypeIfPresent(
-            classLoader,
-            "org.jetbrains.exposed.v1.core.IntegerColumnType",
-            *members,
-        )
-        hints.reflection().registerTypeIfPresent(
-            classLoader,
-            "org.jetbrains.exposed.v1.core.VarCharColumnType",
+        hints.reflection().registerType(LongColumnType::class.java, *members)
+        hints.reflection().registerType(IntegerColumnType::class.java, *members)
+        hints.reflection().registerType(
+            VarCharColumnType::class.java,
             *members,
             MemberCategory.INVOKE_PUBLIC_METHODS,
         )
-        hints.reflection().registerTypeIfPresent(
-            classLoader,
-            "org.jetbrains.exposed.v1.core.dao.id.EntityIDColumnType",
-            *members,
-        )
+        hints.reflection().registerType(EntityIDColumnType::class.java, *members)
     }
 }
