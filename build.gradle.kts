@@ -102,7 +102,7 @@ flyway {
     url = getEnv("SPRING_DATASOURCE_URL")
     user = getEnv("SPRING_DATASOURCE_USERNAME")
     driver = "org.postgresql.Driver"
-    schemas = arrayOf(getEnv("SPRING_DATASOURCE_SCHEMA"))
+    schemas = listOfNotNull(getEnv("SPRING_DATASOURCE_SCHEMA")).toTypedArray()
     locations = arrayOf("classpath:db/migration")
 }
 
