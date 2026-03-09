@@ -106,17 +106,41 @@ flyway {
     locations = arrayOf("classpath:db/migration")
 }
 
-val ktlintCheck by tasks.registering(JavaExec::class) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Check Kotlin code style"
-    classpath = ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
-    args(
-        "**/src/**/*.kt",
-        "**.kts",
+val ktlintTargets =
+    listOf(
+        "src/**/*.kt",
+        "src/**/*.kts",
+        "*.kts",
         "!**/build/**",
     )
+
+fun JavaExec.configureKtlintTask(
+    extraArgs: List<String> = emptyList(),
+    alwaysRun: Boolean = false,
+) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    classpath = ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+
+    inputs.files(
+        fileTree(projectDir) {
+            include("src/**/*.kt", "src/**/*.kts", "*.kts")
+            exclude("**/build/**")
+        },
+    )
+
+    if (alwaysRun) {
+        // Formatting is an explicit command; always run it when requested.
+        outputs.upToDateWhen { false }
+    }
+
+    // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
+    args(extraArgs + ktlintTargets)
+}
+
+val ktlintCheck by tasks.registering(JavaExec::class) {
+    description = "Check Kotlin code style"
+    configureKtlintTask()
 }
 
 tasks.check {
@@ -124,15 +148,6 @@ tasks.check {
 }
 
 tasks.register<JavaExec>("ktlintFormat") {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Check Kotlin code style and format"
-    classpath = ktlint
-    mainClass.set("com.pinterest.ktlint.Main")
-    // see https://pinterest.github.io/ktlint/install/cli/#command-line-usage for more information
-    args(
-        "-F",
-        "**/src/**/*.kt",
-        "**.kts",
-        "!**/build/**",
-    )
+    configureKtlintTask(extraArgs = listOf("-F"), alwaysRun = true)
 }
