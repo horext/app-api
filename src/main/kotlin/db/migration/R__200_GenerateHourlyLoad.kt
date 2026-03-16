@@ -109,7 +109,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val rowsByFaculty = rows.groupBy { it.facultyCode }
 
         for ((facultyCode, facultyRows) in rowsByFaculty) {
-            log.info("R__200: file='{}' faculty='{}' rows={}", meta.hourlyLoadName, facultyCode, facultyRows.size)
             val faculty =
                 OrganizationUnits
                     .selectAll()
@@ -278,27 +277,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .where { Teachers.fullName eq csvName }
                     .firstOrNull()
             if (byName != null) {
-                log.warn(
-                    "R__200: DNI '{}' has name mismatch in DB; using existing teacher by full_name='{}' (teacherId={})",
-                    dni,
-                    csvName,
-                    byName[Teachers.id].value,
-                )
                 continue
-            }
-
-            val byDni =
-                Teachers
-                    .select(Teachers.id, Teachers.fullName)
-                    .where { Teachers.code eq dni }
-                    .firstOrNull()
-            if (byDni != null) {
-                log.warn(
-                    "R__200: DNI '{}' points to '{}' in DB but CSV has '{}'; creating new teacher row",
-                    dni,
-                    byDni[Teachers.fullName],
-                    csvName,
-                )
             }
 
             Teachers.insert {
@@ -323,7 +302,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
                     .any()
             if (exists) {
-                log.info("R__200: apouId={} — hourly load already exists, skipping (ENABLE_HOURLY_LOAD_UPDATE=false)", apouId)
                 return
             }
         }
@@ -331,7 +309,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val activeRows = facultyRows.filter { it.deletedAt == null }
         val lastUpdate =
             activeRows.maxOfOrNull { it.updatedAt } ?: run {
-                log.info("R__200: apouId={} — no active rows, skipping", apouId)
                 return
             }
         val lastUpdateInstant = lastUpdate.toInstant(ZoneOffset.UTC)
@@ -344,7 +321,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .firstOrNull()
                     ?.get(HourlyLoads.checkedAt)
             if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) {
-                log.info("R__200: apouId={} — file not newer than checkedAt={}, skipping", apouId, existingCheckedAt)
                 return
             }
         }
@@ -371,7 +347,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 it[HourlyLoads.name] = meta.hourlyLoadName
                 it[HourlyLoads.checkedAt] = checkedAt
             }
-            log.info("R__200: inserted hourly_load for apouId={} (ENABLE_HOURLY_LOAD_UPDATE=false)", apouId)
         }
 
         val hlRow =
@@ -387,8 +362,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .filter { it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null }
                 .map { Triple(it.course, it.section.trim(), it.vacancies) }
                 .distinctBy { it.first to it.second }
-
-        log.info("R__200: apouId={} — {} course-section(s) to process (updatedAt > {})", apouId, resumes.size, updatedAtIn)
         for ((courseCode, section, vacancies) in resumes) {
             val scheduleExists =
                 ScheduleSubjects
@@ -664,8 +637,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     private fun listCsvFiles(): List<Pair<CsvMetadata, List<ScheduleResume>>> {
         val entries = listCsvEntries(prefix = "hl_")
         if (entries.isEmpty()) return emptyList()
-
-        log.info("R__200: discovered hl_ files: {}", entries.joinToString { it.first })
 
         val parsedEntries =
             entries.mapNotNull { (filename, lastModified) ->
