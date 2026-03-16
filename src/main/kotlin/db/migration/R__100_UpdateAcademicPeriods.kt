@@ -11,6 +11,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import java.time.Instant
@@ -62,7 +63,7 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
         rows: List<AcademicPeriodRow>,
     ) {
         rows.forEach { row ->
-            val apId = upsertAcademicPeriod(row, fileLastModified)
+            val apId = upsertAcademicPeriod(row)
             val facultyId =
                 OrganizationUnits
                     .selectAll()
@@ -72,51 +73,40 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
                     ?.value
                     ?: error("Organization unit not found with code: '${row.facultyCode}'")
 
-            val apouExists =
+            val apouId =
                 AcademicPeriodOrganizationUnits
                     .selectAll()
                     .where {
                         (AcademicPeriodOrganizationUnits.academicPeriodId eq apId) and
                             (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId)
-                    }.any()
+                    }.firstOrNull()
+                    ?.get(AcademicPeriodOrganizationUnits.id)
+                    ?.value
 
-            if (!apouExists) {
+            if (apouId == null) {
                 AcademicPeriodOrganizationUnits.insertAndGetId {
                     it[AcademicPeriodOrganizationUnits.academicPeriodId] = EntityID(apId, AcademicPeriods)
                     it[AcademicPeriodOrganizationUnits.organizationUnitId] = EntityID(facultyId, OrganizationUnits)
+                    it[AcademicPeriodOrganizationUnits.fromDate] = row.fromDate ?: fileLastModified ?: Instant.now()
+                    it[AcademicPeriodOrganizationUnits.toDate] = row.toDate
+                }
+            } else {
+                AcademicPeriodOrganizationUnits.update({ AcademicPeriodOrganizationUnits.id eq apouId }) {
+                    it[AcademicPeriodOrganizationUnits.fromDate] = row.fromDate ?: fileLastModified ?: Instant.now()
+                    it[AcademicPeriodOrganizationUnits.toDate] = row.toDate
                 }
             }
         }
     }
 
-    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.upsertAcademicPeriod(
-        row: AcademicPeriodRow,
-        fileLastModified: Instant?,
-    ): Long {
-        if (fileLastModified != null) {
-            val existing =
-                AcademicPeriods
-                    .selectAll()
-                    .where { AcademicPeriods.code eq row.code }
-                    .firstOrNull()
-            if (existing != null) {
-                val watermark = existing[AcademicPeriods.fromDate]
-                if (watermark != null && !fileLastModified.isAfter(watermark)) {
-                    return existing[AcademicPeriods.id].value
-                }
-            }
-        }
-
-        return AcademicPeriods
+    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.upsertAcademicPeriod(row: AcademicPeriodRow): Long =
+        AcademicPeriods
             .upsert(AcademicPeriods.code) {
                 it[AcademicPeriods.code] = row.code
                 it[AcademicPeriods.name] = row.code
-                it[AcademicPeriods.fromDate] = row.fromDate ?: fileLastModified ?: Instant.now()
-                it[AcademicPeriods.toDate] = row.toDate
             }.resultedValues!!
             .first()[AcademicPeriods.id]
             .value
-    }
 
     private fun listCsvFiles(): List<Pair<Instant?, List<AcademicPeriodRow>>> =
         listCsvEntries(prefix = "ap_").map { (filename, lastModified) ->
