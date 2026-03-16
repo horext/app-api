@@ -7,23 +7,23 @@ import java.time.Instant
 
 data class HourlyLoad(
     val id: Long,
-    var name: String?,
+    var name: String,
     var checkedAt: Instant?,
     var updatedAt: Instant?,
     var publishedAt: Instant?,
     var academicPeriodOrganizationUnit: AcademicPeriodOrganizationUnit?,
 ) {
-    constructor(id: Long) : this(id, null, null, null, null, null)
+    constructor(id: Long) : this(id, "", null, null, null, null)
 }
 
 object HourlyLoads : LongIdTable("hourly_load") {
     val name = varchar("name", length = 100)
 
-    val checkedAt = timestamp("checked_at")
+    val checkedAt = timestamp("checked_at").nullable()
 
-    val updatedAt = timestamp("updated_at")
+    val updatedAt = timestamp("updated_at").nullable()
 
-    val publishedAt = timestamp("published_at")
+    val publishedAt = timestamp("published_at").nullable()
 
     val academicPeriodOrganizationUnitId =
         reference("academic_period_organization_unit_id", AcademicPeriodOrganizationUnits)

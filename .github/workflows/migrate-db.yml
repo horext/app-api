@@ -20,6 +20,10 @@ on:
         required: true
       SPRING_DATASOURCE_SCHEMA:
         required: true
+      APP_ID:
+        required: true
+      APP_PRIVATE_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -45,6 +49,25 @@ jobs:
 
       - name: Make Gradlew executable
         run: chmod +x gradlew
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: app-data
+
+      - name: Clone app-data repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh repo clone ${{ github.repository_owner }}/app-data app-data -- --depth 1
+
+      - name: Sync CSV data files
+        run: |
+          rsync -av --include='*.csv' --exclude='*' app-data/seeds/ src/main/resources/db/data/
+          echo "CSV files synced from admin-data repository"
 
       - name: Build with Gradle
         run: ./gradlew assemble

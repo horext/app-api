@@ -3,6 +3,7 @@ package io.octatec.horext.api.domain
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.javatime.time
+import org.jetbrains.exposed.v1.javatime.timestamp
 import java.time.LocalTime
 
 data class ClassSession(
@@ -30,6 +31,10 @@ object ClassSessions : LongIdTable("class_session") {
     val startTime = time("start_time")
 
     val endTime = time("end_time")
+
+    val deletedAt = timestamp("deleted_at").nullable()
+
+    val updatedAt = timestamp("updated_at").nullable()
 
     fun createEntity(row: ResultRow): ClassSession =
         ClassSession(

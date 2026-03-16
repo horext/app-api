@@ -16,7 +16,7 @@ data class Subject(
 }
 
 object Subjects : LongIdTable("subject") {
-    private val courseId = reference("course_id", Courses)
+    val courseId = reference("course_id", Courses)
 
     private val typeId = reference("subject_type_id", SubjectTypes)
 

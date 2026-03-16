@@ -13,5 +13,7 @@ object Sections : IdTable<String>("section") {
             length = 50,
         ).entityId()
 
+    val code = varchar("code", length = 50).nullable()
+
     override val primaryKey = PrimaryKey(id)
 }

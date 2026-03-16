@@ -16,9 +16,9 @@ data class AcademicPeriodOrganizationUnit(
 }
 
 object AcademicPeriodOrganizationUnits : LongIdTable("academic_period_organization_unit") {
-    val fromDate = timestamp("from_date")
+    val fromDate = timestamp("from_date").nullable()
 
-    val toDate = timestamp("to_date")
+    val toDate = timestamp("to_date").nullable()
 
     val academicPeriodId = reference("academic_period_id", AcademicPeriods)
 

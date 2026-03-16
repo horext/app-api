@@ -15,9 +15,15 @@ data class Schedule(
 }
 
 object Schedules : LongIdTable("schedule") {
-    val deleteAt = timestamp("delete_at")
+    val deleteAt = timestamp("delete_at").nullable()
 
     val sectionId = reference("section_id", Sections)
+
+    val vacancies = integer("vacancies").nullable()
+
+    val updatedAt = timestamp("updated_at").nullable()
+
+    val deletedAt = timestamp("deleted_at").nullable()
 
     fun createEntity(row: ResultRow): Schedule =
         Schedule(
