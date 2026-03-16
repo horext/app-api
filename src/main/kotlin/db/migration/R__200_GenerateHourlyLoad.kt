@@ -289,10 +289,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         apouId: Long,
     ) {
         if (!ENABLE_HOURLY_LOAD_UPDATE) {
-            val exists = HourlyLoads
-                .select(HourlyLoads.id)
-                .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
-                .any()
+            val exists =
+                HourlyLoads
+                    .select(HourlyLoads.id)
+                    .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
+                    .any()
             if (exists) {
                 log.info("R__200: apouId={} — hourly load already exists, skipping (ENABLE_HOURLY_LOAD_UPDATE=false)", apouId)
                 return
