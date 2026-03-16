@@ -81,11 +81,8 @@ jobs:
           rsync -av --include='*.csv' --exclude='*' app-data/seeds/ src/main/resources/db/data/
           echo "CSV files synced from admin-data repository"
 
-      - name: Build with Gradle
-        run: ./gradlew assemble
-
-      - name: Migrate Database
-        run: ./gradlew flywayMigrate -i
+      - name: Build and Migrate Database
+        run: ./gradlew assemble flywayMigrate -i
         env:
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
