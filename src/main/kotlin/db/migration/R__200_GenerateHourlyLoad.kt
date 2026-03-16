@@ -572,9 +572,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         resourcePath: String,
         defaultFacultyCode: String,
     ): List<ScheduleResume> {
-        val stream =
-            Thread.currentThread().contextClassLoader.getResourceAsStream(resourcePath)
-                ?: return emptyList()
+        val stream = openClasspathResource(resourcePath) ?: return emptyList()
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
 

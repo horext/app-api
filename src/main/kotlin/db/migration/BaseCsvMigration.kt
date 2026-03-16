@@ -32,6 +32,8 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
             .mapNotNull { it.getResourceAsStream(path) }
             .firstOrNull()
 
+    protected fun openClasspathResource(path: String): InputStream? = openResource(path)
+
     protected fun parseCsvLine(
         line: String,
         delimiter: Char = ',',

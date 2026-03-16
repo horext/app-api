@@ -124,9 +124,7 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
         }
 
     private fun loadCsv(resourcePath: String): List<AcademicPeriodRow> {
-        val stream =
-            Thread.currentThread().contextClassLoader.getResourceAsStream(resourcePath)
-                ?: return emptyList()
+        val stream = openClasspathResource(resourcePath) ?: return emptyList()
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
         fun parseInstant(s: String): Instant? =
