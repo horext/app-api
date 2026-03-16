@@ -42,6 +42,9 @@ import java.time.format.DateTimeFormatter
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     companion object {
+        private const val ENABLE_UPDATE = false
+        private const val ENABLE_HOURLY_LOAD_UPDATE = false
+
         private const val COL_FACULTY_CODE = "codigo_facultad"
         private const val COL_COURSE = "codigo_curso"
         private const val COL_SECTION = "seccion"
@@ -285,6 +288,17 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         facultyId: Long,
         apouId: Long,
     ) {
+        if (!ENABLE_HOURLY_LOAD_UPDATE) {
+            val exists = HourlyLoads
+                .select(HourlyLoads.id)
+                .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
+                .any()
+            if (exists) {
+                log.info("R__200: apouId={} — hourly load already exists, skipping (ENABLE_HOURLY_LOAD_UPDATE=false)", apouId)
+                return
+            }
+        }
+
         val activeRows = facultyRows.filter { it.deletedAt == null }
         val lastUpdate =
             activeRows.maxOfOrNull { it.updatedAt } ?: run {
@@ -351,7 +365,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
             if (!scheduleExists) {
                 insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
-            } else {
+            } else if (ENABLE_UPDATE) {
                 updateSchedule(courseCode, section, hourlyLoadId, facultyRows, updatedAtIn)
             }
         }
