@@ -1,1 +1,1 @@
-codigo_facultad,curso,seccion,vacantes,updated_at,deleted_at,inicio,fin,aula,dni,docente,tipo,dia
+codigo_facultad,codigo_curso,seccion,vacantes,updated_at,deleted_at,inicio,fin,aula,dni_docente,nombre_docente,tipo,dia

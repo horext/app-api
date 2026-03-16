@@ -41,19 +41,19 @@ import java.time.format.DateTimeFormatter
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
     companion object {
-        private const val COL_FACULTY_CODE = "codigo_facultad"
-        private const val COL_COURSE       = "curso"
-        private const val COL_SECTION      = "seccion"
-        private const val COL_VACANCIES    = "vacantes"
-        private const val COL_UPDATED_AT   = "updated_at"
-        private const val COL_DELETED_AT   = "deleted_at"
-        private const val COL_START_TIME   = "inicio"
-        private const val COL_END_TIME     = "fin"
-        private const val COL_CLASSROOM    = "aula"
-        private const val COL_DNI         = "dni"
-        private const val COL_TEACHER      = "docente"
-        private const val COL_TYPE         = "tipo"
-        private const val COL_DAY          = "dia"
+        private const val COL_FACULTY_CODE  = "codigo_facultad"
+        private const val COL_COURSE        = "codigo_curso"
+        private const val COL_SECTION       = "seccion"
+        private const val COL_VACANCIES     = "vacantes"
+        private const val COL_UPDATED_AT    = "updated_at"
+        private const val COL_DELETED_AT    = "deleted_at"
+        private const val COL_START_TIME    = "inicio"
+        private const val COL_END_TIME      = "fin"
+        private const val COL_CLASSROOM     = "aula"
+        private const val COL_DNI           = "dni_docente"
+        private const val COL_TEACHER       = "nombre_docente"
+        private const val COL_TYPE          = "tipo"
+        private const val COL_DAY           = "dia"
     }
 
     data class CsvMetadata(
@@ -168,7 +168,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         if (errors.isNotEmpty()) {
             throw IllegalStateException(
-                "Migration V1_29_0 validation errors for faculty '$facultyCode':\n" +
+                "Migration R__200_GenerateHourlyLoad validation errors for faculty '$facultyCode':\n" +
                     errors.joinToString("\n") { "  - $it" },
             )
         }
@@ -502,7 +502,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             fun idx(name: String) = header.indexOf(name).also {
                 require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
             }
-            val iCodigoFacultad = header.indexOf(COL_FACULTY_CODE)
+            fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
+            val iCodigoFacultad = optIdx(COL_FACULTY_CODE)
             val iCurso          = idx(COL_COURSE)
             val iSeccion        = idx(COL_SECTION)
             val iVacantes       = idx(COL_VACANCIES)
@@ -518,7 +519,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             iter.asSequence().map { line ->
                 val cols = parseCsvLine(line)
                 ScheduleResume(
-                    facultyCode  = iCodigoFacultad.takeIf { it >= 0 }?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
+                    facultyCode  = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
                     course       = cols[iCurso].trim(),
                     section      = cols[iSeccion].trim(),
                     vacancies    = cols[iVacantes].toInt(),
