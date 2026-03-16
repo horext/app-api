@@ -9,14 +9,14 @@ import java.util.zip.CRC32
 
 abstract class BaseCsvMigration : BaseJavaMigration() {
 
-    protected fun parseCsvLine(line: String): List<String> {
+    protected fun parseCsvLine(line: String, delimiter: Char = ','): List<String> {
         val result = mutableListOf<String>()
         var inQuotes = false
         val current = StringBuilder()
         for (ch in line) {
             when {
                 ch == '"' -> inQuotes = !inQuotes
-                ch == ',' && !inQuotes -> {
+                ch == delimiter && !inQuotes -> {
                     result.add(current.toString())
                     current.clear()
                 }
