@@ -43,8 +43,8 @@ import java.time.format.DateTimeFormatter
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     companion object {
-        private const val ENABLE_UPDATE = false
-        private const val ENABLE_HOURLY_LOAD_UPDATE = false
+        private const val ENABLE_UPDATE = true
+        private const val ENABLE_HOURLY_LOAD_UPDATE = true
 
         private const val COL_FACULTY_CODE = "codigo_facultad"
         private const val COL_COURSE = "codigo_curso"
