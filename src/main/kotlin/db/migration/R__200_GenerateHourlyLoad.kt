@@ -488,7 +488,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 ?: return emptyList()
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
-        fun parseTime(s: String): String = LocalTime.parse(s.trim()).format(timeFmt)
+        fun parseTime(s: String): String {
+            val trimmed = s.trim()
+            val hour = trimmed.toIntOrNull()
+            return if (hour != null) LocalTime.of(hour, 0).format(timeFmt) else LocalTime.parse(trimmed).format(timeFmt)
+        }
         return stream.bufferedReader().useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
             if (!iter.hasNext()) return@useLines emptyList()
