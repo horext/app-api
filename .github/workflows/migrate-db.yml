@@ -25,6 +25,18 @@ on:
       APP_PRIVATE_KEY:
         required: true
 
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to migrate"
+        type: environment
+        required: true
+      java-version:
+        description: "Java version to use for migration"
+        type: string
+        required: false
+        default: "25"
+
 permissions:
   contents: read
 
