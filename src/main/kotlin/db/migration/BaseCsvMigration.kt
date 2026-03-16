@@ -2,10 +2,14 @@ package db.migration
 
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.slf4j.LoggerFactory
+import java.io.BufferedInputStream
+import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.URI
 import java.net.URL
+import java.nio.charset.Charset
 import java.time.Instant
 import java.util.jar.JarFile
 import java.util.zip.CRC32
@@ -34,11 +38,23 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
 
     protected fun openClasspathResource(path: String): InputStream? = openResource(path)
 
-    protected fun bomAwareReader(stream: InputStream): java.io.BufferedReader {
-        val reader = stream.bufferedReader(Charsets.UTF_8)
-        reader.mark(1)
-        if (reader.read() != '\uFEFF'.code) reader.reset()
-        return reader
+    protected fun bomAwareReader(stream: InputStream): BufferedReader {
+        val buf = if (stream.markSupported()) stream else BufferedInputStream(stream)
+        buf.mark(4)
+        val bom = ByteArray(3)
+        val read = buf.read(bom)
+        val (charset, skip) = when {
+            read >= 3 && bom[0] == 0xEF.toByte() && bom[1] == 0xBB.toByte() && bom[2] == 0xBF.toByte() ->
+                Charsets.UTF_8 to 3           // UTF-8 BOM: EF BB BF
+            read >= 2 && bom[0] == 0xFF.toByte() && bom[1] == 0xFE.toByte() ->
+                Charsets.UTF_16LE to 2        // UTF-16 LE BOM: FF FE
+            read >= 2 && bom[0] == 0xFE.toByte() && bom[1] == 0xFF.toByte() ->
+                Charsets.UTF_16BE to 2        // UTF-16 BE BOM: FE FF
+            else -> Charsets.UTF_8 to 0       // no BOM — assume UTF-8
+        }
+        buf.reset()
+        buf.skip(skip.toLong())
+        return BufferedReader(InputStreamReader(buf, charset))
     }
 
     protected fun parseCsvLine(
