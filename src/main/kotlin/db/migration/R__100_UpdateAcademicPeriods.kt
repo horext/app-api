@@ -131,7 +131,7 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
                     }
                 }
             }
-        return stream.bufferedReader().useLines { lines ->
+        return stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
             if (!iter.hasNext()) return@useLines emptyList()
             val headerLine = iter.next()

@@ -34,6 +34,13 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
 
     protected fun openClasspathResource(path: String): InputStream? = openResource(path)
 
+    protected fun bomAwareReader(stream: InputStream): java.io.BufferedReader {
+        val reader = stream.bufferedReader(Charsets.UTF_8)
+        reader.mark(1)
+        if (reader.read() != '\uFEFF'.code) reader.reset()
+        return reader
+    }
+
     protected fun parseCsvLine(
         line: String,
         delimiter: Char = ',',

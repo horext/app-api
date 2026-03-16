@@ -581,10 +581,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val hour = trimmed.toIntOrNull()
             return if (hour != null) LocalTime.of(hour, 0).format(timeFmt) else LocalTime.parse(trimmed).format(timeFmt)
         }
-        return stream.bufferedReader().useLines { lines ->
+        return bomAwareReader(stream).useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
             if (!iter.hasNext()) return@useLines emptyList()
-            val headerLine = iter.next().trimStart('\uFEFF') // strip UTF-8 BOM (Excel exports)
+            val headerLine = iter.next()
             val delimiter = if (headerLine.contains(';')) ';' else ','
             val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
 
