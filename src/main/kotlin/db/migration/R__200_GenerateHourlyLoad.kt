@@ -23,7 +23,9 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
@@ -180,24 +182,36 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         rows: List<ScheduleResume>,
     ): Long {
         val activeRows = rows.filter { it.deletedAt == null }
-        activeRows.map { it.section.trim() }.distinct().forEach { section ->
-            val exists = Sections.selectAll().where { Sections.id eq EntityID(section, Sections) }.any()
-            if (!exists) {
-                Sections.insert {
-                    it[Sections.id] = EntityID(section, Sections)
-                    it[Sections.code] = section
-                }
+        val allSectionIds = activeRows.map { it.section.trim() }.distinct()
+        val existingSectionIds =
+            if (allSectionIds.isNotEmpty()) {
+                Sections
+                    .select(Sections.id)
+                    .where { Sections.id inList allSectionIds }
+                    .map { it[Sections.id].value }
+                    .toSet()
+            } else {
+                emptySet()
             }
+        Sections.batchInsert(allSectionIds.filter { it !in existingSectionIds }) { section ->
+            this[Sections.id] = EntityID(section, Sections)
+            this[Sections.code] = section
         }
 
-        activeRows.map { it.classroom.trim() }.filter { it.isNotBlank() }.distinct().forEach { classroom ->
-            val exists = Classrooms.selectAll().where { Classrooms.code eq classroom }.any()
-            if (!exists) {
-                Classrooms.insert {
-                    it[Classrooms.code] = classroom
-                    it[Classrooms.name] = classroom
-                }
+        val allClassroomCodes = activeRows.map { it.classroom.trim() }.filter { it.isNotBlank() }.distinct()
+        val existingClassroomCodes =
+            if (allClassroomCodes.isNotEmpty()) {
+                Classrooms
+                    .select(Classrooms.code)
+                    .where { Classrooms.code inList allClassroomCodes }
+                    .map { it[Classrooms.code] }
+                    .toSet()
+            } else {
+                emptySet()
             }
+        Classrooms.batchInsert(allClassroomCodes.filter { it !in existingClassroomCodes }) { classroom ->
+            this[Classrooms.code] = classroom
+            this[Classrooms.name] = classroom
         }
 
         val apId =
@@ -220,24 +234,42 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 ?.value
                 ?: error("APOU for period '${meta.academicCode}' + faculty not found — run R__UpdateAcademicPeriods first")
 
-        activeRows
-            .map { r -> r.teacherDni?.takeIf { it.isNotBlank() } to r.teacherName.trim() }
-            .filter { (_, name) -> name.isNotBlank() }
-            .distinctBy { (dni, name) -> dni ?: name }
-            .forEach { (dni, name) ->
-                val exists =
-                    if (dni != null) {
-                        Teachers.selectAll().where { Teachers.code eq dni }.any()
-                    } else {
-                        Teachers.selectAll().where { Teachers.fullName eq name }.any()
-                    }
-                if (!exists) {
-                    Teachers.insert {
-                        it[Teachers.code] = dni
-                        it[Teachers.fullName] = name
-                    }
-                }
+        val teacherPairs =
+            activeRows
+                .map { r -> r.teacherDni?.takeIf { it.isNotBlank() } to r.teacherName.trim() }
+                .filter { (_, name) -> name.isNotBlank() }
+                .distinctBy { (dni, name) -> dni ?: name }
+
+        val dniPairs = teacherPairs.filter { (dni, _) -> dni != null }
+        val namePairs = teacherPairs.filter { (dni, _) -> dni == null }
+
+        val existingDnis =
+            if (dniPairs.isNotEmpty()) {
+                Teachers
+                    .select(Teachers.code)
+                    .where { Teachers.code inList dniPairs.map { it.first!! } }
+                    .mapNotNull { it[Teachers.code] }
+                    .toSet()
+            } else {
+                emptySet()
             }
+
+        val existingNames =
+            if (namePairs.isNotEmpty()) {
+                Teachers
+                    .select(Teachers.fullName)
+                    .where { Teachers.fullName inList namePairs.map { it.second } }
+                    .map { it[Teachers.fullName] }
+                    .toSet()
+            } else {
+                emptySet()
+            }
+
+        val toInsert = teacherPairs.filter { (dni, name) -> if (dni != null) dni !in existingDnis else name !in existingNames }
+        Teachers.batchInsert(toInsert) { (dni, name) ->
+            this[Teachers.code] = dni
+            this[Teachers.fullName] = name
+        }
 
         return apouId
     }
@@ -343,12 +375,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         (OrganizationUnits.parentOrganizationId eq facultyId)
                 }.map { it[Subjects.id].value }
 
-        for (subjectId in subjectIds) {
-            ScheduleSubjects.insert {
-                it[ScheduleSubjects.scheduleId] = EntityID(scheduleId, Schedules)
-                it[ScheduleSubjects.subjectId] = EntityID(subjectId, Subjects)
-                it[ScheduleSubjects.hourlyLoadId] = EntityID(hourlyLoadId, HourlyLoads)
-            }
+        ScheduleSubjects.batchInsert(subjectIds) { subjectId ->
+            this[ScheduleSubjects.scheduleId] = EntityID(scheduleId, Schedules)
+            this[ScheduleSubjects.subjectId] = EntityID(subjectId, Subjects)
+            this[ScheduleSubjects.hourlyLoadId] = EntityID(hourlyLoadId, HourlyLoads)
         }
 
         val sessions =
@@ -356,9 +386,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 it.course == courseCode && it.section.trim() == section &&
                     it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null
             }
-        for (r in sessions) {
-            execInsertClassSession(r, scheduleId, onConflictDoNothing = true)
-        }
+        batchExecInsertClassSessions(sessions, scheduleId, onConflictDoNothing = true)
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.updateSchedule(
@@ -393,9 +421,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 it[ClassSessions.deletedAt] = Instant.now()
             }
 
-            for (r in sessions) {
-                execInsertClassSession(r, scheduleId, onConflictDoNothing = false)
-            }
+            batchExecInsertClassSessions(sessions, scheduleId, onConflictDoNothing = false)
 
             Schedules.update({ Schedules.id eq scheduleId }) {
                 it[Schedules.updatedAt] = Instant.now()
@@ -403,47 +429,50 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
     }
 
-    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.execInsertClassSession(
-        r: ScheduleResume,
+    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.batchExecInsertClassSessions(
+        sessions: List<ScheduleResume>,
         scheduleId: Long,
         onConflictDoNothing: Boolean,
     ) {
-        val dayNum = dayNameToNumber(r.day)
-        val typeId =
-            ClassSessionTypes
-                .selectAll()
-                .where { ClassSessionTypes.code eq r.sessionType }
-                .firstOrNull()
-                ?.get(ClassSessionTypes.id)
-                ?.value
-        val roomId =
+        if (sessions.isEmpty()) return
+
+        // Bulk-resolve foreign keys (a few SELECTs instead of N×3)
+        val classroomCodes = sessions.map { it.classroom.trim() }.distinct()
+        val roomIdByCode =
             Classrooms
-                .selectAll()
-                .where { Classrooms.code eq r.classroom.trim() }
-                .firstOrNull()
-                ?.get(Classrooms.id)
-                ?.value
-        val tid =
-            if (r.teacherDni?.isNotBlank() == true) {
+                .select(Classrooms.id, Classrooms.code)
+                .where { Classrooms.code inList classroomCodes }
+                .associate { it[Classrooms.code] to it[Classrooms.id].value }
+
+        val typeCodes = sessions.map { it.sessionType }.distinct()
+        val typeIdByCode =
+            ClassSessionTypes
+                .select(ClassSessionTypes.id, ClassSessionTypes.code)
+                .where { ClassSessionTypes.code inList typeCodes }
+                .associate { it[ClassSessionTypes.code] to it[ClassSessionTypes.id].value }
+
+        val dniList = sessions.mapNotNull { it.teacherDni?.takeIf { d -> d.isNotBlank() } }.distinct()
+        val nameList = sessions.filter { it.teacherDni.isNullOrBlank() }.map { it.teacherName.trim() }.distinct()
+        val teacherIdByDni: Map<String, Long> =
+            if (dniList.isNotEmpty()) {
                 Teachers
-                    .selectAll()
-                    .where { Teachers.code eq r.teacherDni }
-                    .firstOrNull()
-                    ?.get(Teachers.id)
-                    ?.value
+                    .select(Teachers.id, Teachers.code)
+                    .where { Teachers.code inList dniList }
+                    .mapNotNull { row -> row[Teachers.code]?.let { code -> code to row[Teachers.id].value } }
+                    .toMap()
             } else {
+                emptyMap()
+            }
+        val teacherIdByName: Map<String, Long> =
+            if (nameList.isNotEmpty()) {
                 Teachers
-                    .selectAll()
-                    .where { Teachers.fullName eq r.teacherName.trim() }
-                    .firstOrNull()
-                    ?.get(Teachers.id)
-                    ?.value
+                    .select(Teachers.id, Teachers.fullName)
+                    .where { Teachers.fullName inList nameList }
+                    .associate { it[Teachers.fullName] to it[Teachers.id].value }
+            } else {
+                emptyMap()
             }
 
-        val dayLit = if (dayNum != null) "?" else "NULL"
-        val typeLit = if (typeId != null) "?" else "NULL"
-        val roomLit = if (roomId != null) "?" else "NULL"
-        val teacherLit = if (tid != null) "?" else "NULL"
         val conflictClause =
             if (onConflictDoNothing) {
                 "ON CONFLICT ON CONSTRAINT class_session_pk DO NOTHING"
@@ -451,22 +480,34 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 "ON CONFLICT ON CONSTRAINT class_session_pk DO UPDATE SET deleted_at = NULL"
             }
 
+        val valuePlaceholders = sessions.joinToString(", ") { "(?, ?::time, ?::time, ?, ?, ?, ?)" }
         val args =
             buildList {
-                if (dayNum != null) add(IntegerColumnType() to dayNum)
-                add(VarCharColumnType() to r.endTime)
-                add(VarCharColumnType() to r.startTime)
-                if (typeId != null) add(LongColumnType() to typeId)
-                if (roomId != null) add(LongColumnType() to roomId)
-                add(LongColumnType() to scheduleId)
-                if (tid != null) add(LongColumnType() to tid)
+                for (r in sessions) {
+                    val dayNum = dayNameToNumber(r.day)
+                    val typeId = typeIdByCode[r.sessionType]
+                    val roomId = roomIdByCode[r.classroom.trim()]
+                    val tid =
+                        if (r.teacherDni?.isNotBlank() == true) {
+                            teacherIdByDni[r.teacherDni]
+                        } else {
+                            teacherIdByName[r.teacherName.trim()]
+                        }
+                    add(IntegerColumnType() to dayNum)
+                    add(VarCharColumnType() to r.endTime)
+                    add(VarCharColumnType() to r.startTime)
+                    add(LongColumnType() to typeId)
+                    add(LongColumnType() to roomId)
+                    add(LongColumnType() to scheduleId)
+                    add(LongColumnType() to tid)
+                }
             }
 
         exec(
             """
             INSERT INTO class_session
                 (day, end_time, start_time, class_session_type_id, classroom_id, schedule_id, teacher_id)
-            VALUES ($dayLit, ?::time, ?::time, $typeLit, $roomLit, ?, $teacherLit)
+            VALUES $valuePlaceholders
             $conflictClause
             """.trimIndent(),
             args,
