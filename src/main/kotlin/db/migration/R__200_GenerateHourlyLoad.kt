@@ -511,11 +511,28 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .associate { it[Classrooms.code] to it[Classrooms.id].value }
 
         val typeCodes = sessions.map { it.sessionType }.distinct()
-        val typeIdByCode =
+        var typeIdByCode =
             ClassSessionTypes
                 .select(ClassSessionTypes.id, ClassSessionTypes.code)
                 .where { ClassSessionTypes.code inList typeCodes }
                 .associate { it[ClassSessionTypes.code] to it[ClassSessionTypes.id].value }
+
+        val missingTypeCodes = typeCodes.filter { typeIdByCode[it] == null }
+        if (missingTypeCodes.isNotEmpty()) {
+            ClassSessionTypes.batchInsert(missingTypeCodes) { code ->
+                this[ClassSessionTypes.code] = code
+                this[ClassSessionTypes.name] = code
+            }
+            log.warn(
+                "R__200: created missing class session type codes from CSV: {}",
+                missingTypeCodes.joinToString(),
+            )
+            typeIdByCode =
+                ClassSessionTypes
+                    .select(ClassSessionTypes.id, ClassSessionTypes.code)
+                    .where { ClassSessionTypes.code inList typeCodes }
+                    .associate { it[ClassSessionTypes.code] to it[ClassSessionTypes.id].value }
+        }
 
         val dniList = sessions.mapNotNull { it.teacherDni?.takeIf { d -> d.isNotBlank() } }.distinct()
         val nameList = sessions.map { normalizeTeacherName(it.teacherName) }.distinct()
@@ -566,6 +583,13 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val unresolvedClassrooms = classroomCodes.filter { roomIdByCode[it] == null }
         val unresolvedTeachersByDni = dniList.filter { teacherIdByDni[it] == null }
         val unresolvedTeachersByName = nameList.filter { teacherIdByName[it] == null }
+
+        if (unresolvedTypeCodes.isNotEmpty()) {
+            throw IllegalStateException(
+                "R__200: class_session_type unresolved for codes: ${unresolvedTypeCodes.joinToString()} " +
+                    "(scheduleId=$scheduleId)",
+            )
+        }
 
         val valuePlaceholders = sessions.joinToString(", ") { "(?, ?::time, ?::time, ?, ?, ?, ?)" }
         val args =
