@@ -362,23 +362,46 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .filter { it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null }
                 .map { Triple(it.course, it.section.trim(), it.vacancies) }
                 .distinctBy { it.first to it.second }
-        for ((courseCode, section, vacancies) in resumes) {
-            val scheduleExists =
+
+        if (ENABLE_UPDATE) {
+            // Update ALL existing schedules so sessions removed from CSV get deleted.
+            val existingCourseSections =
                 ScheduleSubjects
                     .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
                     .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
-                    .select(ScheduleSubjects.id)
-                    .where {
-                        (Schedules.sectionId eq EntityID(section, Sections)) and
-                            (Subjects.courseId eq EntityID(courseCode, Courses)) and
-                            (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
-                    }.limit(1)
-                    .any()
+                    .select(Subjects.courseId, Schedules.sectionId)
+                    .where { ScheduleSubjects.hourlyLoadId eq hourlyLoadId }
+                    .map { it[Subjects.courseId].value to it[Schedules.sectionId].value }
+                    .distinct()
+                    .toSet()
 
-            if (!scheduleExists) {
-                insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
-            } else if (ENABLE_UPDATE) {
-                updateSchedule(courseCode, section, hourlyLoadId, facultyRows, updatedAtIn)
+            for ((courseCode, section) in existingCourseSections) {
+                updateSchedule(courseCode, section, hourlyLoadId, facultyRows)
+            }
+
+            // Insert schedules that are new in this CSV run.
+            for ((courseCode, section, vacancies) in resumes) {
+                if (courseCode to section !in existingCourseSections) {
+                    insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
+                }
+            }
+        } else {
+            for ((courseCode, section, vacancies) in resumes) {
+                val scheduleExists =
+                    ScheduleSubjects
+                        .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
+                        .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
+                        .select(ScheduleSubjects.id)
+                        .where {
+                            (Schedules.sectionId eq EntityID(section, Sections)) and
+                                (Subjects.courseId eq EntityID(courseCode, Courses)) and
+                                (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
+                        }.limit(1)
+                        .any()
+
+                if (!scheduleExists) {
+                    insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
+                }
             }
         }
 
@@ -433,7 +456,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         section: String,
         hourlyLoadId: Long,
         rows: List<ScheduleResume>,
-        updatedAtIn: Instant,
     ) {
         val scheduleIds =
             ScheduleSubjects
