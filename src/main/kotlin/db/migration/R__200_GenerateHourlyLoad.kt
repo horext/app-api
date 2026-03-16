@@ -39,21 +39,20 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
-
     companion object {
-        private const val COL_FACULTY_CODE  = "codigo_facultad"
-        private const val COL_COURSE        = "codigo_curso"
-        private const val COL_SECTION       = "seccion"
-        private const val COL_VACANCIES     = "vacantes"
-        private const val COL_UPDATED_AT    = "updated_at"
-        private const val COL_DELETED_AT    = "deleted_at"
-        private const val COL_START_TIME    = "inicio"
-        private const val COL_END_TIME      = "fin"
-        private const val COL_CLASSROOM     = "aula"
-        private const val COL_DNI           = "dni_docente"
-        private const val COL_TEACHER       = "nombre_docente"
-        private const val COL_TYPE          = "tipo"
-        private const val COL_DAY           = "dia"
+        private const val COL_FACULTY_CODE = "codigo_facultad"
+        private const val COL_COURSE = "codigo_curso"
+        private const val COL_SECTION = "seccion"
+        private const val COL_VACANCIES = "vacantes"
+        private const val COL_UPDATED_AT = "updated_at"
+        private const val COL_DELETED_AT = "deleted_at"
+        private const val COL_START_TIME = "inicio"
+        private const val COL_END_TIME = "fin"
+        private const val COL_CLASSROOM = "aula"
+        private const val COL_DNI = "dni_docente"
+        private const val COL_TEACHER = "nombre_docente"
+        private const val COL_TYPE = "tipo"
+        private const val COL_DAY = "dia"
     }
 
     data class CsvMetadata(
@@ -99,7 +98,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         for ((facultyCode, facultyRows) in rowsByFaculty) {
             val faculty =
-                OrganizationUnits.selectAll()
+                OrganizationUnits
+                    .selectAll()
                     .where { OrganizationUnits.code eq facultyCode }
                     .firstOrNull() ?: error("Faculty not found with code: $facultyCode")
             val facultyId = faculty[OrganizationUnits.id].value
@@ -155,6 +155,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     val dbNames = dbRows.mapNotNull { it[Teachers.fullName] }
                     errors.add("DNI '$dni' matches multiple teachers in DB: ${dbNames.joinToString()}")
                 }
+
                 dbRows.size == 1 -> {
                     val dbName = dbRows.first()[Teachers.fullName].trim()
                     val csvName = csvNames.first()
@@ -200,18 +201,23 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         val apId =
-            AcademicPeriods.selectAll()
+            AcademicPeriods
+                .selectAll()
                 .where { AcademicPeriods.code eq meta.academicCode }
-                .firstOrNull()?.get(AcademicPeriods.id)?.value
+                .firstOrNull()
+                ?.get(AcademicPeriods.id)
+                ?.value
                 ?: error("Academic period '${meta.academicCode}' not found — run R__UpdateAcademicPeriods first")
 
         val apouId =
-            AcademicPeriodOrganizationUnits.selectAll()
+            AcademicPeriodOrganizationUnits
+                .selectAll()
                 .where {
                     (AcademicPeriodOrganizationUnits.academicPeriodId eq apId) and
                         (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId)
-                }
-                .firstOrNull()?.get(AcademicPeriodOrganizationUnits.id)?.value
+                }.firstOrNull()
+                ?.get(AcademicPeriodOrganizationUnits.id)
+                ?.value
                 ?: error("APOU for period '${meta.academicCode}' + faculty not found — run R__UpdateAcademicPeriods first")
 
         activeRows
@@ -219,11 +225,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             .filter { (_, name) -> name.isNotBlank() }
             .distinctBy { (dni, name) -> dni ?: name }
             .forEach { (dni, name) ->
-                val exists = if (dni != null) {
-                    Teachers.selectAll().where { Teachers.code eq dni }.any()
-                } else {
-                    Teachers.selectAll().where { Teachers.fullName eq name }.any()
-                }
+                val exists =
+                    if (dni != null) {
+                        Teachers.selectAll().where { Teachers.code eq dni }.any()
+                    } else {
+                        Teachers.selectAll().where { Teachers.fullName eq name }.any()
+                    }
                 if (!exists) {
                     Teachers.insert {
                         it[Teachers.code] = dni
@@ -247,9 +254,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         if (meta.fileLastModified != null) {
             val existingCheckedAt =
-                HourlyLoads.select(HourlyLoads.checkedAt)
+                HourlyLoads
+                    .select(HourlyLoads.checkedAt)
                     .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
-                    .firstOrNull()?.get(HourlyLoads.checkedAt)
+                    .firstOrNull()
+                    ?.get(HourlyLoads.checkedAt)
             if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) return
         }
 
@@ -269,7 +278,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         val hlRow =
-            HourlyLoads.select(HourlyLoads.id, HourlyLoads.updatedAt)
+            HourlyLoads
+                .select(HourlyLoads.id, HourlyLoads.updatedAt)
                 .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
                 .first()
         val hourlyLoadId = hlRow[HourlyLoads.id].value
@@ -291,8 +301,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         (Schedules.sectionId eq EntityID(section, Sections)) and
                             (Subjects.courseId eq EntityID(courseCode, Courses)) and
                             (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
-                    }
-                    .limit(1)
+                    }.limit(1)
                     .any()
 
             if (!scheduleExists) {
@@ -318,10 +327,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         updatedAtIn: Instant,
     ) {
         val scheduleId =
-            Schedules.insertAndGetId {
-                it[Schedules.sectionId] = EntityID(section, Sections)
-                it[Schedules.vacancies] = vacancies
-            }.value
+            Schedules
+                .insertAndGetId {
+                    it[Schedules.sectionId] = EntityID(section, Sections)
+                    it[Schedules.vacancies] = vacancies
+                }.value
 
         val subjectIds =
             Subjects
@@ -331,8 +341,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .where {
                     (Subjects.courseId eq EntityID(courseCode, Courses)) and
                         (OrganizationUnits.parentOrganizationId eq facultyId)
-                }
-                .map { it[Subjects.id].value }
+                }.map { it[Subjects.id].value }
 
         for (subjectId in subjectIds) {
             ScheduleSubjects.insert {
@@ -368,8 +377,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     (Schedules.sectionId eq EntityID(section, Sections)) and
                         (Subjects.courseId eq EntityID(courseCode, Courses)) and
                         (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
-                }
-                .map { it[ScheduleSubjects.scheduleId].value }
+                }.map { it[ScheduleSubjects.scheduleId].value }
                 .distinct()
 
         val sessions =
@@ -402,22 +410,34 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     ) {
         val dayNum = dayNameToNumber(r.day)
         val typeId =
-            ClassSessionTypes.selectAll()
+            ClassSessionTypes
+                .selectAll()
                 .where { ClassSessionTypes.code eq r.sessionType }
-                .firstOrNull()?.get(ClassSessionTypes.id)?.value
+                .firstOrNull()
+                ?.get(ClassSessionTypes.id)
+                ?.value
         val roomId =
-            Classrooms.selectAll()
+            Classrooms
+                .selectAll()
                 .where { Classrooms.code eq r.classroom.trim() }
-                .firstOrNull()?.get(Classrooms.id)?.value
+                .firstOrNull()
+                ?.get(Classrooms.id)
+                ?.value
         val tid =
             if (r.teacherDni?.isNotBlank() == true) {
-                Teachers.selectAll()
+                Teachers
+                    .selectAll()
                     .where { Teachers.code eq r.teacherDni }
-                    .firstOrNull()?.get(Teachers.id)?.value
+                    .firstOrNull()
+                    ?.get(Teachers.id)
+                    ?.value
             } else {
-                Teachers.selectAll()
+                Teachers
+                    .selectAll()
                     .where { Teachers.fullName eq r.teacherName.trim() }
-                    .firstOrNull()?.get(Teachers.id)?.value
+                    .firstOrNull()
+                    ?.get(Teachers.id)
+                    ?.value
             }
 
         val dayLit = if (dayNum != null) "?" else "NULL"
@@ -476,7 +496,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
     }
 
-    private fun parseFilename(name: String, lastModified: Instant? = null): CsvMetadata? {
+    private fun parseFilename(
+        name: String,
+        lastModified: Instant? = null,
+    ): CsvMetadata? {
         val lastUnderscore = name.lastIndexOf('_')
         if (lastUnderscore <= 0) return null
         val facultyCode = name.substring(lastUnderscore + 1)
@@ -500,6 +523,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 ?: return emptyList()
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+
         fun parseTime(s: String): String {
             val trimmed = s.trim()
             val hour = trimmed.toIntOrNull()
@@ -511,42 +535,46 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val headerLine = iter.next()
             val delimiter = if (headerLine.contains(';')) ';' else ','
             val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
-            fun idx(name: String) = header.indexOf(name).also {
-                require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
-            }
+
+            fun idx(name: String) =
+                header.indexOf(name).also {
+                    require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
+                }
+
             fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
             val iCodigoFacultad = optIdx(COL_FACULTY_CODE)
-            val iCurso          = idx(COL_COURSE)
-            val iSeccion        = idx(COL_SECTION)
-            val iVacantes       = idx(COL_VACANCIES)
-            val iUpdatedAt      = idx(COL_UPDATED_AT)
-            val iDeletedAt      = idx(COL_DELETED_AT)
-            val iInicio         = idx(COL_START_TIME)
-            val iFin            = idx(COL_END_TIME)
-            val iAula           = idx(COL_CLASSROOM)
-            val iDni            = optIdx(COL_DNI)
-            val iDocente        = idx(COL_TEACHER)
-            val iTipo           = idx(COL_TYPE)
-            val iDia            = idx(COL_DAY)
-            iter.asSequence().map { line ->
-                val cols = parseCsvLine(line, delimiter)
-                ScheduleResume(
-                    facultyCode  = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
-                    course       = cols[iCurso].trim(),
-                    section      = cols[iSeccion].trim(),
-                    vacancies    = cols[iVacantes].toInt(),
-                    updatedAt    = LocalDateTime.parse(cols[iUpdatedAt], fmt),
-                    deletedAt    = cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) },
-                    startTime    = parseTime(cols[iInicio]),
-                    endTime      = parseTime(cols[iFin]),
-                    classroom    = cols[iAula].trim().uppercase(),
-                    teacherDni   = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
-                    teacherName  = cols[iDocente],
-                    sessionType  = cols[iTipo].trim().uppercase(),
-                    day          = cols[iDia],
-                )
-            }.toList()
+            val iCurso = idx(COL_COURSE)
+            val iSeccion = idx(COL_SECTION)
+            val iVacantes = idx(COL_VACANCIES)
+            val iUpdatedAt = idx(COL_UPDATED_AT)
+            val iDeletedAt = idx(COL_DELETED_AT)
+            val iInicio = idx(COL_START_TIME)
+            val iFin = idx(COL_END_TIME)
+            val iAula = idx(COL_CLASSROOM)
+            val iDni = optIdx(COL_DNI)
+            val iDocente = idx(COL_TEACHER)
+            val iTipo = idx(COL_TYPE)
+            val iDia = idx(COL_DAY)
+            iter
+                .asSequence()
+                .map { line ->
+                    val cols = parseCsvLine(line, delimiter)
+                    ScheduleResume(
+                        facultyCode = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
+                        course = cols[iCurso].trim(),
+                        section = cols[iSeccion].trim(),
+                        vacancies = cols[iVacantes].toInt(),
+                        updatedAt = LocalDateTime.parse(cols[iUpdatedAt], fmt),
+                        deletedAt = cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) },
+                        startTime = parseTime(cols[iInicio]),
+                        endTime = parseTime(cols[iFin]),
+                        classroom = cols[iAula].trim().uppercase(),
+                        teacherDni = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
+                        teacherName = cols[iDocente],
+                        sessionType = cols[iTipo].trim().uppercase(),
+                        day = cols[iDia],
+                    )
+                }.toList()
         }
     }
-
 }

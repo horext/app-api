@@ -20,11 +20,10 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.CRC32
 
 class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
-
     companion object {
-        private const val COL_CODE        = "code"
-        private const val COL_FROM_DATE   = "from_date"
-        private const val COL_TO_DATE     = "to_date"
+        private const val COL_CODE = "code"
+        private const val COL_FROM_DATE = "from_date"
+        private const val COL_TO_DATE = "to_date"
         private const val COL_FACULTY_CODE = "faculty_code"
     }
 
@@ -54,19 +53,21 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
         rows.forEach { row ->
             val apId = upsertAcademicPeriod(row, fileLastModified)
             val facultyId =
-                OrganizationUnits.selectAll()
+                OrganizationUnits
+                    .selectAll()
                     .where { OrganizationUnits.code eq row.facultyCode }
                     .firstOrNull()
-                    ?.get(OrganizationUnits.id)?.value
+                    ?.get(OrganizationUnits.id)
+                    ?.value
                     ?: error("Organization unit not found with code: '${row.facultyCode}'")
 
             val apouExists =
-                AcademicPeriodOrganizationUnits.selectAll()
+                AcademicPeriodOrganizationUnits
+                    .selectAll()
                     .where {
                         (AcademicPeriodOrganizationUnits.academicPeriodId eq apId) and
                             (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId)
-                    }
-                    .any()
+                    }.any()
 
             if (!apouExists) {
                 AcademicPeriodOrganizationUnits.insertAndGetId {
@@ -83,7 +84,8 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
     ): Long {
         if (fileLastModified != null) {
             val existing =
-                AcademicPeriods.selectAll()
+                AcademicPeriods
+                    .selectAll()
                     .where { AcademicPeriods.code eq row.code }
                     .firstOrNull()
             if (existing != null) {
@@ -94,12 +96,15 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             }
         }
 
-        return AcademicPeriods.upsert(AcademicPeriods.code) {
-            it[AcademicPeriods.code] = row.code
-            it[AcademicPeriods.name] = row.code
-            it[AcademicPeriods.fromDate] = row.fromDate ?: fileLastModified ?: Instant.now()
-            it[AcademicPeriods.toDate] = row.toDate
-        }.resultedValues!!.first()[AcademicPeriods.id].value
+        return AcademicPeriods
+            .upsert(AcademicPeriods.code) {
+                it[AcademicPeriods.code] = row.code
+                it[AcademicPeriods.name] = row.code
+                it[AcademicPeriods.fromDate] = row.fromDate ?: fileLastModified ?: Instant.now()
+                it[AcademicPeriods.toDate] = row.toDate
+            }.resultedValues!!
+            .first()[AcademicPeriods.id]
+            .value
     }
 
     private fun listCsvFiles(): List<Pair<Instant?, List<AcademicPeriodRow>>> =
@@ -112,6 +117,7 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             Thread.currentThread().contextClassLoader.getResourceAsStream(resourcePath)
                 ?: return emptyList()
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
         fun parseInstant(s: String): Instant? =
             s.trim().takeIf { it.isNotBlank() }?.let {
                 LocalDateTime.parse(it, fmt).toInstant(ZoneOffset.UTC)
@@ -122,24 +128,28 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             val headerLine = iter.next()
             val delimiter = if (headerLine.contains(';')) ';' else ','
             val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
-            fun idx(name: String) = header.indexOf(name).also {
-                require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
-            }
+
+            fun idx(name: String) =
+                header.indexOf(name).also {
+                    require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
+                }
+
             fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
-            val iCode        = idx(COL_CODE)
-            val iFromDate    = optIdx(COL_FROM_DATE)
-            val iToDate      = optIdx(COL_TO_DATE)
+            val iCode = idx(COL_CODE)
+            val iFromDate = optIdx(COL_FROM_DATE)
+            val iToDate = optIdx(COL_TO_DATE)
             val iFacultyCode = idx(COL_FACULTY_CODE)
-            iter.asSequence().map { line ->
-                val cols = parseCsvLine(line, delimiter)
-                AcademicPeriodRow(
-                    code        = cols[iCode].trim(),
-                    fromDate    = iFromDate?.let { parseInstant(cols[it]) },
-                    toDate      = iToDate?.let { parseInstant(cols[it]) },
-                    facultyCode = cols[iFacultyCode].trim(),
-                )
-            }.toList()
+            iter
+                .asSequence()
+                .map { line ->
+                    val cols = parseCsvLine(line, delimiter)
+                    AcademicPeriodRow(
+                        code = cols[iCode].trim(),
+                        fromDate = iFromDate?.let { parseInstant(cols[it]) },
+                        toDate = iToDate?.let { parseInstant(cols[it]) },
+                        facultyCode = cols[iFacultyCode].trim(),
+                    )
+                }.toList()
         }
     }
-
 }
