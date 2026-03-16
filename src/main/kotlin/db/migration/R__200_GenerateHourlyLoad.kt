@@ -323,17 +323,27 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val checkedAt = meta.fileLastModified ?: Instant.now()
 
-        HourlyLoads.upsert(
-            HourlyLoads.academicPeriodOrganizationUnitId,
-            onUpdate = { stmt ->
-                stmt[HourlyLoads.checkedAt] = checkedAt
-                stmt[HourlyLoads.name] = meta.hourlyLoadName
-            },
-        ) {
-            it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
-            it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
-            it[HourlyLoads.name] = meta.hourlyLoadName
-            it[HourlyLoads.checkedAt] = checkedAt
+        if (ENABLE_HOURLY_LOAD_UPDATE) {
+            HourlyLoads.upsert(
+                HourlyLoads.academicPeriodOrganizationUnitId,
+                onUpdate = { stmt ->
+                    stmt[HourlyLoads.checkedAt] = checkedAt
+                    stmt[HourlyLoads.name] = meta.hourlyLoadName
+                },
+            ) {
+                it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
+                it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
+                it[HourlyLoads.name] = meta.hourlyLoadName
+                it[HourlyLoads.checkedAt] = checkedAt
+            }
+        } else {
+            HourlyLoads.insert {
+                it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
+                it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
+                it[HourlyLoads.name] = meta.hourlyLoadName
+                it[HourlyLoads.checkedAt] = checkedAt
+            }
+            log.info("R__200: inserted hourly_load for apouId={} (ENABLE_HOURLY_LOAD_UPDATE=false)", apouId)
         }
 
         val hlRow =
@@ -610,9 +620,40 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     }
 
     private fun listCsvFiles(): List<Pair<CsvMetadata, List<ScheduleResume>>> {
-        return listCsvEntries(prefix = "hl_").mapNotNull { (filename, lastModified) ->
-            val name = filename.removePrefix("hl_").removeSuffix(".csv")
-            val meta = parseFilename(name, lastModified) ?: return@mapNotNull null
+        val entries = listCsvEntries(prefix = "hl_")
+        if (entries.isEmpty()) return emptyList()
+
+        log.info("R__200: discovered hl_ files: {}", entries.joinToString { it.first })
+
+        val parsedEntries =
+            entries.mapNotNull { (filename, lastModified) ->
+                val name = filename.removePrefix("hl_").removeSuffix(".csv")
+                val meta = parseFilename(name, lastModified) ?: return@mapNotNull null
+                Triple(filename, meta, lastModified)
+            }
+
+        val selectedByKey =
+            parsedEntries
+                .groupBy { (_, meta, _) -> Triple(meta.hourlyLoadName, meta.academicCode, meta.defaultFacultyCode) }
+                .mapValues { (_, group) ->
+                    // If CI classpath has duplicates, keep the newest by lastModified, then by filename.
+                    group.maxWithOrNull(
+                        compareBy<Triple<String, CsvMetadata, Instant?>>({ it.third ?: Instant.MIN }, { it.first }),
+                    )!!
+                }
+
+        val skipped = parsedEntries.size - selectedByKey.size
+        if (skipped > 0) {
+            val selectedNames = selectedByKey.values.map { it.first }.toSet()
+            val skippedNames = parsedEntries.map { it.first }.filter { it !in selectedNames }
+            log.warn(
+                "R__200: skipped {} duplicate hl_ file(s) from classpath: {}",
+                skipped,
+                skippedNames.joinToString(),
+            )
+        }
+
+        return selectedByKey.values.map { (filename, meta, _) ->
             val rows = loadCsv("db/data/$filename", meta.defaultFacultyCode)
             meta to rows
         }
