@@ -24,6 +24,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -162,24 +163,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         dniToNamesInCsv.forEach { (dni, csvNames) ->
             val dbRows = Teachers.selectAll().where { Teachers.code eq dni }.toList()
-            when {
-                dbRows.size > 1 -> {
-                    val dbNames = dbRows.mapNotNull { it[Teachers.fullName] }
-                    errors.add("DNI '$dni' matches multiple teachers in DB: ${dbNames.joinToString()}")
-                }
-
-                dbRows.size == 1 -> {
-                    val dbName = dbRows.first()[Teachers.fullName].trim()
-                    val csvName = csvNames.first()
-                    if (dbName != csvName) {
-                        log.warn(
-                            "R__200: DNI '{}' has DB name '{}' but CSV name '{}'; CSV value will be applied",
-                            dni,
-                            dbName,
-                            csvName,
-                        )
-                    }
-                }
+            if (dbRows.size > 1) {
+                val dbNames = dbRows.mapNotNull { it[Teachers.fullName] }
+                errors.add("DNI '$dni' matches multiple teachers in DB: ${dbNames.joinToString()}")
             }
         }
 
@@ -258,17 +244,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val dniPairs = teacherPairs.filter { (dni, _) -> dni != null }
         val namePairs = teacherPairs.filter { (dni, _) -> dni == null }
 
-        val existingDnis =
-            if (dniPairs.isNotEmpty()) {
-                Teachers
-                    .select(Teachers.code)
-                    .where { Teachers.code inList dniPairs.map { it.first!! } }
-                    .mapNotNull { it[Teachers.code] }
-                    .toSet()
-            } else {
-                emptySet()
-            }
-
         val existingNames =
             if (namePairs.isNotEmpty()) {
                 Teachers
@@ -280,29 +255,56 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 emptySet()
             }
 
-        val toInsert = teacherPairs.filter { (dni, name) -> if (dni != null) dni !in existingDnis else name !in existingNames }
-        Teachers.batchInsert(toInsert) { (dni, name) ->
-            this[Teachers.code] = dni
+        val missingNameOnly = namePairs.filter { (_, name) -> name !in existingNames }
+        Teachers.batchInsert(missingNameOnly) { (_, name) ->
+            this[Teachers.code] = null
             this[Teachers.fullName] = name
         }
 
-        // Source of truth: if CSV provides DNI+name and DB has a different name, align DB with CSV.
-        val dniToCsvName = dniPairs.associate { it.first!! to it.second }
-        if (dniToCsvName.isNotEmpty()) {
-            Teachers
-                .select(Teachers.id, Teachers.code, Teachers.fullName)
-                .where { Teachers.code inList dniToCsvName.keys.toList() }
-                .forEach { row ->
-                    val code = row[Teachers.code] ?: return@forEach
-                    val csvName = dniToCsvName[code] ?: return@forEach
-                    val dbName = row[Teachers.fullName]
-                    if (dbName != csvName) {
-                        Teachers.update({ Teachers.id eq row[Teachers.id].value }) {
-                            it[Teachers.fullName] = csvName
-                        }
-                        log.info("R__200: updated teacher name by DNI '{}' from '{}' to '{}'", code, dbName, csvName)
-                    }
-                }
+        // For DNI+name rows: prefer exact match, else fallback by full_name, else create a new teacher.
+        for ((dniValue, csvName) in dniPairs) {
+            val dni = dniValue ?: continue
+
+            val exactMatchExists =
+                Teachers
+                    .select(Teachers.id)
+                    .where { (Teachers.code eq dni) and (Teachers.fullName eq csvName) }
+                    .any()
+            if (exactMatchExists) continue
+
+            val byName =
+                Teachers
+                    .select(Teachers.id, Teachers.code)
+                    .where { Teachers.fullName eq csvName }
+                    .firstOrNull()
+            if (byName != null) {
+                log.warn(
+                    "R__200: DNI '{}' has name mismatch in DB; using existing teacher by full_name='{}' (teacherId={})",
+                    dni,
+                    csvName,
+                    byName[Teachers.id].value,
+                )
+                continue
+            }
+
+            val byDni =
+                Teachers
+                    .select(Teachers.id, Teachers.fullName)
+                    .where { Teachers.code eq dni }
+                    .firstOrNull()
+            if (byDni != null) {
+                log.warn(
+                    "R__200: DNI '{}' points to '{}' in DB but CSV has '{}'; creating new teacher row",
+                    dni,
+                    byDni[Teachers.fullName],
+                    csvName,
+                )
+            }
+
+            Teachers.insert {
+                it[Teachers.code] = dni
+                it[Teachers.fullName] = csvName
+            }
         }
 
         return apouId
@@ -516,26 +518,42 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .associate { it[ClassSessionTypes.code] to it[ClassSessionTypes.id].value }
 
         val dniList = sessions.mapNotNull { it.teacherDni?.takeIf { d -> d.isNotBlank() } }.distinct()
-        val nameList = sessions.filter { it.teacherDni.isNullOrBlank() }.map { normalizeTeacherName(it.teacherName) }.distinct()
-        val teacherIdByDni: Map<String, Long> =
-            if (dniList.isNotEmpty()) {
+        val nameList = sessions.map { normalizeTeacherName(it.teacherName) }.distinct()
+        val teacherRows =
+            if (dniList.isNotEmpty() && nameList.isNotEmpty()) {
                 Teachers
-                    .select(Teachers.id, Teachers.code)
+                    .select(Teachers.id, Teachers.code, Teachers.fullName)
+                    .where {
+                        (Teachers.code inList dniList) or (Teachers.fullName inList nameList)
+                    }.toList()
+            } else if (dniList.isNotEmpty()) {
+                Teachers
+                    .select(Teachers.id, Teachers.code, Teachers.fullName)
                     .where { Teachers.code inList dniList }
-                    .mapNotNull { row -> row[Teachers.code]?.let { code -> code to row[Teachers.id].value } }
-                    .toMap()
-            } else {
-                emptyMap()
-            }
-        val teacherIdByName: Map<String, Long> =
-            if (nameList.isNotEmpty()) {
+                    .toList()
+            } else if (nameList.isNotEmpty()) {
                 Teachers
-                    .select(Teachers.id, Teachers.fullName)
+                    .select(Teachers.id, Teachers.code, Teachers.fullName)
                     .where { Teachers.fullName inList nameList }
-                    .associate { it[Teachers.fullName] to it[Teachers.id].value }
+                    .toList()
             } else {
-                emptyMap()
+                emptyList()
             }
+        val teacherIdByDni =
+            teacherRows
+                .mapNotNull { row -> row[Teachers.code]?.let { it to row[Teachers.id].value } }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, ids) -> ids.min() }
+        val teacherIdByName =
+            teacherRows
+                .map { row -> row[Teachers.fullName] to row[Teachers.id].value }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, ids) -> ids.min() }
+        val teacherIdByDniAndName =
+            teacherRows
+                .mapNotNull { row -> row[Teachers.code]?.let { Pair(it, row[Teachers.fullName]) to row[Teachers.id].value } }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, ids) -> ids.min() }
 
         val conflictClause =
             if (onConflictDoNothing) {
@@ -549,32 +567,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val unresolvedTeachersByDni = dniList.filter { teacherIdByDni[it] == null }
         val unresolvedTeachersByName = nameList.filter { teacherIdByName[it] == null }
 
-        log.info(
-            "R__200: class_session insert prep scheduleId={} rows={} conflictMode={} unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}",
-            scheduleId,
-            sessions.size,
-            if (onConflictDoNothing) "DO_NOTHING" else "DO_UPDATE",
-            unresolvedTypeCodes.size,
-            unresolvedClassrooms.size,
-            unresolvedTeachersByDni.size,
-            unresolvedTeachersByName.size,
-        )
-        sessions.firstOrNull()?.let { sample ->
-            log.info(
-                "R__200: class_session sample scheduleId={} course={} section={} day={} start={} end={} type={} classroom={} teacherDni={} teacherName={}",
-                scheduleId,
-                sample.course,
-                sample.section,
-                sample.day,
-                sample.startTime,
-                sample.endTime,
-                sample.sessionType,
-                sample.classroom,
-                sample.teacherDni,
-                sample.teacherName,
-            )
-        }
-
         val valuePlaceholders = sessions.joinToString(", ") { "(?, ?::time, ?::time, ?, ?, ?, ?)" }
         val args =
             buildList {
@@ -584,7 +576,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     val roomId = roomIdByCode[r.classroom.trim()]
                     val tid =
                         if (r.teacherDni?.isNotBlank() == true) {
-                            teacherIdByDni[r.teacherDni]
+                            val normalizedName = normalizeTeacherName(r.teacherName)
+                            teacherIdByDniAndName[Pair(r.teacherDni, normalizedName)]
+                                ?: teacherIdByName[normalizedName]
+                                ?: teacherIdByDni[r.teacherDni]
                         } else {
                             teacherIdByName[normalizeTeacherName(r.teacherName)]
                         }
@@ -608,16 +603,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 """.trimIndent(),
                 args,
             )
-            log.info(
-                "R__200: class_session insert success scheduleId={} rows={} conflictClause='{}'",
-                scheduleId,
-                sessions.size,
-                conflictClause,
-            )
         } catch (e: Exception) {
+            val sample = sessions.firstOrNull()
             log.error(
                 "R__200: class_session insert failed scheduleId={} rows={} conflictClause='{}' unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}"
-                    + " message={}",
+                    + " sampleDni={} sampleName={} message={}",
                 scheduleId,
                 sessions.size,
                 conflictClause,
@@ -625,6 +615,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 unresolvedClassrooms,
                 unresolvedTeachersByDni,
                 unresolvedTeachersByName,
+                sample?.teacherDni,
+                sample?.teacherName,
                 e.message,
             )
             throw e
