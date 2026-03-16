@@ -443,17 +443,19 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         )
     }
 
-    private fun dayNameToNumber(day: String): Int? =
-        when (day.trim()) {
-            "Lunes" -> 1
-            "Martes" -> 2
-            "Miercoles", "Miércoles" -> 3
-            "Jueves" -> 4
-            "Viernes" -> 5
-            "Sábado", "Sabado" -> 6
-            "Domingo" -> 0
+    private fun dayNameToNumber(day: String): Int? {
+        val normalized = day.trim().uppercase()
+        return when {
+            normalized.startsWith("LU") -> 1
+            normalized.startsWith("MA") -> 2
+            normalized.startsWith("MI") -> 3
+            normalized.startsWith("JU") -> 4
+            normalized.startsWith("VI") -> 5
+            normalized.startsWith("SA") -> 6
+            normalized.startsWith("DO") -> 0
             else -> null
         }
+    }
 
     private fun listCsvFiles(): List<Pair<CsvMetadata, List<ScheduleResume>>> {
         return listCsvEntries(prefix = "hl_").mapNotNull { (filename, lastModified) ->
