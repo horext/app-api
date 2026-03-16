@@ -83,6 +83,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val day: String,
     )
 
+    private fun normalizeTeacherName(value: String): String = value.trim().ifBlank { "NN" }
+
     override fun getChecksum(): Int = buildChecksum(prefix = "hl_")
 
     override fun migrate(context: Context) {
@@ -146,7 +148,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val teacherPairs =
             activeRows
-                .mapNotNull { r -> r.teacherDni?.takeIf { it.isNotBlank() }?.let { it to r.teacherName.trim() } }
+                .mapNotNull { r -> r.teacherDni?.takeIf { it.isNotBlank() }?.let { it to normalizeTeacherName(r.teacherName) } }
                 .distinct()
 
         val dniToNamesInCsv = teacherPairs.groupBy({ it.first }, { it.second })
@@ -244,7 +246,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val teacherPairs =
             activeRows
-                .map { r -> r.teacherDni?.takeIf { it.isNotBlank() } to r.teacherName.trim() }
+                .map { r -> r.teacherDni?.takeIf { it.isNotBlank() } to normalizeTeacherName(r.teacherName) }
                 .filter { (_, name) -> name.isNotBlank() }
                 .distinctBy { (dni, name) -> dni ?: name }
 
@@ -490,7 +492,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .associate { it[ClassSessionTypes.code] to it[ClassSessionTypes.id].value }
 
         val dniList = sessions.mapNotNull { it.teacherDni?.takeIf { d -> d.isNotBlank() } }.distinct()
-        val nameList = sessions.filter { it.teacherDni.isNullOrBlank() }.map { it.teacherName.trim() }.distinct()
+        val nameList = sessions.filter { it.teacherDni.isNullOrBlank() }.map { normalizeTeacherName(it.teacherName) }.distinct()
         val teacherIdByDni: Map<String, Long> =
             if (dniList.isNotEmpty()) {
                 Teachers
@@ -560,7 +562,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         if (r.teacherDni?.isNotBlank() == true) {
                             teacherIdByDni[r.teacherDni]
                         } else {
-                            teacherIdByName[r.teacherName.trim()]
+                            teacherIdByName[normalizeTeacherName(r.teacherName)]
                         }
                     add(IntegerColumnType() to dayNum)
                     add(VarCharColumnType() to r.endTime)
@@ -737,7 +739,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         endTime = parseTime(cols[iFin]),
                         classroom = cols[iAula].trim().uppercase(),
                         teacherDni = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
-                        teacherName = cols[iDocente],
+                        teacherName = normalizeTeacherName(cols[iDocente]),
                         sessionType = cols[iTipo].trim().uppercase(),
                         day = cols[iDia],
                     )
