@@ -449,13 +449,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val sessions =
             rows.filter {
-                it.course == courseCode && it.section.trim() == section &&
-                    it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null
+                it.course == courseCode && it.section.trim() == section && it.deletedAt == null
             }
 
         for (scheduleId in scheduleIds) {
             ClassSessions.update(
-                { (ClassSessions.scheduleId eq scheduleId) and ClassSessions.deletedAt.isNull() },
+                { ClassSessions.scheduleId eq scheduleId },
             ) {
                 it[ClassSessions.deletedAt] = Instant.now()
             }
