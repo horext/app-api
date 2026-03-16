@@ -78,8 +78,10 @@ jobs:
 
       - name: Sync CSV data files
         run: |
-          rsync -av --include='*.csv' --exclude='*' app-data/seeds/ src/main/resources/db/data/
-          echo "CSV files synced from admin-data repository"
+          mkdir -p src/main/resources/db/data
+          find src/main/resources/db/data -type f -name '*.csv' -delete
+          rsync -av --delete --include='*/' --include='*.csv' --exclude='*' app-data/seeds/ src/main/resources/db/data/
+          echo "CSV files synced from app-data repository"
 
       - name: Build and Migrate Database
         run: ./gradlew assemble flywayMigrate -i
