@@ -43,9 +43,6 @@ import java.time.format.DateTimeFormatter
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     companion object {
-        private const val ENABLE_UPDATE = true
-        private const val ENABLE_HOURLY_LOAD_UPDATE = true
-
         private const val COL_FACULTY_CODE = "codigo_facultad"
         private const val COL_COURSE = "codigo_curso"
         private const val COL_SECTION = "seccion"
@@ -295,17 +292,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         facultyId: Long,
         apouId: Long,
     ) {
-        if (!ENABLE_HOURLY_LOAD_UPDATE) {
-            val exists =
-                HourlyLoads
-                    .select(HourlyLoads.id)
-                    .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
-                    .any()
-            if (exists) {
-                return
-            }
-        }
-
         val activeRows = facultyRows.filter { it.deletedAt == null }
         val lastUpdate =
             activeRows.maxOfOrNull { it.updatedAt } ?: run {
@@ -327,26 +313,17 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val checkedAt = meta.fileLastModified ?: Instant.now()
 
-        if (ENABLE_HOURLY_LOAD_UPDATE) {
-            HourlyLoads.upsert(
-                HourlyLoads.academicPeriodOrganizationUnitId,
-                onUpdate = { stmt ->
-                    stmt[HourlyLoads.checkedAt] = checkedAt
-                    stmt[HourlyLoads.name] = meta.hourlyLoadName
-                },
-            ) {
-                it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
-                it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
-                it[HourlyLoads.name] = meta.hourlyLoadName
-                it[HourlyLoads.checkedAt] = checkedAt
-            }
-        } else {
-            HourlyLoads.insert {
-                it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
-                it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
-                it[HourlyLoads.name] = meta.hourlyLoadName
-                it[HourlyLoads.checkedAt] = checkedAt
-            }
+        HourlyLoads.upsert(
+            HourlyLoads.academicPeriodOrganizationUnitId,
+            onUpdate = { stmt ->
+                stmt[HourlyLoads.checkedAt] = checkedAt
+                stmt[HourlyLoads.name] = meta.hourlyLoadName
+            },
+        ) {
+            it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
+            it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
+            it[HourlyLoads.name] = meta.hourlyLoadName
+            it[HourlyLoads.checkedAt] = checkedAt
         }
 
         val hlRow =
@@ -363,45 +340,25 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .map { Triple(it.course, it.section.trim(), it.vacancies) }
                 .distinctBy { it.first to it.second }
 
-        if (ENABLE_UPDATE) {
-            // Update ALL existing schedules so sessions removed from CSV get deleted.
-            val existingCourseSections =
-                ScheduleSubjects
-                    .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
-                    .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
-                    .select(Subjects.courseId, Schedules.sectionId)
-                    .where { ScheduleSubjects.hourlyLoadId eq hourlyLoadId }
-                    .map { it[Subjects.courseId].value to it[Schedules.sectionId].value }
-                    .distinct()
-                    .toSet()
+        // Update ALL existing schedules so sessions removed from CSV get deleted.
+        val existingCourseSections =
+            ScheduleSubjects
+                .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
+                .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
+                .select(Subjects.courseId, Schedules.sectionId)
+                .where { ScheduleSubjects.hourlyLoadId eq hourlyLoadId }
+                .map { it[Subjects.courseId].value to it[Schedules.sectionId].value }
+                .distinct()
+                .toSet()
 
-            for ((courseCode, section) in existingCourseSections) {
-                updateSchedule(courseCode, section, hourlyLoadId, facultyRows)
-            }
+        for ((courseCode, section) in existingCourseSections) {
+            updateSchedule(courseCode, section, hourlyLoadId, facultyRows)
+        }
 
-            // Insert schedules that are new in this CSV run.
-            for ((courseCode, section, vacancies) in resumes) {
-                if (courseCode to section !in existingCourseSections) {
-                    insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
-                }
-            }
-        } else {
-            for ((courseCode, section, vacancies) in resumes) {
-                val scheduleExists =
-                    ScheduleSubjects
-                        .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
-                        .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
-                        .select(ScheduleSubjects.id)
-                        .where {
-                            (Schedules.sectionId eq EntityID(section, Sections)) and
-                                (Subjects.courseId eq EntityID(courseCode, Courses)) and
-                                (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
-                        }.limit(1)
-                        .any()
-
-                if (!scheduleExists) {
-                    insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
-                }
+        // Insert schedules that are new in this CSV run.
+        for ((courseCode, section, vacancies) in resumes) {
+            if (courseCode to section !in existingCourseSections) {
+                insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
             }
         }
 
