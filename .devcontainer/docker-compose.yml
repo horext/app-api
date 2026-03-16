@@ -1,16 +1,15 @@
 volumes:
   postgres-data:
+    name: horext-postgres-data
 
 services:
   app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    image: mcr.microsoft.com/devcontainers/java:3.0.0-25-bookworm
     environment:
       # NOTE: SPRING_DATASOURCE_USERNAME/PASSWORD/URL should match values in db container
         SPRING_DATASOURCE_USERNAME: postgres
         SPRING_DATASOURCE_PASSWORD: postgres
-        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/horext
+        SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/horext
         SPRING_DATASOURCE_SCHEMA: public
         FLYWAY_PLACEHOLDERS_SEED_DATA: true
 
@@ -32,7 +31,7 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
   db:
-    image: postgres:latest
+    image: postgres:17
     restart: unless-stopped
     networks:
       - app-network
@@ -43,7 +42,7 @@ services:
       retries: 5
       start_period: 30s
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
     environment:
       # NOTE: POSTGRES_DB/USER/PASSWORD should match values in app container
       POSTGRES_PASSWORD: postgres
