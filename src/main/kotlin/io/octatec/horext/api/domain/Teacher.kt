@@ -14,7 +14,7 @@ data class Teacher(
 object Teachers : LongIdTable("teacher") {
     val fullName = varchar("full_name", length = 100)
 
-    val code = varchar("code", length = 50)
+    val code = varchar("code", length = 50).nullable()
 
     fun createEntity(row: ResultRow): Teacher =
         Teacher(

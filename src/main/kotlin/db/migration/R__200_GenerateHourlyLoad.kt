@@ -73,7 +73,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val startTime: String,
         val endTime: String,
         val classroom: String,
-        val teacherDni: String,
+        val teacherDni: String?,
         val teacherName: String,
         val sessionType: String,
         val day: String,
@@ -136,8 +136,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val teacherPairs =
             activeRows
-                .map { it.teacherDni.trim() to it.teacherName.trim() }
-                .filter { (dni, _) -> dni.isNotBlank() }
+                .mapNotNull { r -> r.teacherDni?.takeIf { it.isNotBlank() }?.let { it to r.teacherName.trim() } }
                 .distinct()
 
         val dniToNamesInCsv = teacherPairs.groupBy({ it.first }, { it.second })
@@ -216,11 +215,15 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 ?: error("APOU for period '${meta.academicCode}' + faculty not found — run R__UpdateAcademicPeriods first")
 
         activeRows
-            .map { it.teacherDni.trim() to it.teacherName.trim() }
-            .filter { (dni, _) -> dni.isNotBlank() }
-            .distinctBy { it.first }
+            .map { r -> r.teacherDni?.takeIf { it.isNotBlank() } to r.teacherName.trim() }
+            .filter { (_, name) -> name.isNotBlank() }
+            .distinctBy { (dni, name) -> dni ?: name }
             .forEach { (dni, name) ->
-                val exists = Teachers.selectAll().where { Teachers.code eq dni }.any()
+                val exists = if (dni != null) {
+                    Teachers.selectAll().where { Teachers.code eq dni }.any()
+                } else {
+                    Teachers.selectAll().where { Teachers.fullName eq name }.any()
+                }
                 if (!exists) {
                     Teachers.insert {
                         it[Teachers.code] = dni
@@ -406,9 +409,15 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .where { Classrooms.code eq r.classroom.trim() }
                 .firstOrNull()?.get(Classrooms.id)?.value
         val tid =
-            Teachers.selectAll()
-                .where { Teachers.code eq r.teacherDni.trim() }
-                .firstOrNull()?.get(Teachers.id)?.value
+            if (r.teacherDni?.isNotBlank() == true) {
+                Teachers.selectAll()
+                    .where { Teachers.code eq r.teacherDni }
+                    .firstOrNull()?.get(Teachers.id)?.value
+            } else {
+                Teachers.selectAll()
+                    .where { Teachers.fullName eq r.teacherName.trim() }
+                    .firstOrNull()?.get(Teachers.id)?.value
+            }
 
         val dayLit = if (dayNum != null) "?" else "NULL"
         val typeLit = if (typeId != null) "?" else "NULL"
@@ -512,7 +521,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val iInicio         = idx(COL_START_TIME)
             val iFin            = idx(COL_END_TIME)
             val iAula           = idx(COL_CLASSROOM)
-            val iDni            = idx(COL_DNI)
+            val iDni            = optIdx(COL_DNI)
             val iDocente        = idx(COL_TEACHER)
             val iTipo           = idx(COL_TYPE)
             val iDia            = idx(COL_DAY)
@@ -528,7 +537,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     startTime    = parseTime(cols[iInicio]),
                     endTime      = parseTime(cols[iFin]),
                     classroom    = cols[iAula].trim().uppercase(),
-                    teacherDni   = cols[iDni].trim(),
+                    teacherDni   = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
                     teacherName  = cols[iDocente],
                     sessionType  = cols[iTipo].trim().uppercase(),
                     day          = cols[iDia],
