@@ -584,7 +584,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         return stream.bufferedReader().useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
             if (!iter.hasNext()) return@useLines emptyList()
-            val headerLine = iter.next()
+            val headerLine = iter.next().trimStart('\uFEFF') // strip UTF-8 BOM (Excel exports)
             val delimiter = if (headerLine.contains(';')) ';' else ','
             val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
 
@@ -598,8 +598,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val iCurso = idx(COL_COURSE)
             val iSeccion = idx(COL_SECTION)
             val iVacantes = idx(COL_VACANCIES)
-            val iUpdatedAt = idx(COL_UPDATED_AT)
-            val iDeletedAt = idx(COL_DELETED_AT)
+            val iUpdatedAt = optIdx(COL_UPDATED_AT)
+            val iDeletedAt = optIdx(COL_DELETED_AT)
+            val defaultUpdatedAt = LocalDateTime.now()
             val iInicio = idx(COL_START_TIME)
             val iFin = idx(COL_END_TIME)
             val iAula = idx(COL_CLASSROOM)
@@ -616,8 +617,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         course = cols[iCurso].trim(),
                         section = cols[iSeccion].trim(),
                         vacancies = cols[iVacantes].toInt(),
-                        updatedAt = LocalDateTime.parse(cols[iUpdatedAt], fmt),
-                        deletedAt = cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) },
+                        updatedAt = if (iUpdatedAt != null) LocalDateTime.parse(cols[iUpdatedAt], fmt) else defaultUpdatedAt,
+                        deletedAt = if (iDeletedAt != null) cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) } else null,
                         startTime = parseTime(cols[iInicio]),
                         endTime = parseTime(cols[iFin]),
                         classroom = cols[iAula].trim().uppercase(),
