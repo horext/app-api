@@ -614,7 +614,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     val cols = parseCsvLine(line, delimiter)
                     ScheduleResume(
                         facultyCode = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
-                        course = cols[iCurso].trim(),
+                        course = cols[iCurso].trim().replace("-", ""),
                         section = cols[iSeccion].trim(),
                         vacancies = cols[iVacantes].toInt(),
                         updatedAt = if (iUpdatedAt != null) LocalDateTime.parse(cols[iUpdatedAt], fmt) else defaultUpdatedAt,
