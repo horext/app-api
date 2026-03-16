@@ -1,0 +1,2 @@
+[src/main/kotlin/db/migration/*.kt]
+ktlint_standard_class-naming = disabled
