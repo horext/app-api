@@ -22,8 +22,8 @@ import org.jetbrains.exposed.v1.core.VarCharColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -286,10 +286,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         apouId: Long,
     ) {
         val activeRows = facultyRows.filter { it.deletedAt == null }
-        val lastUpdate = activeRows.maxOfOrNull { it.updatedAt } ?: run {
-            log.info("R__200: apouId={} — no active rows, skipping", apouId)
-            return
-        }
+        val lastUpdate =
+            activeRows.maxOfOrNull { it.updatedAt } ?: run {
+                log.info("R__200: apouId={} — no active rows, skipping", apouId)
+                return
+            }
         val lastUpdateInstant = lastUpdate.toInstant(ZoneOffset.UTC)
 
         if (meta.fileLastModified != null) {

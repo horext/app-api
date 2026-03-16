@@ -10,6 +10,7 @@ import java.util.zip.CRC32
 
 abstract class BaseCsvMigration : BaseJavaMigration() {
     protected val log = LoggerFactory.getLogger(javaClass)
+
     protected fun parseCsvLine(
         line: String,
         delimiter: Char = ',',

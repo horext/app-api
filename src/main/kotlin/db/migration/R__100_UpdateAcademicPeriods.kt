@@ -46,7 +46,11 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
         transaction(db) {
             entries.forEach { (fileLastModified, rows) ->
-                log.info("R__100_UpdateAcademicPeriods: upserting {} academic period row(s) (fileLastModified={})", rows.size, fileLastModified)
+                log.info(
+                    "R__100_UpdateAcademicPeriods: upserting {} academic period row(s) (fileLastModified={})",
+                    rows.size,
+                    fileLastModified,
+                )
                 processRows(fileLastModified, rows)
             }
         }
