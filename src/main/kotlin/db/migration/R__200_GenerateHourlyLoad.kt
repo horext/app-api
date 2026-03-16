@@ -508,6 +508,37 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 "ON CONFLICT ON CONSTRAINT class_session_pk DO UPDATE SET deleted_at = NULL"
             }
 
+        val unresolvedTypeCodes = typeCodes.filter { typeIdByCode[it] == null }
+        val unresolvedClassrooms = classroomCodes.filter { roomIdByCode[it] == null }
+        val unresolvedTeachersByDni = dniList.filter { teacherIdByDni[it] == null }
+        val unresolvedTeachersByName = nameList.filter { teacherIdByName[it] == null }
+
+        log.info(
+            "R__200: class_session insert prep scheduleId={} rows={} conflictMode={} unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}",
+            scheduleId,
+            sessions.size,
+            if (onConflictDoNothing) "DO_NOTHING" else "DO_UPDATE",
+            unresolvedTypeCodes.size,
+            unresolvedClassrooms.size,
+            unresolvedTeachersByDni.size,
+            unresolvedTeachersByName.size,
+        )
+        sessions.firstOrNull()?.let { sample ->
+            log.info(
+                "R__200: class_session sample scheduleId={} course={} section={} day={} start={} end={} type={} classroom={} teacherDni={} teacherName={}",
+                scheduleId,
+                sample.course,
+                sample.section,
+                sample.day,
+                sample.startTime,
+                sample.endTime,
+                sample.sessionType,
+                sample.classroom,
+                sample.teacherDni,
+                sample.teacherName,
+            )
+        }
+
         val valuePlaceholders = sessions.joinToString(", ") { "(?, ?::time, ?::time, ?, ?, ?, ?)" }
         val args =
             buildList {
@@ -531,15 +562,37 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 }
             }
 
-        exec(
-            """
-            INSERT INTO class_session
-                (day, end_time, start_time, class_session_type_id, classroom_id, schedule_id, teacher_id)
-            VALUES $valuePlaceholders
-            $conflictClause
-            """.trimIndent(),
-            args,
-        )
+        try {
+            exec(
+                """
+                INSERT INTO class_session
+                    (day, end_time, start_time, class_session_type_id, classroom_id, schedule_id, teacher_id)
+                VALUES $valuePlaceholders
+                $conflictClause
+                """.trimIndent(),
+                args,
+            )
+            log.info(
+                "R__200: class_session insert success scheduleId={} rows={} conflictClause='{}'",
+                scheduleId,
+                sessions.size,
+                conflictClause,
+            )
+        } catch (e: Exception) {
+            log.error(
+                "R__200: class_session insert failed scheduleId={} rows={} conflictClause='{}' unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}"
+                    + " message={}",
+                scheduleId,
+                sessions.size,
+                conflictClause,
+                unresolvedTypeCodes,
+                unresolvedClassrooms,
+                unresolvedTeachersByDni,
+                unresolvedTeachersByName,
+                e.message,
+            )
+            throw e
+        }
     }
 
     private fun dayNameToNumber(day: String): Int? {
