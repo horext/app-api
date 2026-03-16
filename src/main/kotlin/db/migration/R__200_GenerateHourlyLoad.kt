@@ -611,7 +611,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         } catch (e: Exception) {
             val sample = sessions.firstOrNull()
             log.error(
-                "R__200: class_session insert failed scheduleId={} rows={} conflictClause='{}' unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}" +
+                "R__200: class_session insert failed scheduleId={} rows={} conflictClause='{}'" +
+                    " unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}" +
                     " sampleDni={} sampleName={} message={}",
                 scheduleId,
                 sessions.size,
