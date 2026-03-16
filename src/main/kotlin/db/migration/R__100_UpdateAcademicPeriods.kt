@@ -116,24 +116,27 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
 
     private fun loadCsv(resourcePath: String): List<AcademicPeriodRow> {
         val stream = openClasspathResource(resourcePath) ?: return emptyList()
-        val fmt = DateTimeFormatterBuilder()
-            .appendPattern("yyyy-MM-dd HH:mm:ss")
-            .optionalStart().appendOffsetId().optionalEnd()
-            .toFormatter()
+        val fmt =
+            DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd HH:mm:ss")
+                .optionalStart()
+                .appendOffsetId()
+                .optionalEnd()
+                .toFormatter()
 
         fun parseInstant(s: String): Instant? =
             s
                 .trim()
                 .takeIf { it.isNotBlank() }
                 ?.let { str ->
-                fmt.parseBest(str, OffsetDateTime::from, LocalDateTime::from).let { temporal ->
-                    when (temporal) {
-                        is OffsetDateTime -> temporal.toInstant()
-                        is LocalDateTime -> temporal.toInstant(ZoneOffset.UTC)
-                        else -> error("Unexpected temporal: $temporal")
+                    fmt.parseBest(str, OffsetDateTime::from, LocalDateTime::from).let { temporal ->
+                        when (temporal) {
+                            is OffsetDateTime -> temporal.toInstant()
+                            is LocalDateTime -> temporal.toInstant(ZoneOffset.UTC)
+                            else -> error("Unexpected temporal: $temporal")
+                        }
                     }
                 }
-            }
         return stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
             if (!iter.hasNext()) return@useLines emptyList()
