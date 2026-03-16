@@ -3,13 +3,34 @@ package db.migration
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.InputStream
 import java.net.URI
+import java.net.URL
 import java.time.Instant
 import java.util.jar.JarFile
 import java.util.zip.CRC32
 
 abstract class BaseCsvMigration : BaseJavaMigration() {
     protected val log = LoggerFactory.getLogger(javaClass)
+
+    private fun resourceClassLoaders(): List<ClassLoader> =
+        listOfNotNull(
+            Thread.currentThread().contextClassLoader,
+            javaClass.classLoader,
+            ClassLoader.getSystemClassLoader(),
+        ).distinct()
+
+    private fun findResource(path: String): URL? =
+        resourceClassLoaders()
+            .asSequence()
+            .mapNotNull { it.getResource(path) }
+            .firstOrNull()
+
+    private fun openResource(path: String): InputStream? =
+        resourceClassLoaders()
+            .asSequence()
+            .mapNotNull { it.getResourceAsStream(path) }
+            .firstOrNull()
 
     protected fun parseCsvLine(
         line: String,
@@ -39,7 +60,7 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     }
 
     protected fun csvResourcePaths(prefix: String): List<String> {
-        val url = Thread.currentThread().contextClassLoader.getResource("db/data")
+        val url = findResource("db/data")
         if (url == null) {
             log.warn("Resource directory 'db/data' not found on classpath — no CSV files will be loaded")
             return emptyList()
@@ -73,7 +94,7 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     }
 
     protected fun listCsvEntries(prefix: String): List<Pair<String, Instant?>> {
-        val url = Thread.currentThread().contextClassLoader.getResource("db/data")
+        val url = findResource("db/data")
         if (url == null) {
             log.warn("Resource directory 'db/data' not found on classpath — no CSV files will be loaded")
             return emptyList()
@@ -111,7 +132,7 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     protected fun buildChecksum(prefix: String): Int {
         val crc = CRC32()
         csvResourcePaths(prefix).forEach { path ->
-            val stream = Thread.currentThread().contextClassLoader.getResourceAsStream(path)
+            val stream = openResource(path)
             if (stream == null) {
                 log.warn("Could not open resource '{}' for checksum — file may be missing from classpath", path)
             } else {

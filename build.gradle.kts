@@ -97,13 +97,18 @@ fun getEnv(key: String): String? {
     return System.getenv(key)
 }
 
-flyway {	
+flyway {
     password = getEnv("SPRING_DATASOURCE_PASSWORD")
     url = getEnv("SPRING_DATASOURCE_URL")
     user = getEnv("SPRING_DATASOURCE_USERNAME")
     driver = "org.postgresql.Driver"
     schemas = listOfNotNull(getEnv("SPRING_DATASOURCE_SCHEMA")).toTypedArray()
     locations = arrayOf("classpath:db/migration")
+    configurations = arrayOf("runtimeClasspath")
+}
+
+tasks.withType<org.flywaydb.gradle.task.AbstractFlywayTask>().configureEach {
+    dependsOn(tasks.named("classes"))
 }
 
 val ktlintTargets =
