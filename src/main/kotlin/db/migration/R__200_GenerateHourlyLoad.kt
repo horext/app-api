@@ -172,7 +172,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     val dbName = dbRows.first()[Teachers.fullName].trim()
                     val csvName = csvNames.first()
                     if (dbName != csvName) {
-                        errors.add("DNI '$dni': DB teacher name is '$dbName' but CSV has '$csvName'")
+                        log.warn(
+                            "R__200: DNI '{}' has DB name '{}' but CSV name '{}'; CSV value will be applied",
+                            dni,
+                            dbName,
+                            csvName,
+                        )
                     }
                 }
             }
@@ -279,6 +284,25 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         Teachers.batchInsert(toInsert) { (dni, name) ->
             this[Teachers.code] = dni
             this[Teachers.fullName] = name
+        }
+
+        // Source of truth: if CSV provides DNI+name and DB has a different name, align DB with CSV.
+        val dniToCsvName = dniPairs.associate { it.first!! to it.second }
+        if (dniToCsvName.isNotEmpty()) {
+            Teachers
+                .select(Teachers.id, Teachers.code, Teachers.fullName)
+                .where { Teachers.code inList dniToCsvName.keys.toList() }
+                .forEach { row ->
+                    val code = row[Teachers.code] ?: return@forEach
+                    val csvName = dniToCsvName[code] ?: return@forEach
+                    val dbName = row[Teachers.fullName]
+                    if (dbName != csvName) {
+                        Teachers.update({ Teachers.id eq row[Teachers.id].value }) {
+                            it[Teachers.fullName] = csvName
+                        }
+                        log.info("R__200: updated teacher name by DNI '{}' from '{}' to '{}'", code, dbName, csvName)
+                    }
+                }
         }
 
         return apouId
