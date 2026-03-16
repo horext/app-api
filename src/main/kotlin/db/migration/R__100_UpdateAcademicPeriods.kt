@@ -122,7 +122,10 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             .toFormatter()
 
         fun parseInstant(s: String): Instant? =
-            s.trim().takeIf { it.isNotBlank() }?.let { str ->
+            s
+                .trim()
+                .takeIf { it.isNotBlank() }
+                ?.let { str ->
                 fmt.parseBest(str, OffsetDateTime::from, LocalDateTime::from).let { temporal ->
                     when (temporal) {
                         is OffsetDateTime -> temporal.toInstant()

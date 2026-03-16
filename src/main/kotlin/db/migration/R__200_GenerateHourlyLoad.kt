@@ -618,7 +618,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         section = cols[iSeccion].trim(),
                         vacancies = cols[iVacantes].toInt(),
                         updatedAt = if (iUpdatedAt != null) LocalDateTime.parse(cols[iUpdatedAt], fmt) else defaultUpdatedAt,
-                        deletedAt = if (iDeletedAt != null) cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) } else null,
+                        deletedAt =
+                            if (iDeletedAt != null) {
+                                cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) }
+                            } else {
+                                null
+                            },
                         startTime = parseTime(cols[iInicio]),
                         endTime = parseTime(cols[iFin]),
                         classroom = cols[iAula].trim().uppercase(),
