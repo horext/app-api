@@ -84,12 +84,16 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
     override fun migrate(context: Context) {
         val entries = listCsvFiles()
-        if (entries.isEmpty()) return
-
+        if (entries.isEmpty()) {
+            log.info("R__200_GenerateHourlyLoad: no CSV files found, skipping")
+            return
+        }
+        log.info("R__200_GenerateHourlyLoad: processing {} file(s)", entries.size)
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
         transaction(db) {
             entries.forEach { (meta, rows) -> processFile(meta, rows) }
         }
+        log.info("R__200_GenerateHourlyLoad: done")
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.processFile(
@@ -99,6 +103,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val rowsByFaculty = rows.groupBy { it.facultyCode }
 
         for ((facultyCode, facultyRows) in rowsByFaculty) {
+            log.info("R__200: file='{}' faculty='{}' rows={}", meta.hourlyLoadName, facultyCode, facultyRows.size)
             val faculty =
                 OrganizationUnits
                     .selectAll()
@@ -281,7 +286,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         apouId: Long,
     ) {
         val activeRows = facultyRows.filter { it.deletedAt == null }
-        val lastUpdate = activeRows.maxOfOrNull { it.updatedAt } ?: return
+        val lastUpdate = activeRows.maxOfOrNull { it.updatedAt } ?: run {
+            log.info("R__200: apouId={} — no active rows, skipping", apouId)
+            return
+        }
         val lastUpdateInstant = lastUpdate.toInstant(ZoneOffset.UTC)
 
         if (meta.fileLastModified != null) {
@@ -291,7 +299,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
                     .firstOrNull()
                     ?.get(HourlyLoads.checkedAt)
-            if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) return
+            if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) {
+                log.info("R__200: apouId={} — file not newer than checkedAt={}, skipping", apouId, existingCheckedAt)
+                return
+            }
         }
 
         val checkedAt = meta.fileLastModified ?: Instant.now()
@@ -323,6 +334,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .map { Triple(it.course, it.section.trim(), it.vacancies) }
                 .distinctBy { it.first to it.second }
 
+        log.info("R__200: apouId={} — {} course-section(s) to process (updatedAt > {})", apouId, resumes.size, updatedAtIn)
         for ((courseCode, section, vacancies) in resumes) {
             val scheduleExists =
                 ScheduleSubjects

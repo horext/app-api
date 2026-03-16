@@ -1,6 +1,7 @@
 package db.migration
 
 import org.flywaydb.core.api.migration.BaseJavaMigration
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
 import java.time.Instant
@@ -8,6 +9,7 @@ import java.util.jar.JarFile
 import java.util.zip.CRC32
 
 abstract class BaseCsvMigration : BaseJavaMigration() {
+    protected val log = LoggerFactory.getLogger(javaClass)
     protected fun parseCsvLine(
         line: String,
         delimiter: Char = ',',

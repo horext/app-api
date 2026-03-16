@@ -38,12 +38,19 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
 
     override fun migrate(context: Context) {
         val entries = listCsvFiles()
-        if (entries.isEmpty()) return
-
+        if (entries.isEmpty()) {
+            log.info("R__100_UpdateAcademicPeriods: no CSV files found, skipping")
+            return
+        }
+        log.info("R__100_UpdateAcademicPeriods: processing {} file(s)", entries.size)
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
         transaction(db) {
-            entries.forEach { (fileLastModified, rows) -> processRows(fileLastModified, rows) }
+            entries.forEach { (fileLastModified, rows) ->
+                log.info("R__100_UpdateAcademicPeriods: upserting {} academic period row(s) (fileLastModified={})", rows.size, fileLastModified)
+                processRows(fileLastModified, rows)
+            }
         }
+        log.info("R__100_UpdateAcademicPeriods: done")
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.processRows(
