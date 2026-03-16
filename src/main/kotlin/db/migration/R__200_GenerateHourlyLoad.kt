@@ -475,6 +475,14 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     ) {
         if (sessions.isEmpty()) return
 
+        val blankTypeSessions = sessions.filter { it.sessionType.isBlank() }
+        if (blankTypeSessions.isNotEmpty()) {
+            throw IllegalStateException(
+                "R__200: ${blankTypeSessions.size} session(s) have a blank session type (scheduleId=$scheduleId). " +
+                    "Fix the CSV data before migrating.",
+            )
+        }
+
         // Bulk-resolve foreign keys (a few SELECTs instead of N×3)
         val classroomCodes = sessions.map { it.classroom.trim() }.distinct()
         val roomIdByCode =
@@ -483,7 +491,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .where { Classrooms.code inList classroomCodes }
                 .associate { it[Classrooms.code] to it[Classrooms.id].value }
 
-        val typeCodes = sessions.map { it.sessionType }.distinct()
+        val typeCodes = sessions.map { it.sessionType }.filter { it.isNotBlank() }.distinct()
         var typeIdByCode =
             ClassSessionTypes
                 .select(ClassSessionTypes.id, ClassSessionTypes.code)
