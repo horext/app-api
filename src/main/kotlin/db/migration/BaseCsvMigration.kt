@@ -39,7 +39,11 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     }
 
     protected fun csvResourcePaths(prefix: String): List<String> {
-        val url = Thread.currentThread().contextClassLoader.getResource("db/data") ?: return emptyList()
+        val url = Thread.currentThread().contextClassLoader.getResource("db/data")
+        if (url == null) {
+            log.warn("Resource directory 'db/data' not found on classpath — no CSV files will be loaded")
+            return emptyList()
+        }
         return when (url.protocol) {
             "file" -> {
                 File(url.toURI())
@@ -69,7 +73,11 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     }
 
     protected fun listCsvEntries(prefix: String): List<Pair<String, Instant?>> {
-        val url = Thread.currentThread().contextClassLoader.getResource("db/data") ?: return emptyList()
+        val url = Thread.currentThread().contextClassLoader.getResource("db/data")
+        if (url == null) {
+            log.warn("Resource directory 'db/data' not found on classpath — no CSV files will be loaded")
+            return emptyList()
+        }
         return when (url.protocol) {
             "file" -> {
                 File(url.toURI())
@@ -103,11 +111,12 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     protected fun buildChecksum(prefix: String): Int {
         val crc = CRC32()
         csvResourcePaths(prefix).forEach { path ->
-            Thread
-                .currentThread()
-                .contextClassLoader
-                .getResourceAsStream(path)
-                ?.use { crc.update(it.readBytes()) }
+            val stream = Thread.currentThread().contextClassLoader.getResourceAsStream(path)
+            if (stream == null) {
+                log.warn("Could not open resource '{}' for checksum — file may be missing from classpath", path)
+            } else {
+                stream.use { crc.update(it.readBytes()) }
+            }
         }
         return crc.value.toInt()
     }
