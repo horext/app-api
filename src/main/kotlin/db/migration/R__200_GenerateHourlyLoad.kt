@@ -500,7 +500,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             fun idx(name: String) = header.indexOf(name).also {
                 require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
             }
-            val iCodigoFacultad = idx(COL_FACULTY_CODE)
+            val iCodigoFacultad = header.indexOf(COL_FACULTY_CODE)
             val iCurso          = idx(COL_COURSE)
             val iSeccion        = idx(COL_SECTION)
             val iVacantes       = idx(COL_VACANCIES)
@@ -516,7 +516,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             iter.asSequence().map { line ->
                 val cols = parseCsvLine(line)
                 ScheduleResume(
-                    facultyCode  = cols[iCodigoFacultad].trim().takeIf { it.isNotBlank() } ?: defaultFacultyCode,
+                    facultyCode  = iCodigoFacultad.takeIf { it >= 0 }?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
                     course       = cols[iCurso].trim(),
                     section      = cols[iSeccion].trim(),
                     vacancies    = cols[iVacantes].toInt(),
