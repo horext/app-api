@@ -125,16 +125,17 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             fun idx(name: String) = header.indexOf(name).also {
                 require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
             }
+            fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
             val iCode        = idx(COL_CODE)
-            val iFromDate    = idx(COL_FROM_DATE)
-            val iToDate      = idx(COL_TO_DATE)
+            val iFromDate    = optIdx(COL_FROM_DATE)
+            val iToDate      = optIdx(COL_TO_DATE)
             val iFacultyCode = idx(COL_FACULTY_CODE)
             iter.asSequence().map { line ->
                 val cols = parseCsvLine(line, delimiter)
                 AcademicPeriodRow(
                     code        = cols[iCode].trim(),
-                    fromDate    = parseInstant(cols[iFromDate]),
-                    toDate      = parseInstant(cols[iToDate]),
+                    fromDate    = iFromDate?.let { parseInstant(cols[it]) },
+                    toDate      = iToDate?.let { parseInstant(cols[it]) },
                     facultyCode = cols[iFacultyCode].trim(),
                 )
             }.toList()

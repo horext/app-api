@@ -304,6 +304,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
             it[HourlyLoads.updatedAt] = lastUpdateInstant
+            it[HourlyLoads.publishedAt] = Instant.now()
         }
     }
 
