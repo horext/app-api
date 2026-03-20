@@ -98,16 +98,22 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedAllSubjects() {
+        val allStudyPlans = StudyPlans.selectAll().associate { it[StudyPlans.code] to it[StudyPlans.id].value }
+        val allSubjectTypes = SubjectTypes.selectAll().associate { it[SubjectTypes.id].value to it[SubjectTypes.id] }
+
         for (path in csvResourcePaths(SUBJECTS_PREFIX)) {
             val code = path.removePrefix("db/data/$SUBJECTS_PREFIX").removeSuffix(".csv")
             val stream = openClasspathResource(path) ?: continue
-            seedSubjects(code, stream)
+            val planId = allStudyPlans[code] ?: error("Study plan not found for code: $code")
+            seedSubjects(planId, code, stream, allSubjectTypes)
         }
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedSubjects(
+        planId: Long,
         studyPlanCode: String,
         stream: java.io.InputStream,
+        allSubjectTypes: Map<Long, EntityID<Long>>,
     ) {
         log.info("R__050_SeedStudyPlans: seeding ${SUBJECTS_PREFIX}$studyPlanCode$CSV_EXT")
 
@@ -121,12 +127,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                     .toList()
             }
 
-        val planId =
-            StudyPlans
-                .selectAll()
-                .where { StudyPlans.code eq studyPlanCode }
-                .first()[StudyPlans.id].value
-
+        // Batch courses upsert
         for (c in lines) {
             Courses.upsert {
                 it[Courses.id] = EntityID(c[0], Courses)
@@ -140,7 +141,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                 it[Subjects.studyPlanId] = EntityID(planId, StudyPlans)
                 it[Subjects.credits] = c[2].toIntOrNull()
                 it[Subjects.cycle] = c[3].toIntOrNull()
-                it[Subjects.typeId] = c[4].toLongOrNull()?.let { id -> EntityID(id, SubjectTypes) }
+                it[Subjects.typeId] = c[4].toLongOrNull()?.let { id -> allSubjectTypes[id] }
                 it[Subjects.evaluationSystemId] = c[5].toLongOrNull()
                 it[Subjects.totalWeeklyHours] = c[6].toIntOrNull()
                 it[Subjects.weeklyTheoryHours] = c[7].toIntOrNull()
@@ -157,24 +158,22 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedAllRelationships() {
+        val allStudyPlans = StudyPlans.selectAll().associate { it[StudyPlans.code] to it[StudyPlans.id].value }
+
         for (path in csvResourcePaths(RELATIONSHIPS_PREFIX)) {
             val code = path.removePrefix("db/data/$RELATIONSHIPS_PREFIX").removeSuffix(".csv")
             val stream = openClasspathResource(path) ?: continue
-            seedRelationships(code, stream)
+            val planId = allStudyPlans[code] ?: error("Study plan not found for code: $code")
+            seedRelationships(planId, code, stream)
         }
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedRelationships(
+        planId: Long,
         studyPlanCode: String,
         stream: java.io.InputStream,
     ) {
         log.info("R__050_SeedStudyPlans: seeding ${RELATIONSHIPS_PREFIX}$studyPlanCode$CSV_EXT")
-
-        val planId =
-            StudyPlans
-                .selectAll()
-                .where { StudyPlans.code eq studyPlanCode }
-                .first()[StudyPlans.id].value
 
         val subjectsByCourse =
             Subjects
