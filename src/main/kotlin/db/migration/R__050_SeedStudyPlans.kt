@@ -199,8 +199,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                         val toId = subjectsByCourse[c[1]] ?: return@mapNotNull null
                         val relType = c[2].toLongOrNull() ?: return@mapNotNull null
                         Triple(fromId, toId, relType)
-                    }
-                    .toList()
+                    }.toList()
             }
 
         SubjectRelationships.batchInsert(rows) { (fromId, toId, relType) ->
