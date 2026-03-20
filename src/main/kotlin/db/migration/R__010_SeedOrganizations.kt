@@ -59,11 +59,16 @@ class R__010_SeedOrganizations : BaseCsvMigration() {
                 .selectAll()
                 .associate { it[OrganizationUnitTypes.name] to it[OrganizationUnitTypes.id].value }
 
-        for (c in lines) {
+        // Filter and map all lines first to avoid redundant parsing in the loop
+        val parsedUnits = lines.map { c ->
             val typeId = typeIdByName[c[2]] ?: error("Organization unit type not found: '${c[2]}'")
+            Triple(c[0], c[1], typeId)
+        }
+
+        for ((code, name, typeId) in parsedUnits) {
             OrganizationUnits.upsert(OrganizationUnits.code) {
-                it[OrganizationUnits.code] = c[0]
-                it[OrganizationUnits.name] = c[1]
+                it[OrganizationUnits.code] = code
+                it[OrganizationUnits.name] = name
                 it[OrganizationUnits.typeId] = EntityID(typeId, OrganizationUnitTypes)
             }
         }
