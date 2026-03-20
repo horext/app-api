@@ -22,7 +22,7 @@ object Courses : IdTable<String>("course") {
 
     override val primaryKey = PrimaryKey(id)
 
-    val name = varchar("name", length = 100)
+    val name = varchar("name", length = 100).nullable()
 
     fun createEntity(row: ResultRow): Course =
         Course(

@@ -15,7 +15,7 @@ data class OrganizationUnit(
 }
 
 object OrganizationUnits : LongIdTable("organization_unit") {
-    val parentOrganizationId = long("parent_organization_id")
+    val parentOrganizationId = long("parent_organization_id").nullable()
 
     val code = varchar("code", length = 50)
 
@@ -33,8 +33,10 @@ object OrganizationUnits : LongIdTable("organization_unit") {
                     OrganizationUnitTypes.createEntity(row)
                 }.getOrElse { OrganizationUnitType(id = row[typeId].value) },
             parentOrganizationUnit =
-                OrganizationUnit(
-                    id = row[parentOrganizationId],
-                ),
+                row[parentOrganizationId]?.let {
+                    OrganizationUnit(
+                        id = it,
+                    )
+                },
         )
 }
