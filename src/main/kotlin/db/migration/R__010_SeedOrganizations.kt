@@ -1,8 +1,9 @@
--ñpackage db.migration
+package db.migration
 
 import io.octatec.horext.api.domain.OrganizationUnitTypes
+import io.octatec.horext.api.domain.OrganizationUnits
 import org.flywaydb.core.api.migration.Context
-import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -26,6 +27,10 @@ class R__010_SeedOrganizations : BaseCsvMigration() {
     }
 
     override fun migrate(context: Context) {
+        if (shouldSkip(context)) {
+            log.info("R__010_SeedOrganizations: skipSeeds is true, skipping migration")
+            return
+        }
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
         transaction(db) { seedUnits() }
         log.info("R__010_SeedOrganizations: completed")

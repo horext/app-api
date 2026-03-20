@@ -10,6 +10,10 @@ on:
         required: false
         type: string
         default: "25"
+      skip-seeds:
+        required: false
+        type: boolean
+        default: false
     secrets:
       SERVER_USER:
         required: true
@@ -47,6 +51,11 @@ on:
         type: string
         required: false
         default: "25"
+      skip-seeds:
+        description: "Whether to skip seed migrations"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -72,6 +81,7 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       java-version: ${{ inputs.java-version }}
+      skip-seeds: ${{ inputs.skip-seeds }}
     secrets: inherit
 
   deploy:

@@ -1,7 +1,11 @@
 package db.migration
 
+import io.octatec.horext.api.domain.Courses
 import io.octatec.horext.api.domain.OrganizationUnits
+import io.octatec.horext.api.domain.StudyPlans
 import io.octatec.horext.api.domain.SubjectRelationships
+import io.octatec.horext.api.domain.SubjectTypes
+import io.octatec.horext.api.domain.Subjects
 import org.flywaydb.core.api.migration.Context
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
@@ -28,6 +32,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
         private const val STUDY_PLANS_FILE = "db/data/study_plans.csv"
         private const val SUBJECTS_PREFIX = "study_plan_subjects_"
         private const val RELATIONSHIPS_PREFIX = "study_plan_relationships_"
+        private const val CSV_EXT = ".csv"
         private val TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     }
 
@@ -44,6 +49,10 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
     }
 
     override fun migrate(context: Context) {
+        if (shouldSkip(context)) {
+            log.info("R__050_SeedStudyPlans: skipSeeds is true, skipping migration")
+            return
+        }
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
         transaction(db) {
             seedStudyPlans()

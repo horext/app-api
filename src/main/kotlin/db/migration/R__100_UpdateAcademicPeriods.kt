@@ -39,6 +39,10 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
     override fun getChecksum(): Int = buildChecksum(prefix = "ap_")
 
     override fun migrate(context: Context) {
+        if (shouldSkip(context)) {
+            log.info("R__100_UpdateAcademicPeriods: skipSeeds is true, skipping migration")
+            return
+        }
         val entries = listCsvFiles()
         if (entries.isEmpty()) {
             log.info("R__100_UpdateAcademicPeriods: no CSV files found, skipping")

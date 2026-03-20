@@ -86,6 +86,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     override fun getChecksum(): Int = buildChecksum(prefix = "hl_")
 
     override fun migrate(context: Context) {
+        if (shouldSkip(context)) {
+            log.info("R__200_GenerateHourlyLoad: skipSeeds is true, skipping migration")
+            return
+        }
         val entries = listCsvFiles()
         if (entries.isEmpty()) {
             log.info("R__200_GenerateHourlyLoad: no CSV files found, skipping")

@@ -26,6 +26,7 @@ jobs:
     uses: ./.github/workflows/cd.yml
     with:
       environment: dev
+      skip-seeds: true
     secrets:
       SERVER_IP: ${{ secrets.SERVER_IP }}
       SERVER_USER: ${{ secrets.SERVER_USER }}

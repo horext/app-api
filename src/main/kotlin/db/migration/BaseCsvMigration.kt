@@ -1,6 +1,8 @@
 package db.migration
 
+import org.flywaydb.core.api.configuration.Configuration
 import org.flywaydb.core.api.migration.BaseJavaMigration
+import org.flywaydb.core.api.migration.Context
 import org.slf4j.LoggerFactory
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -177,5 +179,13 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
             }
         }
         return crc.value.toInt()
+    }
+
+    protected fun shouldSkip(
+        context: Context,
+        placeholder: String = "skipSeeds",
+    ): Boolean {
+        val value = context.configuration.placeholders[placeholder]
+        return value?.toBoolean() ?: false
     }
 }
