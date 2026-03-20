@@ -17,10 +17,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.api-server.rule=Host(`${VIRTUAL_HOST}`)"
-      - "traefik.http.routers.api-server.entrypoints=websecure"
-      - "traefik.http.routers.api-server.tls.certresolver=le"
-      - "traefik.http.services.api-server.loadbalancer.server.port=${SERVER_PORT}"
+      - "traefik.http.routers-${PROJECT_NAME:-horext-app}-api-server.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers-${PROJECT_NAME:-horext-app}-api-server.entrypoints=websecure"
+      - "traefik.http.routers-${PROJECT_NAME:-horext-app}-api-server.tls.certresolver=le"
+      - "traefik.http.services-${PROJECT_NAME:-horext-app}-api-server.loadbalancer.server.port=${SERVER_PORT}"
     ports:
       - ${SERVER_PORT}
     networks:
