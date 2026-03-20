@@ -46,6 +46,8 @@ object Subjects : LongIdTable("subject") {
 
     val position = integer("position").nullable()
 
+    val evaluationSystemId = long("evaluation_system_id").nullable()
+
     fun createEntity(row: ResultRow): Subject =
         Subject(
             id = row[id].value,
@@ -56,9 +58,9 @@ object Subjects : LongIdTable("subject") {
                 runCatching { StudyPlans.createEntity(row) }
                     .getOrElse { StudyPlan(id = row[studyPlanId].value) },
             type =
-                row[typeId]?.let {
+                row.getOrNull(typeId)?.let { typeEntityId ->
                     runCatching { SubjectTypes.createEntity(row) }
-                        .getOrElse { SubjectType(id = it.value) }
+                        .getOrElse { SubjectType(id = typeEntityId.value) }
                 },
             credits = row[credits],
             cycle = row[cycle],
