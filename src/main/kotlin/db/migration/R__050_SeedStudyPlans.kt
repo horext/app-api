@@ -152,7 +152,6 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                 it[Subjects.minCycle] = c[12].toIntOrNull()
                 it[Subjects.note] = c[13].takeIf { s -> s.isNotBlank() }
                 it[Subjects.requiredCredits] = c[14].toIntOrNull()
-                it[Subjects.position] = c[15].toIntOrNull()
             }
         }
     }
