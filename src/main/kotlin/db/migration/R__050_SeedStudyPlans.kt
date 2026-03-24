@@ -1,6 +1,8 @@
 package db.migration
 
 import io.octatec.horext.api.domain.Courses
+import io.octatec.horext.api.domain.Contributions
+import io.octatec.horext.api.domain.StudyPlanContributions
 import io.octatec.horext.api.domain.OrganizationUnits
 import io.octatec.horext.api.domain.StudyPlans
 import io.octatec.horext.api.domain.SubjectRelationships
@@ -34,6 +36,18 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
         private const val RELATIONSHIPS_PREFIX = "study_plan_relationships_"
         private const val CSV_EXT = ".csv"
         private val TIMESTAMP_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    }
+
+    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.recordContribution(path: String, entityId: Long) {
+        getOrCreateContributionId(path)?.let { contribId ->
+            StudyPlanContributions.upsert(
+                StudyPlanContributions.studyPlanId,
+                StudyPlanContributions.contributionId,
+            ) {
+                it[StudyPlanContributions.studyPlanId] = EntityID(entityId, StudyPlans)
+                it[StudyPlanContributions.contributionId] = EntityID(contribId, Contributions)
+            }
+        }
     }
 
     override fun getChecksum(): Int {
@@ -89,11 +103,13 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                     ?.get(OrganizationUnits.id)
                     ?.value
                     ?: error("Organization unit not found: '${cols[2]}'")
-            StudyPlans.upsert(StudyPlans.code) {
-                it[StudyPlans.code] = cols[0]
-                it[StudyPlans.fromDate] = parseInstant(cols[1])
-                it[StudyPlans.organizationUnitId] = EntityID(orgUnitId, OrganizationUnits)
-            }
+            val studyPlanId =
+                StudyPlans.upsert(StudyPlans.code) {
+                    it[StudyPlans.code] = cols[0]
+                    it[StudyPlans.fromDate] = parseInstant(cols[1])
+                    it[StudyPlans.organizationUnitId] = EntityID(orgUnitId, OrganizationUnits)
+                }[StudyPlans.id].value
+            recordContribution(STUDY_PLANS_FILE, studyPlanId)
         }
     }
 
@@ -106,6 +122,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             val stream = openClasspathResource(path) ?: continue
             val planId = allStudyPlans[code] ?: error("Study plan not found for code: $code")
             seedSubjects(planId, code, stream, allSubjectTypes)
+            recordContribution(path, planId)
         }
     }
 
@@ -165,6 +182,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             val stream = openClasspathResource(path) ?: continue
             val planId = allStudyPlans[code] ?: error("Study plan not found for code: $code")
             seedRelationships(planId, code, stream)
+            recordContribution(path, planId)
         }
     }
 

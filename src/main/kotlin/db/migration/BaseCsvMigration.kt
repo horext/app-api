@@ -1,8 +1,10 @@
 package db.migration
 
+import io.octatec.horext.api.domain.Contributions
 import org.flywaydb.core.api.configuration.Configuration
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import org.jetbrains.exposed.v1.jdbc.upsert
 import org.slf4j.LoggerFactory
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -13,11 +15,32 @@ import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
 import java.util.zip.CRC32
 
 abstract class BaseCsvMigration : BaseJavaMigration() {
     protected val log = LoggerFactory.getLogger(javaClass)
+
+    protected fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.getOrCreateContributionId(path: String): Long? {
+        val author = gitLastAuthor(path) ?: return null
+        val (name, email) =
+            if (author.contains("<")) {
+                author.substringBefore("<").trim() to author.substringAfter("<").substringBefore(">").trim()
+            } else {
+                author.trim() to null
+            }
+
+        return Contributions.upsert(
+            Contributions.authorName,
+            Contributions.authorEmail,
+            onUpdate = { it[Contributions.committedAt] = Instant.now() },
+        ) {
+            it[Contributions.authorName] = name
+            it[Contributions.authorEmail] = email
+            it[Contributions.committedAt] = Instant.now()
+        }.get(Contributions.id).value
+    }
 
     private fun resourceClassLoaders(): List<ClassLoader> =
         listOfNotNull(
@@ -187,5 +210,31 @@ abstract class BaseCsvMigration : BaseJavaMigration() {
     ): Boolean {
         val value = context.configuration.placeholders[placeholder]
         return value?.toBoolean() ?: false
+    }
+
+    protected fun gitLastAuthor(path: String): String? {
+        val url = findResource(path) ?: return null
+        if (url.protocol != "file") return null
+
+        return try {
+            val file = File(url.toURI())
+            val process =
+                ProcessBuilder("git", "log", "-n", "1", "--format=%an <%ae>", "--", file.absolutePath)
+                    .directory(file.parentFile)
+                    .start()
+
+            val author =
+                process.inputStream.bufferedReader().use { it.readLine() }
+            process.waitFor(5, TimeUnit.SECONDS)
+
+            if (process.exitValue() == 0 && !author.isNullOrBlank()) {
+                author.trim()
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            log.trace("Failed to get git author for {}: {}", path, e.message)
+            null
+        }
     }
 }
