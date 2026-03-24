@@ -39,7 +39,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.recordContribution(path: String, entityId: Long) {
-        getOrCreateContributionId(path)?.let { contribId ->
+        getOrCreateContributionIds(path).forEach { contribId ->
             StudyPlanContributions.upsert(
                 StudyPlanContributions.studyPlanId,
                 StudyPlanContributions.contributionId,

@@ -347,7 +347,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val hourlyLoadId = hlRow[HourlyLoads.id].value
         val updatedAtIn = hlRow[HourlyLoads.updatedAt] ?: Instant.MIN
 
-        getOrCreateContributionId("db/data/${meta.filename}")?.let { contribId ->
+        getOrCreateContributionIds("db/data/${meta.filename}").forEach { contribId ->
             HourlyLoadContributions.upsert(
                 HourlyLoadContributions.hourlyLoadId,
                 HourlyLoadContributions.contributionId,
