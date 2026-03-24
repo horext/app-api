@@ -16,7 +16,7 @@ data class StudyPlan(
 }
 
 object StudyPlans : LongIdTable("study_plan") {
-    val fromDate = timestamp("from_date")
+    val fromDate = timestamp("from_date").nullable()
 
     val code = varchar("code", length = 50)
 

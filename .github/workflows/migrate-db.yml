@@ -11,6 +11,11 @@ on:
         type: string
         default: "25"
         description: "Java version to use for migration"
+      skip-seeds:
+        required: false
+        type: boolean
+        default: false
+        description: "Whether to skip seed migrations"
     secrets:
       SPRING_DATASOURCE_USERNAME:
         required: true
@@ -36,6 +41,11 @@ on:
         type: string
         required: false
         default: "25"
+      skip-seeds:
+        description: "Whether to skip seed migrations"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -84,7 +94,7 @@ jobs:
           echo "CSV files synced from app-data repository"
 
       - name: Build and Migrate Database
-        run: ./gradlew assemble flywayMigrate -i
+        run: ./gradlew assemble flywayMigrate -Pflyway.placeholders.skipSeeds=${{ inputs.skip-seeds }} -i
         env:
           SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
