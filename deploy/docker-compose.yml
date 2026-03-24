@@ -17,9 +17,15 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.$|{PROJECT_NAME:-horext-app}-api-server.rule=Host(`${VIRTUAL_HOST}`)"
+      - "traefik.http.routers.${PROJECT_NAME:-horext-app}-api-server.rule=Host(`${VIRTUAL_HOST}`)"
       - "traefik.http.routers.${PROJECT_NAME:-horext-app}-api-server.entrypoints=websecure"
       - "traefik.http.routers.${PROJECT_NAME:-horext-app}-api-server.tls.certresolver=le"
+      - "traefik.http.routers.${PROJECT_NAME:-horext-app}-api-server.middlewares=${PROJECT_NAME:-horext-app}-cors"
+      - "traefik.http.middlewares.${PROJECT_NAME:-horext-app}-cors.headers.accesscontrolallowmethods=GET,OPTIONS"
+      - "traefik.http.middlewares.${PROJECT_NAME:-horext-app}-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOW_ORIGIN:-*}"
+      - "traefik.http.middlewares.${PROJECT_NAME:-horext-app}-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.${PROJECT_NAME:-horext-app}-cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.${PROJECT_NAME:-horext-app}-cors.headers.addvaryheader=true"
       - "traefik.http.services.${PROJECT_NAME:-horext-app}-api-server.loadbalancer.server.port=${SERVER_PORT}"
     ports:
       - ${SERVER_PORT}
