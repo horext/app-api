@@ -5,6 +5,8 @@ import io.octatec.horext.api.domain.AcademicPeriods
 import io.octatec.horext.api.domain.ClassSessionTypes
 import io.octatec.horext.api.domain.ClassSessions
 import io.octatec.horext.api.domain.Classrooms
+import io.octatec.horext.api.domain.Contributions
+import io.octatec.horext.api.domain.HourlyLoadContributions
 import io.octatec.horext.api.domain.Courses
 import io.octatec.horext.api.domain.HourlyLoads
 import io.octatec.horext.api.domain.OrganizationUnits
@@ -63,6 +65,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val academicCode: String,
         val defaultFacultyCode: String,
         val fileLastModified: Instant?,
+        val committedBy: String? = null,
+        val filename: String = "",
     )
 
     data class ScheduleResume(
@@ -94,6 +98,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         if (entries.isEmpty()) {
             log.info("R__200_GenerateHourlyLoad: no CSV files found, skipping")
             return
+        }
+        entries.forEach { (meta, _) ->
+            meta.committedBy?.let { author ->
+                log.info("R__200_GenerateHourlyLoad: CSV '{}' was last committed by: {}", meta.hourlyLoadName, author)
+            }
         }
         log.info("R__200_GenerateHourlyLoad: processing {} file(s)", entries.size)
         val db = Database.connect(SingleConnectionDataSource(context.connection, true))
@@ -337,6 +346,16 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .first()
         val hourlyLoadId = hlRow[HourlyLoads.id].value
         val updatedAtIn = hlRow[HourlyLoads.updatedAt] ?: Instant.MIN
+
+        getOrCreateContributionIds("db/data/${meta.filename}").forEach { contribId ->
+            HourlyLoadContributions.upsert(
+                HourlyLoadContributions.hourlyLoadId,
+                HourlyLoadContributions.contributionId,
+            ) {
+                it[HourlyLoadContributions.hourlyLoadId] = EntityID(hourlyLoadId, HourlyLoads)
+                it[HourlyLoadContributions.contributionId] = EntityID(contribId, Contributions)
+            }
+        }
 
         val resumes =
             facultyRows
@@ -658,8 +677,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         return selectedByKey.values.map { (filename, meta, _) ->
-            val rows = loadCsv("db/data/$filename", meta.defaultFacultyCode)
-            meta to rows
+            val finalMeta = meta.copy(
+                committedBy = gitLastAuthor("db/data/$filename"),
+                filename = filename
+            )
+            val rows = loadCsv("db/data/$filename", finalMeta.defaultFacultyCode)
+            finalMeta to rows
         }
     }
 
