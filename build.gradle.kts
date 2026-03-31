@@ -6,7 +6,7 @@ plugins {
     id("org.springframework.boot") version "4.0.4"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.graalvm.buildtools.native") version "0.11.5"
-    id("org.flywaydb.flyway") version "12.1.1"
+    id("org.flywaydb.flyway") version "12.3.0"
 }
 
 group = "io.octatec.horext"
