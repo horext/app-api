@@ -10,7 +10,5 @@ import org.springframework.transaction.annotation.Transactional
 class ClassSessionServiceImpl(
     private val classSessionRepository: ClassSessionRepository,
 ) : ClassSessionService {
-    override fun findByScheduleId(scheduleId: Long): List<ClassSession> = classSessionRepository.findByScheduleId(scheduleId)
-
     override fun findByScheduleIds(scheduleIds: List<Long>): List<ClassSession> = classSessionRepository.findByScheduleIds(scheduleIds)
 }

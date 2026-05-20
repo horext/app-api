@@ -12,11 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 class ClassSessionController(
     val classSessionService: ClassSessionService,
 ) {
-    @GetMapping(params = ["schedule"])
-    fun getAllBySpeciality(
-        @RequestParam(name = "schedule") scheduleId: Long,
-    ): List<ClassSession> = classSessionService.findByScheduleId(scheduleId)
-
     @GetMapping(params = ["schedules"])
     fun getAllBySchedulesId(
         @RequestParam(name = "schedules") scheduleIds: List<Long>,
