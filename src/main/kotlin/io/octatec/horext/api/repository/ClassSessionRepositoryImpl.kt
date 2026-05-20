@@ -1,6 +1,10 @@
 package io.octatec.horext.api.repository
 
 import io.octatec.horext.api.domain.ClassSession
+import io.octatec.horext.api.repository.table.ClassSessionTypes
+import io.octatec.horext.api.repository.table.ClassSessions
+import io.octatec.horext.api.repository.table.Classrooms
+import io.octatec.horext.api.repository.table.Teachers
 import org.jetbrains.exposed.v1.core.anyFrom
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
