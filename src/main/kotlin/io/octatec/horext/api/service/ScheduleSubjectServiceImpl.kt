@@ -33,7 +33,7 @@ class ScheduleSubjectServiceImpl(
                     .groupBy { it.schedule.id }
             }
 
-        forEach { scheduleSubject ->
+        parallelStream().forEach { scheduleSubject ->
             scheduleSubject.schedule.sessions = sessionsByScheduleId[scheduleSubject.schedule.id]
         }
 
