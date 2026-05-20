@@ -1,7 +1,7 @@
 package db.migration
 
-import io.octatec.horext.api.domain.OrganizationUnitTypes
-import io.octatec.horext.api.domain.OrganizationUnits
+import io.octatec.horext.api.repository.table.OrganizationUnitTypes
+import io.octatec.horext.api.repository.table.OrganizationUnits
 import org.flywaydb.core.api.migration.Context
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq

@@ -1,8 +1,6 @@
 package io.octatec.horext.api.repository
 
 import io.octatec.horext.api.domain.Schedule
-import io.octatec.horext.api.domain.ScheduleSubjects
-import io.octatec.horext.api.domain.Schedules
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select

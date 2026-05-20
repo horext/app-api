@@ -2,8 +2,6 @@ package io.octatec.horext.api.repository
 
 import io.octatec.horext.api.domain.OrganizationUnit
 import io.octatec.horext.api.domain.OrganizationUnitTypeCode
-import io.octatec.horext.api.domain.OrganizationUnits
-import io.octatec.horext.api.domain.StudyPlans
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and

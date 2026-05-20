@@ -1,11 +1,11 @@
 package db.migration
 
-import io.octatec.horext.api.domain.Courses
-import io.octatec.horext.api.domain.OrganizationUnits
-import io.octatec.horext.api.domain.StudyPlans
-import io.octatec.horext.api.domain.SubjectRelationships
-import io.octatec.horext.api.domain.SubjectTypes
-import io.octatec.horext.api.domain.Subjects
+import io.octatec.horext.api.repository.table.Courses
+import io.octatec.horext.api.repository.table.OrganizationUnits
+import io.octatec.horext.api.repository.table.StudyPlans
+import io.octatec.horext.api.repository.table.SubjectRelationships
+import io.octatec.horext.api.repository.table.SubjectTypes
+import io.octatec.horext.api.repository.table.Subjects
 import org.flywaydb.core.api.migration.Context
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable

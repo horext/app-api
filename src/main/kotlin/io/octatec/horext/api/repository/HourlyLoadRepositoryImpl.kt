@@ -1,8 +1,6 @@
 package io.octatec.horext.api.repository
 
-import io.octatec.horext.api.domain.AcademicPeriodOrganizationUnits
 import io.octatec.horext.api.domain.HourlyLoad
-import io.octatec.horext.api.domain.HourlyLoads
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq

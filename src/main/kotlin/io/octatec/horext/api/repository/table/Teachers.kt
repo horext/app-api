@@ -1,0 +1,18 @@
+package io.octatec.horext.api.repository.table
+
+import io.octatec.horext.api.domain.Teacher
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+
+object Teachers : LongIdTable("teacher") {
+    val fullName = varchar("full_name", length = 100)
+
+    val code = varchar("code", length = 50).nullable()
+
+    fun createEntity(row: ResultRow): Teacher =
+        Teacher(
+            row[id].value,
+            row[code],
+            row[fullName],
+        )
+}

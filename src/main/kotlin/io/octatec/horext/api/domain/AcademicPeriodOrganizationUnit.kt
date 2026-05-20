@@ -1,8 +1,5 @@
 package io.octatec.horext.api.domain
 
-import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
-import org.jetbrains.exposed.v1.javatime.timestamp
 import java.time.Instant
 
 data class AcademicPeriodOrganizationUnit(
@@ -13,29 +10,4 @@ data class AcademicPeriodOrganizationUnit(
     var organizationUnit: OrganizationUnit?,
 ) {
     constructor(id: Long) : this(id, null, null, null, null)
-}
-
-object AcademicPeriodOrganizationUnits : LongIdTable("academic_period_organization_unit") {
-    val fromDate = timestamp("from_date").nullable()
-
-    val toDate = timestamp("to_date").nullable()
-
-    val academicPeriodId = reference("academic_period_id", AcademicPeriods)
-
-    val organizationUnitId = reference("organization_unit_id", OrganizationUnits)
-
-    fun createEntity(row: ResultRow): AcademicPeriodOrganizationUnit =
-        AcademicPeriodOrganizationUnit(
-            id = row[id].value,
-            fromDate = row[fromDate],
-            toDate = row[toDate],
-            academicPeriod =
-                AcademicPeriod(
-                    id = row[academicPeriodId].value,
-                ),
-            organizationUnit =
-                OrganizationUnit(
-                    id = row[organizationUnitId].value,
-                ),
-        )
 }

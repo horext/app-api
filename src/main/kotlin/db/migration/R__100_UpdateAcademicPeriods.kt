@@ -1,8 +1,8 @@
 package db.migration
 
-import io.octatec.horext.api.domain.AcademicPeriodOrganizationUnits
-import io.octatec.horext.api.domain.AcademicPeriods
-import io.octatec.horext.api.domain.OrganizationUnits
+import io.octatec.horext.api.repository.table.AcademicPeriodOrganizationUnits
+import io.octatec.horext.api.repository.table.AcademicPeriods
+import io.octatec.horext.api.repository.table.OrganizationUnits
 import org.flywaydb.core.api.migration.Context
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
