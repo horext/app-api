@@ -2,6 +2,12 @@ package io.octatec.horext.api.repository
 
 import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.dto.Page
+import io.octatec.horext.api.repository.table.Courses
+import io.octatec.horext.api.repository.table.ScheduleSubjects
+import io.octatec.horext.api.repository.table.StudyPlans
+import io.octatec.horext.api.repository.table.SubjectRelationships
+import io.octatec.horext.api.repository.table.SubjectTypes
+import io.octatec.horext.api.repository.table.Subjects
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
 import org.jetbrains.exposed.v1.core.and
