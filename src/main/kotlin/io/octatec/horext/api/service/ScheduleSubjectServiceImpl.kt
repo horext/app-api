@@ -23,19 +23,20 @@ class ScheduleSubjectServiceImpl(
         scheduleSubjectRepository.getAllByIds(ids).initializeScheduleSessions()
 
     private fun List<ScheduleSubject>.initializeScheduleSessions(): List<ScheduleSubject> {
-        val scheduleIds = map { it.schedule.id }.distinct()
-        val sessionsByScheduleId =
-            if (scheduleIds.isEmpty()) {
-                emptyMap()
-            } else {
-                classSessionService
-                    .findByScheduleIds(scheduleIds)
-                    .groupBy { it.schedule.id }
-            }
+        val scheduleIds = mapTo(HashSet()) { it.schedule.id }
+        if (scheduleIds.isEmpty()) return this
 
-        parallelStream().forEach { scheduleSubject ->
-            scheduleSubject.schedule.sessions = sessionsByScheduleId[scheduleSubject.schedule.id]
-        }
+        val sessionsByScheduleId =
+            classSessionService
+                .findByScheduleIds(scheduleIds.toList())
+                .groupBy { it.schedule.id }
+
+        map { it.schedule }
+            .distinctBy { it.id }
+            .parallelStream()
+            .forEach { schedule ->
+                schedule.sessions = sessionsByScheduleId[schedule.id]
+            }
 
         return this
     }
