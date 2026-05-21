@@ -18,8 +18,8 @@ concurrency:
   cancel-in-progress: true
   
 jobs:
-  build-test:
-    name: Build and Test
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     
     env:
