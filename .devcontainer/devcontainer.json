@@ -17,7 +17,7 @@
 			"extensions": [
 				"vscjava.vscode-gradle",
 				"vscjava.vscode-java-pack",
-				"fwcd.kotlin",
+				"JetBrains.kotlin-server",
 				"donjayamanne.git-extension-pack"
 			]
 		}
