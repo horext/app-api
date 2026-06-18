@@ -42,7 +42,7 @@ jobs:
       DOCKER_COMPOSE_TEMPLATE_PATH: deploy/docker-compose.yml
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create project folder
         uses: appleboy/ssh-action@v1.2.5
