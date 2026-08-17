@@ -34,7 +34,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.jetbrains.exposed:exposed-spring-boot4-starter:1.4.0")
     implementation("org.jetbrains.exposed:exposed-java-time:1.4.0")
-    implementation("org.flywaydb:flyway-core:13.2.0")
+    implementation("org.flywaydb:flyway-core:13.3.0")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.springframework.boot:spring-boot-starter-jdbc-test")
@@ -53,7 +53,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:13.2.0")
+        classpath("org.flywaydb:flyway-database-postgresql:13.3.0")
     }
 }
 
