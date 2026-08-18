@@ -58,11 +58,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull previous image for buildpack cache warmup
+      - name: Pull previous image for buildpack reuse
         run: docker pull ${{ steps.image.outputs.tag }} || true
 
-      - name: Build OCI image with Spring Boot
-        run: ./gradlew bootBuildImage --imageName=${{ steps.image.outputs.tag }} --no-daemon
+      - name: Build OCI image
+        id: build-image
+        continue-on-error: true
+        run: |
+          ./gradlew bootBuildImage \
+            --imageName=${{ steps.image.outputs.tag }} \
+            --no-daemon
+
+      - name: Retry OCI image with clean cache
+        if: steps.build-image.outcome == 'failure'
+        run: |
+          docker image rm -f ${{ steps.image.outputs.tag }} || true
+
+          ./gradlew bootBuildImage \
+            --imageName=${{ steps.image.outputs.tag }} \
+            --cleanCache \
+            --no-daemon
 
       - name: Push OCI image
         run: docker push ${{ steps.image.outputs.tag }}
