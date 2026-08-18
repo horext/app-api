@@ -336,15 +336,22 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         HourlyLoads.upsert(
             HourlyLoads.academicPeriodOrganizationUnitId,
+            HourlyLoads.name,
             onUpdate = { stmt ->
                 stmt[HourlyLoads.checkedAt] = checkedAt
-                stmt[HourlyLoads.name] = meta.hourlyLoadName
             },
         ) {
-            it[HourlyLoads.academicPeriodOrganizationUnitId] = EntityID(apouId, AcademicPeriodOrganizationUnits)
-            it[HourlyLoads.updatedAt] = lastUpdateInstant.minusSeconds(23 * 3600)
-            it[HourlyLoads.name] = meta.hourlyLoadName
-            it[HourlyLoads.checkedAt] = checkedAt
+            it[HourlyLoads.academicPeriodOrganizationUnitId] =
+                EntityID(apouId, AcademicPeriodOrganizationUnits)
+
+            it[HourlyLoads.updatedAt] =
+                lastUpdateInstant.minusSeconds(23 * 3600)
+
+            it[HourlyLoads.name] =
+                meta.hourlyLoadName
+
+            it[HourlyLoads.checkedAt] =
+                checkedAt
         }
 
         val hlRow =
