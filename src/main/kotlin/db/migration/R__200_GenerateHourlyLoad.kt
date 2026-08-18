@@ -56,6 +56,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         private const val COL_TEACHER = "nombre_docente"
         private const val COL_TYPE = "tipo"
         private const val COL_DAY = "dia"
+        private const val DEFAULT_CLASSROOM_CODE = "NO_CLASSROOM"
     }
 
     data class CsvMetadata(
@@ -200,17 +201,33 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         val allClassroomCodes = activeRows.map { it.classroom.trim() }.filter { it.isNotBlank() }.distinct()
+
+        if (DEFAULT_CLASSROOM_CODE in allClassroomCodes) {
+            val defaultClassroomExists =
+                Classrooms
+                    .select(Classrooms.id)
+                    .where { Classrooms.code eq DEFAULT_CLASSROOM_CODE }
+                    .any()
+
+            check(defaultClassroomExists) {
+                "Default classroom '$DEFAULT_CLASSROOM_CODE' not found. " +
+                    "Run the versioned migration that creates it before R__200_GenerateHourlyLoad."
+            }
+        }
+
+        val realClassroomCodes = allClassroomCodes.filter { it != DEFAULT_CLASSROOM_CODE }
         val existingClassroomCodes =
-            if (allClassroomCodes.isNotEmpty()) {
+            if (realClassroomCodes.isNotEmpty()) {
                 Classrooms
                     .select(Classrooms.code)
-                    .where { Classrooms.code inList allClassroomCodes }
+                    .where { Classrooms.code inList realClassroomCodes }
                     .map { it[Classrooms.code] }
                     .toSet()
             } else {
                 emptySet()
             }
-        Classrooms.batchInsert(allClassroomCodes.filter { it !in existingClassroomCodes }) { classroom ->
+
+        Classrooms.batchInsert(realClassroomCodes.filter { it !in existingClassroomCodes }) { classroom ->
             this[Classrooms.code] = classroom
             this[Classrooms.name] = classroom
         }
@@ -372,6 +389,51 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
     }
 
+    private fun validSessionsForSchedule(
+        sessions: List<ScheduleResume>,
+        courseCode: String,
+        section: String,
+        scheduleId: Long,
+    ): List<ScheduleResume> {
+        val (validSessions, invalidSessions) =
+            sessions.partition {
+                it.day.isNotBlank() &&
+                    it.startTime.isNotBlank() &&
+                    it.endTime.isNotBlank() &&
+                    it.sessionType.isNotBlank()
+            }
+
+        invalidSessions.forEach { session ->
+            val missingFields =
+                buildList {
+                    if (session.day.isBlank()) add(COL_DAY)
+                    if (session.startTime.isBlank()) add(COL_START_TIME)
+                    if (session.endTime.isBlank()) add(COL_END_TIME)
+                    if (session.sessionType.isBlank()) add(COL_TYPE)
+                }
+
+            log.warn(
+                "R__200: skipping invalid class session course={} section={} type={} teacher={} missingFields={}",
+                session.course,
+                session.section,
+                session.sessionType.ifBlank { "<empty>" },
+                session.teacherName,
+                missingFields.joinToString(),
+            )
+        }
+
+        if (validSessions.isEmpty()) {
+            log.info(
+                "R__200: course={} section={} scheduleId={} has no valid class sessions; keeping schedule without sessions",
+                courseCode,
+                section,
+                scheduleId,
+            )
+        }
+
+        return validSessions
+    }
+
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.insertSchedule(
         courseCode: String,
         section: String,
@@ -409,7 +471,18 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 it.course == courseCode && it.section.trim() == section &&
                     it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null
             }
-        batchExecInsertClassSessions(sessions, scheduleId, onConflictDoNothing = true)
+
+        val validSessions =
+            validSessionsForSchedule(
+                sessions = sessions,
+                courseCode = courseCode,
+                section = section,
+                scheduleId = scheduleId,
+            )
+
+        if (validSessions.isNotEmpty()) {
+            batchExecInsertClassSessions(validSessions, scheduleId, onConflictDoNothing = true)
+        }
     }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.updateSchedule(
@@ -442,7 +515,17 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 it[ClassSessions.deletedAt] = Instant.now()
             }
 
-            batchExecInsertClassSessions(sessions, scheduleId, onConflictDoNothing = false)
+            val validSessions =
+                validSessionsForSchedule(
+                    sessions = sessions,
+                    courseCode = courseCode,
+                    section = section,
+                    scheduleId = scheduleId,
+                )
+
+            if (validSessions.isNotEmpty()) {
+                batchExecInsertClassSessions(validSessions, scheduleId, onConflictDoNothing = false)
+            }
 
             Schedules.update({ Schedules.id eq scheduleId }) {
                 it[Schedules.updatedAt] = Instant.now()
@@ -456,14 +539,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         onConflictDoNothing: Boolean,
     ) {
         if (sessions.isEmpty()) return
-
-        val blankTypeSessions = sessions.filter { it.sessionType.isBlank() }
-        if (blankTypeSessions.isNotEmpty()) {
-            throw IllegalStateException(
-                "R__200: ${blankTypeSessions.size} session(s) have a blank session type (scheduleId=$scheduleId). " +
-                    "Fix the CSV data before migrating.",
-            )
-        }
 
         // Bulk-resolve foreign keys (a few SELECTs instead of N×3)
         val classroomCodes =
@@ -575,10 +650,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     val dayNum = dayNameToNumber(r.day)
                     val typeId = typeIdByCode[r.sessionType]
                     val roomId =
-                        r.classroom
-                            .trim()
-                            .takeIf { it.isNotBlank() }
-                            ?.let { roomIdByCode[it] }
+                        roomIdByCode[r.classroom.trim()]
+                            ?: error(
+                                "R__200: classroom '${r.classroom}' not found for scheduleId=$scheduleId",
+                            )
                     val tid =
                         if (r.teacherDni?.isNotBlank() == true) {
                             val normalizedName = normalizeTeacherName(r.teacherName)
@@ -709,8 +784,14 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         fun parseTime(s: String): String {
             val trimmed = s.trim()
+            if (trimmed.isBlank()) return ""
+
             val hour = trimmed.toIntOrNull()
-            return if (hour != null) LocalTime.of(hour, 0).format(timeFmt) else LocalTime.parse(trimmed).format(timeFmt)
+            return if (hour != null) {
+                LocalTime.of(hour, 0).format(timeFmt)
+            } else {
+                LocalTime.parse(trimmed).format(timeFmt)
+            }
         }
         return bomAwareReader(stream).useLines { lines ->
             val iter = lines.filter { it.isNotBlank() }.iterator()
@@ -741,10 +822,14 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val iDia = idx(COL_DAY)
             iter
                 .asSequence()
-                .map { line ->
-                    val cols = parseCsvLine(line, delimiter)
+                .map { line -> parseCsvLine(line, delimiter) }
+                .filter { cols -> cols.any { it.isNotBlank() } }
+                .map { cols ->
                     ScheduleResume(
-                        facultyCode = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
+                        facultyCode =
+                            iCodigoFacultad
+                                ?.let { index -> cols.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() } }
+                                ?: defaultFacultyCode,
                         course = cols[iCurso].trim().replace("-", ""),
                         section = cols[iSeccion].trim(),
                         vacancies =
@@ -753,7 +838,15 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                             } else {
                                 cols[iVacantes].trim().toInt()
                             },
-                        updatedAt = if (iUpdatedAt != null) LocalDateTime.parse(cols[iUpdatedAt], fmt) else defaultUpdatedAt,
+                        updatedAt =
+                            iUpdatedAt
+                                ?.let { index ->
+                                    cols.getOrNull(index)
+                                        ?.trim()
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?.let { LocalDateTime.parse(it, fmt) }
+                                }
+                                ?: defaultUpdatedAt,
                         deletedAt =
                             if (iDeletedAt != null) {
                                 cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) }
@@ -767,8 +860,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                                 ?.let { index -> cols.getOrNull(index) }
                                 ?.trim()
                                 ?.uppercase()
-                                .orEmpty(),
-                        teacherDni = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
+                                ?.takeIf { it.isNotBlank() }
+                                ?: DEFAULT_CLASSROOM_CODE,
+                        teacherDni =
+                            iDni
+                                ?.let { index -> cols.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() } },
                         teacherName = normalizeTeacherName(cols[iDocente]),
                         sessionType = cols[iTipo].trim().uppercase(),
                         day = cols[iDia],
