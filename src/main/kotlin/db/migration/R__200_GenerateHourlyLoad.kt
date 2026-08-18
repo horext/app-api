@@ -466,12 +466,20 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         // Bulk-resolve foreign keys (a few SELECTs instead of N×3)
-        val classroomCodes = sessions.map { it.classroom.trim() }.distinct()
+        val classroomCodes =
+            sessions
+                .map { it.classroom.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
         val roomIdByCode =
-            Classrooms
-                .select(Classrooms.id, Classrooms.code)
-                .where { Classrooms.code inList classroomCodes }
-                .associate { it[Classrooms.code] to it[Classrooms.id].value }
+            if (classroomCodes.isNotEmpty()) {
+                Classrooms
+                    .select(Classrooms.id, Classrooms.code)
+                    .where { Classrooms.code inList classroomCodes }
+                    .associate { it[Classrooms.code] to it[Classrooms.id].value }
+            } else {
+                emptyMap()
+            }
 
         val typeCodes = sessions.map { it.sessionType }.filter { it.isNotBlank() }.distinct()
         var typeIdByCode =
@@ -544,6 +552,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val unresolvedTypeCodes = typeCodes.filter { typeIdByCode[it] == null }
         val unresolvedClassrooms = classroomCodes.filter { roomIdByCode[it] == null }
+        if (unresolvedClassrooms.isNotEmpty()) {
+            throw IllegalStateException(
+                "R__200: classroom unresolved for codes: ${unresolvedClassrooms.joinToString()} " +
+                    "(scheduleId=$scheduleId)",
+            )
+        }
         val unresolvedTeachersByDni = dniList.filter { teacherIdByDni[it] == null }
         val unresolvedTeachersByName = nameList.filter { teacherIdByName[it] == null }
 
@@ -560,7 +574,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 for (r in sessions) {
                     val dayNum = dayNameToNumber(r.day)
                     val typeId = typeIdByCode[r.sessionType]
-                    val roomId = roomIdByCode[r.classroom.trim()]
+                    val roomId =
+                        r.classroom
+                            .trim()
+                            .takeIf { it.isNotBlank() }
+                            ?.let { roomIdByCode[it] }
                     val tid =
                         if (r.teacherDni?.isNotBlank() == true) {
                             val normalizedName = normalizeTeacherName(r.teacherName)
@@ -710,13 +728,13 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val iCodigoFacultad = optIdx(COL_FACULTY_CODE)
             val iCurso = idx(COL_COURSE)
             val iSeccion = idx(COL_SECTION)
-            val iVacantes = idx(COL_VACANCIES)
+            val iVacantes = optIdx(COL_VACANCIES)
             val iUpdatedAt = optIdx(COL_UPDATED_AT)
             val iDeletedAt = optIdx(COL_DELETED_AT)
             val defaultUpdatedAt = LocalDateTime.now()
             val iInicio = idx(COL_START_TIME)
             val iFin = idx(COL_END_TIME)
-            val iAula = idx(COL_CLASSROOM)
+            val iAula = optIdx(COL_CLASSROOM)
             val iDni = optIdx(COL_DNI)
             val iDocente = idx(COL_TEACHER)
             val iTipo = idx(COL_TYPE)
@@ -729,7 +747,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         facultyCode = iCodigoFacultad?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } } ?: defaultFacultyCode,
                         course = cols[iCurso].trim().replace("-", ""),
                         section = cols[iSeccion].trim(),
-                        vacancies = cols[iVacantes].toInt(),
+                        vacancies =
+                            if (iVacantes == null || cols.getOrNull(iVacantes).isNullOrBlank()) {
+                                0
+                            } else {
+                                cols[iVacantes].trim().toInt()
+                            },
                         updatedAt = if (iUpdatedAt != null) LocalDateTime.parse(cols[iUpdatedAt], fmt) else defaultUpdatedAt,
                         deletedAt =
                             if (iDeletedAt != null) {
@@ -739,7 +762,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                             },
                         startTime = parseTime(cols[iInicio]),
                         endTime = parseTime(cols[iFin]),
-                        classroom = cols[iAula].trim().uppercase(),
+                        classroom =
+                            iAula
+                                ?.let { index -> cols.getOrNull(index) }
+                                ?.trim()
+                                ?.uppercase()
+                                .orEmpty(),
                         teacherDni = iDni?.let { cols[it].trim().takeIf { v -> v.isNotBlank() } },
                         teacherName = normalizeTeacherName(cols[iDocente]),
                         sessionType = cols[iTipo].trim().uppercase(),
