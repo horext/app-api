@@ -35,6 +35,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -65,6 +66,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val academicCode: String,
         val defaultFacultyCode: String,
         val fileLastModified: Instant?,
+        val sourceChecksum: String = "",
     )
 
     data class ScheduleResume(
@@ -314,66 +316,100 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         facultyId: Long,
         apouId: Long,
     ) {
-        val activeRows = facultyRows.filter { it.deletedAt == null }
         val lastUpdate =
-            activeRows.maxOfOrNull { it.updatedAt } ?: run {
-                return
-            }
+            facultyRows.maxOfOrNull { it.updatedAt } ?: return
+
         val lastUpdateInstant = lastUpdate.toInstant(ZoneOffset.UTC)
+        val checkedAt = meta.fileLastModified ?: Instant.now()
 
-        if (meta.fileLastModified != null) {
-            val existingCheckedAt =
-                HourlyLoads
-                    .select(HourlyLoads.checkedAt)
-                    .where {
-                        (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
-                            (HourlyLoads.name eq meta.hourlyLoadName)
-                    }.firstOrNull()
-                    ?.get(HourlyLoads.checkedAt)
-            if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) {
+        val existingHourlyLoad =
+            HourlyLoads
+                .select(
+                    HourlyLoads.id,
+                    HourlyLoads.updatedAt,
+                    HourlyLoads.checkedAt,
+                    HourlyLoads.sourceChecksum,
+                ).where {
+                    (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
+                        (HourlyLoads.name eq meta.hourlyLoadName)
+                }.firstOrNull()
+
+        if (existingHourlyLoad != null) {
+            val hourlyLoadId = existingHourlyLoad[HourlyLoads.id].value
+            val previousChecksum = existingHourlyLoad[HourlyLoads.sourceChecksum]
+
+            if (previousChecksum == null) {
+                HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
+                    it[HourlyLoads.sourceChecksum] = meta.sourceChecksum
+                    it[HourlyLoads.checkedAt] = checkedAt
+                }
+
+                log.info(
+                    "R__200: baselined legacy hourly load '{}' period={} without changing publishedAt",
+                    meta.hourlyLoadName,
+                    meta.academicCode,
+                )
                 return
             }
-        }
 
-        val checkedAt = meta.fileLastModified ?: Instant.now()
+            if (previousChecksum == meta.sourceChecksum) {
+                HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
+                    it[HourlyLoads.checkedAt] = checkedAt
+                }
+
+                log.info(
+                    "R__200: hourly load '{}' period={} unchanged; preserving publishedAt",
+                    meta.hourlyLoadName,
+                    meta.academicCode,
+                )
+                return
+            }
+
+            log.info(
+                "R__200: hourly load '{}' period={} content changed; processing",
+                meta.hourlyLoadName,
+                meta.academicCode,
+            )
+        }
 
         HourlyLoads.upsert(
             HourlyLoads.academicPeriodOrganizationUnitId,
             HourlyLoads.name,
             onUpdate = { stmt ->
                 stmt[HourlyLoads.checkedAt] = checkedAt
+                stmt[HourlyLoads.sourceChecksum] = meta.sourceChecksum
             },
         ) {
             it[HourlyLoads.academicPeriodOrganizationUnitId] =
                 EntityID(apouId, AcademicPeriodOrganizationUnits)
-
             it[HourlyLoads.updatedAt] =
                 lastUpdateInstant.minusSeconds(23 * 3600)
-
             it[HourlyLoads.name] =
                 meta.hourlyLoadName
-
             it[HourlyLoads.checkedAt] =
                 checkedAt
+            it[HourlyLoads.sourceChecksum] =
+                meta.sourceChecksum
         }
 
         val hlRow =
             HourlyLoads
-                .select(HourlyLoads.id, HourlyLoads.updatedAt)
-                .where {
+                .select(
+                    HourlyLoads.id,
+                    HourlyLoads.updatedAt,
+                ).where {
                     (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
                         (HourlyLoads.name eq meta.hourlyLoadName)
                 }.first()
+
         val hourlyLoadId = hlRow[HourlyLoads.id].value
-        val updatedAtIn = hlRow[HourlyLoads.updatedAt] ?: Instant.MIN
 
         val resumes =
             facultyRows
-                .filter { it.updatedAt.toInstant(ZoneOffset.UTC) > updatedAtIn && it.deletedAt == null }
+                .filter { it.deletedAt == null }
                 .map { Triple(it.course, it.section.trim(), it.vacancies) }
                 .distinctBy { it.first to it.second }
 
-        // Update ALL existing schedules so sessions removed from CSV get deleted.
         val existingCourseSections =
             ScheduleSubjects
                 .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
@@ -385,19 +421,33 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .toSet()
 
         for ((courseCode, section) in existingCourseSections) {
-            updateSchedule(courseCode, section, hourlyLoadId, facultyRows)
+            updateSchedule(
+                courseCode = courseCode,
+                section = section,
+                hourlyLoadId = hourlyLoadId,
+                rows = facultyRows,
+            )
         }
 
-        // Insert schedules that are new in this CSV run.
         for ((courseCode, section, vacancies) in resumes) {
             if (courseCode to section !in existingCourseSections) {
-                insertSchedule(courseCode, section, vacancies, hourlyLoadId, facultyId, facultyRows, updatedAtIn)
+                insertSchedule(
+                    courseCode = courseCode,
+                    section = section,
+                    vacancies = vacancies,
+                    hourlyLoadId = hourlyLoadId,
+                    facultyId = facultyId,
+                    rows = facultyRows,
+                    updatedAtIn = Instant.MIN,
+                )
             }
         }
 
         HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
             it[HourlyLoads.updatedAt] = lastUpdateInstant
             it[HourlyLoads.publishedAt] = Instant.now()
+            it[HourlyLoads.checkedAt] = checkedAt
+            it[HourlyLoads.sourceChecksum] = meta.sourceChecksum
         }
     }
 
@@ -728,6 +778,29 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
     }
 
+    private fun calculateSourceChecksum(resourcePath: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val stream =
+            openClasspathResource(resourcePath)
+                ?: error("Resource not found while calculating checksum: $resourcePath")
+
+        stream.use { input ->
+            val buffer = ByteArray(8192)
+
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+
+        return digest
+            .digest()
+            .joinToString("") { byte ->
+                "%02x".format(byte.toInt() and 0xff)
+            }
+    }
+
     private fun listCsvFiles(): List<Pair<CsvMetadata, List<ScheduleResume>>> {
         val entries = listCsvEntries(prefix = "hl_")
         if (entries.isEmpty()) return emptyList()
@@ -761,8 +834,11 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         }
 
         return selectedByKey.values.map { (filename, meta, _) ->
-            val rows = loadCsv("db/data/$filename", meta.defaultFacultyCode)
-            meta to rows
+            val resourcePath = "db/data/$filename"
+            val rows = loadCsv(resourcePath, meta.defaultFacultyCode)
+            val sourceChecksum = calculateSourceChecksum(resourcePath)
+
+            meta.copy(sourceChecksum = sourceChecksum) to rows
         }
     }
 
