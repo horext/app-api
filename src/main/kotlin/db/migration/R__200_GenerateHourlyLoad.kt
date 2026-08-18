@@ -328,8 +328,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .where {
                         (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
                             (HourlyLoads.name eq meta.hourlyLoadName)
-                    }
-                    .firstOrNull()
+                    }.firstOrNull()
                     ?.get(HourlyLoads.checkedAt)
             if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) {
                 return
@@ -364,8 +363,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .where {
                     (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
                         (HourlyLoads.name eq meta.hourlyLoadName)
-                }
-                .first()
+                }.first()
         val hourlyLoadId = hlRow[HourlyLoads.id].value
         val updatedAtIn = hlRow[HourlyLoads.updatedAt] ?: Instant.MIN
 
