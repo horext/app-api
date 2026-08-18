@@ -14,6 +14,8 @@ object HourlyLoads : LongIdTable("hourly_load") {
 
     val publishedAt = timestamp("published_at").nullable()
 
+    val sourceChecksum = varchar("source_checksum", length = 64).nullable()
+
     val academicPeriodOrganizationUnitId =
         reference("academic_period_organization_unit_id", AcademicPeriodOrganizationUnits)
 
