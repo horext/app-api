@@ -1,0 +1,3 @@
+ALTER TABLE hourly_load
+ADD CONSTRAINT hourly_load_apou_name_unique
+UNIQUE (academic_period_organization_unit_id, name);
