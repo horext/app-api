@@ -37,6 +37,8 @@ object Subjects : LongIdTable("subject") {
     val requiredCredits = integer("required_credits").nullable()
 
     val evaluationSystemId = long("evaluation_system_id").nullable()
+    
+    val position = integer("position").nullable()
 
     fun createEntity(row: ResultRow): Subject =
         Subject(
