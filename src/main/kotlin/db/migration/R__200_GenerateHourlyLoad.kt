@@ -57,6 +57,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         private const val COL_TYPE = "tipo"
         private const val COL_DAY = "dia"
         private const val DEFAULT_CLASSROOM_CODE = "NO_CLASSROOM"
+        private const val DEFAULT_SESSION_TYPE_CODE = "UNSPECIFIED"
     }
 
     data class CsvMetadata(
@@ -324,7 +325,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val existingCheckedAt =
                 HourlyLoads
                     .select(HourlyLoads.checkedAt)
-                    .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
+                    .where {
+                        (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
+                            (HourlyLoads.name eq meta.hourlyLoadName)
+                    }
                     .firstOrNull()
                     ?.get(HourlyLoads.checkedAt)
             if (existingCheckedAt != null && !meta.fileLastModified.isAfter(existingCheckedAt)) {
@@ -357,7 +361,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val hlRow =
             HourlyLoads
                 .select(HourlyLoads.id, HourlyLoads.updatedAt)
-                .where { HourlyLoads.academicPeriodOrganizationUnitId eq apouId }
+                .where {
+                    (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
+                        (HourlyLoads.name eq meta.hourlyLoadName)
+                }
                 .first()
         val hourlyLoadId = hlRow[HourlyLoads.id].value
         val updatedAtIn = hlRow[HourlyLoads.updatedAt] ?: Instant.MIN
@@ -406,8 +413,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             sessions.partition {
                 it.day.isNotBlank() &&
                     it.startTime.isNotBlank() &&
-                    it.endTime.isNotBlank() &&
-                    it.sessionType.isNotBlank()
+                    it.endTime.isNotBlank()
             }
 
         invalidSessions.forEach { session ->
@@ -416,7 +422,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     if (session.day.isBlank()) add(COL_DAY)
                     if (session.startTime.isBlank()) add(COL_START_TIME)
                     if (session.endTime.isBlank()) add(COL_END_TIME)
-                    if (session.sessionType.isBlank()) add(COL_TYPE)
                 }
 
             log.warn(
@@ -825,7 +830,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             val iAula = optIdx(COL_CLASSROOM)
             val iDni = optIdx(COL_DNI)
             val iDocente = idx(COL_TEACHER)
-            val iTipo = idx(COL_TYPE)
+            val iTipo = optIdx(COL_TYPE)
             val iDia = idx(COL_DAY)
             iter
                 .asSequence()
@@ -874,7 +879,13 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                             iDni
                                 ?.let { index -> cols.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() } },
                         teacherName = normalizeTeacherName(cols[iDocente]),
-                        sessionType = cols[iTipo].trim().uppercase(),
+                        sessionType =
+                            iTipo
+                                ?.let { index -> cols.getOrNull(index) }
+                                ?.trim()
+                                ?.uppercase()
+                                ?.takeIf { it.isNotBlank() }
+                                ?: DEFAULT_SESSION_TYPE_CODE,
                         day = cols[iDia],
                     )
                 }.toList()
