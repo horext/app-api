@@ -841,7 +841,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                         updatedAt =
                             iUpdatedAt
                                 ?.let { index ->
-                                    cols.getOrNull(index)
+                                    cols
+                                        .getOrNull(index)
                                         ?.trim()
                                         ?.takeIf { it.isNotBlank() }
                                         ?.let { LocalDateTime.parse(it, fmt) }
