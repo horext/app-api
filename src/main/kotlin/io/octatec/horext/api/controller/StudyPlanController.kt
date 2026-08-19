@@ -21,9 +21,9 @@ class StudyPlanController(
     @GetMapping(
         "{studyPlanId}",
     )
-    fun getAllSpecialitiesByFacultyId(
+    fun getStudyPlanById(
         @PathVariable(name = "studyPlanId") studyPlanId: Long,
-    ): List<StudyPlan> = studyPlanService.getStudyPlanById(studyPlanId)
+    ): StudyPlan = studyPlanService.getStudyPlanById(studyPlanId)
 
     @GetMapping(
         "{studyPlanId}/subjects",

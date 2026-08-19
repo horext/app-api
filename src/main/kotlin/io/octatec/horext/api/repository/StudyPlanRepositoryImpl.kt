@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository
 class StudyPlanRepositoryImpl : StudyPlanRepository {
     override fun getAllStudyPlan(): List<StudyPlan> = StudyPlans.selectAll().map { row -> StudyPlans.createEntity(row) }
 
-    override fun getStudyPlanById(id: Long): List<StudyPlan> {
+    override fun getStudyPlanById(id: Long): StudyPlan? {
         val sp = StudyPlans
         val ou = OrganizationUnits
         return sp
@@ -20,6 +20,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
             .select(sp.columns + ou.columns)
             .where { (sp.id eq id) }
             .map { row -> sp.createEntity(row) }
+            .firstOrNull()
     }
 
     override fun getAllSpecialityId(specialityId: Long): List<StudyPlan> {
