@@ -21,7 +21,10 @@ class OrganizationUnitServiceImpl(
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> = organizationUnitRepository.getAllSpecialityByFacultyId(id)
 
-    override fun getById(id: Long, type: OrganizationUnitTypeCode): OrganizationUnit =
+    override fun getById(
+        id: Long,
+        type: OrganizationUnitTypeCode,
+    ): OrganizationUnit =
         organizationUnitRepository.getById(id, type) ?: throw ResourceNotFoundException(
             "No se encontró la '$type.name' con id '$id'",
         )
