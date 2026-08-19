@@ -14,12 +14,6 @@ import org.springframework.web.bind.annotation.RestController
 class SubjectController(
     val subjectService: SubjectService,
 ) {
-    @GetMapping(params = ["speciality", "hourlyLoad"])
-    fun getAllBySpeciality(
-        @RequestParam(name = "speciality") specialityId: Long,
-        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
-    ): List<Subject> = subjectService.getAllBySpecialityId(specialityId, hourlyLoadId)
-
     @GetMapping(params = ["search", "speciality", "hourlyLoad"])
     @Deprecated("speciality and hourlyLoad params are deprecated")
     fun getAllBySearch(
