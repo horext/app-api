@@ -1,8 +1,10 @@
 package io.octatec.horext.api.repository
 
+import io.octatec.horext.api.domain.OrganizationUnit
 import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.repository.table.Courses
+import io.octatec.horext.api.repository.table.OrganizationUnits
 import io.octatec.horext.api.repository.table.ScheduleSubjects
 import io.octatec.horext.api.repository.table.StudyPlans
 import io.octatec.horext.api.repository.table.SubjectRelationships
@@ -99,6 +101,46 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.columns + c.columns + sp.columns + st.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
+                        (sp.fromDate less Instant.now()) and
+                        (sp.toDate.isNull()) and
+                        exists(
+                            ss
+                                .select(ss.id)
+                                .where {
+                                    (ss.subjectId eq s.id) and
+                                        (ss.hourlyLoadId eq hourlyLoadId)
+                                },
+                        ) and
+                        searchCourse(c, search)
+                }
+        val queryResultCount = query.count()
+        val queryResult = query.limit(limit).offset(offset.toLong())
+        val list = queryResult.map { row -> s.createEntity(row) }
+        return Page(offset, limit, queryResultCount.toInt(), content = list)
+    }
+
+    override fun getPageBySearchAndFacultyIdAndHourlyLoad(
+        search: String,
+        facultyId: Long,
+        hourlyLoadId: Long,
+        offset: Int,
+        limit: Int,
+    ): Page<Subject> {
+        val s = Subjects
+        val c = Courses
+        val sp = StudyPlans
+        val st = SubjectTypes
+        val ss = ScheduleSubjects
+        val ou = OrganizationUnits
+        val query =
+            s
+                .innerJoin(c)
+                .innerJoin(sp)
+                .innerJoin(ou)
+                .leftJoin(st)
+                .select(s.columns + c.columns + sp.columns + st.columns + ou.columns)
+                .where {
+                    (ou.parentOrganizationId eq facultyId) and
                         (sp.fromDate less Instant.now()) and
                         (sp.toDate.isNull()) and
                         exists(
