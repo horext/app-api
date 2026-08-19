@@ -143,6 +143,44 @@ class SubjectRepositoryImpl : SubjectRepository {
         return Page(offset, limit, queryResultCount.toInt(), content = list)
     }
 
+    override fun getPageBySearchAndStudyPlanIdAndHourlyLoad(
+        search: String,
+        studyPlanId: Long,
+        hourlyLoadId: Long,
+        offset: Int,
+        limit: Int,
+    ): Page<Subject> {
+        val s = Subjects
+        val c = Courses
+        val sp = StudyPlans
+        val st = SubjectTypes
+        val ss = ScheduleSubjects
+        val query =
+            s
+                .innerJoin(c)
+                .innerJoin(sp)
+                .leftJoin(st)
+                .select(s.columns + c.columns + sp.columns + st.columns)
+                .where {
+                    (sp.id eq studyPlanId) and
+                        (sp.fromDate less Instant.now()) and
+                        (sp.toDate.isNull()) and
+                        exists(
+                            ss
+                                .select(ss.id)
+                                .where {
+                                    (ss.subjectId eq s.id) and
+                                        (ss.hourlyLoadId eq hourlyLoadId)
+                                },
+                        ) and
+                        searchCourse(c, search)
+                }
+        val queryResultCount = query.count()
+        val queryResult = query.limit(limit).offset(offset.toLong())
+        val list = queryResult.map { row -> s.createEntity(row) }
+        return Page(offset, limit, queryResultCount.toInt(), content = list)
+    }
+
     override fun getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
         hourlyLoadId: Long,
         studyPlanId: Long,
