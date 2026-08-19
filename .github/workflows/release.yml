@@ -58,25 +58,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull previous image for buildpack reuse
+      - name: Pull previous image
         run: docker pull ${{ steps.image.outputs.tag }} || true
 
-      - name: Build OCI image
-        id: build-image
-        continue-on-error: true
+      - name: Build OCI image with known-good builder
         run: |
           ./gradlew bootBuildImage \
             --imageName=${{ steps.image.outputs.tag }} \
-            --no-daemon
-
-      - name: Retry OCI image with clean cache
-        if: steps.build-image.outcome == 'failure'
-        run: |
-          docker image rm -f ${{ steps.image.outputs.tag }} || true
-
-          ./gradlew bootBuildImage \
-            --imageName=${{ steps.image.outputs.tag }} \
-            --cleanCache \
+            --builder=paketobuildpacks/builder-noble-java-tiny@sha256:5d484671a3472dc6dd323c297923f33262aa0d4dbcbbcceac3d6c69586d140be \
             --no-daemon
 
       - name: Push OCI image
