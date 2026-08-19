@@ -11,6 +11,8 @@ object StudyPlans : LongIdTable("study_plan") {
 
     val code = varchar("code", length = 50)
 
+    val name = varchar("name", length = 255)
+
     val toDate = timestamp("to_date").nullable()
 
     val organizationUnitId = reference("organization_unit_id", OrganizationUnits)
@@ -19,6 +21,7 @@ object StudyPlans : LongIdTable("study_plan") {
         StudyPlan(
             row[id].value,
             row[code],
+            row[name],
             row[fromDate],
             row[toDate],
             runCatching { OrganizationUnits.createEntity(row) }
