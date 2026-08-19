@@ -48,32 +48,6 @@ class SubjectRepositoryImpl : SubjectRepository {
         return subjects
     }
 
-    override fun getAllBySpecialityId(
-        specialityId: Long,
-        hourlyLoadId: Long,
-    ): List<Subject> {
-        val s = Subjects
-        val c = Courses
-        val sp = StudyPlans
-        val ss = ScheduleSubjects
-        val st = SubjectTypes
-        return s
-            .innerJoin(c)
-            .innerJoin(sp)
-            .leftJoin(st)
-            .select(s.columns + c.columns + sp.columns + st.columns)
-            .where {
-                (sp.organizationUnitId eq specialityId) and
-                    (sp.fromDate less Instant.now()) and
-                    (sp.toDate.isNull()) and
-                    exists(
-                        ss
-                            .select(ss.columns)
-                            .where { (ss.subjectId eq s.id) and (ss.hourlyLoadId eq hourlyLoadId) },
-                    )
-            }.map { row -> s.createEntity(row) }
-    }
-
     override fun getAllBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,
