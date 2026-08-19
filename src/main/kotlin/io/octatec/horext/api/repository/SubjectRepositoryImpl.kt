@@ -38,7 +38,8 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.columns + c.columns + st.columns)
                 .where {
                     (s.studyPlanId eq studyPlanId)
-                }.map { row -> s.createEntity(row) }
+                }.orderBy(c.id to SortOrder.ASC)
+                .map { row -> s.createEntity(row) }
         val relationships =
             sr
                 .select(sr.columns)
