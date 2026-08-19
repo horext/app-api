@@ -1,6 +1,7 @@
 package io.octatec.horext.api.controller
 
 import io.octatec.horext.api.domain.OrganizationUnit
+import io.octatec.horext.api.domain.OrganizationUnitTypeCode
 import io.octatec.horext.api.service.OrganizationUnitService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -14,6 +15,11 @@ class FacultyController(
 ) {
     @GetMapping
     fun getAll(): List<OrganizationUnit> = organizationUnitService.getAllFaculty()
+
+    @GetMapping("{facultyId}")
+    fun getById(
+        @PathVariable(name = "facultyId") specialityId: Long,
+    ): OrganizationUnit = organizationUnitService.getById(specialityId, OrganizationUnitTypeCode.FACULTY)
 
     @GetMapping(
         "{facultyId}/specialities",
