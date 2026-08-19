@@ -40,10 +40,15 @@ class SubjectController(
         return page
     }
 
-    @GetMapping(params = ["speciality", "hourlyLoad", "cycle"])
-    fun getAllBySpecialityAndCycle(
-        @RequestParam(name = "speciality") specialityId: Long,
-        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+    @GetMapping(params = ["hourlyLoadId", "studyPlanId", "cycle"])
+    fun getAllByStudyPlanIdAndCycle(
+        @RequestParam(name = "hourlyLoadId") hourlyLoadId: Long,
+        @RequestParam(name = "studyPlanId") studyPlanId: Long,
         @RequestParam(name = "cycle") cycle: Int,
-    ): List<Subject> = subjectService.getAllBySpecialityIdAndHourlyLoadIdAndCycleId(specialityId, hourlyLoadId, cycle)
+    ): List<Subject> =
+        subjectService.getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
+            hourlyLoadId,
+            studyPlanId,
+            cycle,
+        )
 }

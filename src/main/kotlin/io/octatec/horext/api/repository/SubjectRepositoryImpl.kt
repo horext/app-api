@@ -143,10 +143,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         return Page(offset, limit, queryResultCount.toInt(), content = list)
     }
 
-    override fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
-        specialityId: Long,
+    override fun getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
         hourlyLoadId: Long,
-        cycleId: Int,
+        studyPlanId: Long,
+        cycle: Int,
     ): List<Subject> {
         val s = Subjects
         val c = Courses
@@ -159,10 +159,10 @@ class SubjectRepositoryImpl : SubjectRepository {
             .leftJoin(st)
             .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
-                (sp.organizationUnitId eq specialityId) and
+                (sp.id eq studyPlanId) and
                     (sp.fromDate less Instant.now()) and
                     (sp.toDate.isNull()) and
-                    (s.cycle eq cycleId) and
+                    (s.cycle eq cycle) and
                     exists(
                         ss
                             .select(ss.columns)
