@@ -51,4 +51,14 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
                     exists(specialityWithStudyPlanExists)
             }.map { row -> OrganizationUnits.createEntity(row) }
     }
+    
+        override fun getById(id: Long):  OrganizationUnit? =
+        OrganizationUnits
+            .selectAll()
+            .where {
+                (OrganizationUnits.parentOrganizationId eq id) and
+                    (OrganizationUnits.typeId eq OrganizationUnitTypeCode.SPECIALITY.id)
+            }.map { row ->
+                OrganizationUnits.createEntity(row)
+            }.firstOrNull()
 }
