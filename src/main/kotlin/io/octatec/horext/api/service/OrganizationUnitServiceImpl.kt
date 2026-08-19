@@ -2,6 +2,7 @@ package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.OrganizationUnit
 import io.octatec.horext.api.domain.OrganizationUnitTypeCode
+import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.repository.OrganizationUnitRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,4 +20,8 @@ class OrganizationUnitServiceImpl(
     override fun getAllFaculty(): List<OrganizationUnit> = organizationUnitRepository.getFacultiesHavingStudyPlans()
 
     override fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit> = organizationUnitRepository.getAllSpecialityByFacultyId(id)
+    
+    override fun getById(id: Long): OrganizationUnit = organizationUnitRepository.getById(id) ?: throw ResourceNotFoundException(
+        "No se encontró la organización con id '$id'"
+    )
 }
