@@ -26,7 +26,7 @@ class StudyPlanServiceImplTest {
     @Test
     fun getStudyPlanById_returnsRepositoryResult() {
         val studyPlanId = 1L
-        val expected = listOf(StudyPlan(id = studyPlanId))
+        val expected = StudyPlan(id = studyPlanId)
         `when`(studyPlanRepository.getStudyPlanById(studyPlanId)).thenReturn(expected)
 
         val result = service.getStudyPlanById(studyPlanId)
