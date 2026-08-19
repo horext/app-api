@@ -79,7 +79,7 @@ class SubjectController(
     fun getPageBySearch(
         @RequestParam(name = "search", required = true) search: String,
         @RequestParam(name = "studyPlanId") studyPlanId: Long,
-        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+        @RequestParam(name = "hourlyLoadId") hourlyLoadId: Long,
         @RequestParam(name = "offset", defaultValue = "0") offset: Int,
         @RequestParam(name = "limit", defaultValue = "10") limit: Int,
     ): Page<Subject> {
