@@ -1,0 +1,20 @@
+#!/bin/sh
+# Git pre-commit hook to run ktlintFormat
+
+echo "Running ktlintFormat before commit..."
+
+# Run ktlintFormat
+./gradlew ktlintFormat
+
+# Check if ktlintFormat succeeded
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+    echo "Error: ktlintFormat failed. Commit aborted."
+    exit 1
+fi
+
+# Re-stage files that were formatted
+git diff --name-only --cached | xargs git add
+
+exit 0

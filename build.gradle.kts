@@ -156,3 +156,24 @@ tasks.register<JavaExec>("ktlintFormat") {
     description = "Check Kotlin code style and format"
     configureKtlintTask(extraArgs = listOf("-F"), alwaysRun = true)
 }
+
+tasks.register<Exec>("installGitHooks") {
+    description = "Links the local Git hooks directory to the shared .githooks folder"
+    group = "verification"
+
+    val os = System.getProperty("os.name").lowercase()
+
+    commandLine("git", "config", "core.hooksPath", ".githooks")
+
+    doLast {
+        logger.lifecycle("✅ Shared Git hooks successfully configured!")
+    }
+}
+
+// Registro automático en el ciclo de vida de Gradle
+tasks.named("prepareKotlinBuildScriptModel") {
+    dependsOn("installGitHooks")
+}
+tasks.named("build") {
+    dependsOn("installGitHooks")
+}
