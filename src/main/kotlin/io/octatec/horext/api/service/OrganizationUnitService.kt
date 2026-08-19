@@ -8,6 +8,6 @@ interface OrganizationUnitService {
     fun getAllFaculty(): List<OrganizationUnit>
 
     fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit>
-    
+
     fun getById(id: Long): OrganizationUnit
 }

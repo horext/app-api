@@ -51,8 +51,8 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
                     exists(specialityWithStudyPlanExists)
             }.map { row -> OrganizationUnits.createEntity(row) }
     }
-    
-        override fun getById(id: Long):  OrganizationUnit? =
+
+    override fun getById(id: Long): OrganizationUnit? =
         OrganizationUnits
             .selectAll()
             .where {
