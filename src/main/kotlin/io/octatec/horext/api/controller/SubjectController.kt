@@ -45,7 +45,7 @@ class SubjectController(
     ): Page<Subject> {
         Pagination.validatePageNumberAndSize(offset, limit)
         val page =
-            subjectService.getPageBySearchAndSpecialityIdAndHourlyLoad(
+            subjectService.getPageBySearchAndFacultyIdAndHourlyLoad(
                 search,
                 facultyId,
                 hourlyLoadId,
