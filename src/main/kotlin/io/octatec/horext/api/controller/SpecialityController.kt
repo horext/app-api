@@ -29,6 +29,6 @@ class SpecialityController(
 
     @GetMapping("{specialityId}/studyPlans")
     fun getAllBySpecialityId(
-        @RequestParam(name = "specialityId") specialityId: Long,
+        @PathVariable(name = "specialityId") specialityId: Long,
     ): List<StudyPlan> = studyPlanService.getAllSpecialityId(specialityId)
 }
