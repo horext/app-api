@@ -10,5 +10,8 @@ interface OrganizationUnitRepository {
 
     fun getFacultiesHavingStudyPlans(): List<OrganizationUnit>
 
-    fun getById(id: Long, type: OrganizationUnitTypeCode): OrganizationUnit?
+    fun getById(
+        id: Long,
+        type: OrganizationUnitTypeCode,
+    ): OrganizationUnit?
 }

@@ -10,5 +10,8 @@ interface OrganizationUnitService {
 
     fun getAllSpecialityByFacultyId(id: Long): List<OrganizationUnit>
 
-    fun getById(id: Long, type: OrganizationUnitTypeCode): OrganizationUnit
+    fun getById(
+        id: Long,
+        type: OrganizationUnitTypeCode,
+    ): OrganizationUnit
 }

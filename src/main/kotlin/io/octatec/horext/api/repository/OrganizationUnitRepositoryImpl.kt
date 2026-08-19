@@ -52,7 +52,10 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             }.map { row -> OrganizationUnits.createEntity(row) }
     }
 
-    override fun getById(id: Long, type: OrganizationUnitTypeCode): OrganizationUnit? =
+    override fun getById(
+        id: Long,
+        type: OrganizationUnitTypeCode,
+    ): OrganizationUnit? =
         OrganizationUnits
             .selectAll()
             .where {
