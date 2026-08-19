@@ -12,6 +12,7 @@ import io.octatec.horext.api.repository.table.SubjectTypes
 import io.octatec.horext.api.repository.table.Subjects
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.exists
@@ -78,7 +79,8 @@ class SubjectRepositoryImpl : SubjectRepository {
                             },
                     ) and
                     (c.name.unaccent() ilike ("%$search%").unaccent())
-            }.map { row -> s.createEntity(row) }
+            }.orderBy(sp.fromDate to SortOrder.DESC)
+            .map { row -> s.createEntity(row) }
     }
 
     override fun getPageBySearchAndSpecialityIdAndHourlyLoad(
@@ -112,7 +114,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                                 },
                         ) and
                         searchCourse(c, search)
-                }
+                }.orderBy(sp.fromDate to SortOrder.DESC)
         val queryResultCount = query.count()
         val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
@@ -152,7 +154,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                                 },
                         ) and
                         searchCourse(c, search)
-                }
+                }.orderBy(sp.fromDate to SortOrder.DESC)
         val queryResultCount = query.count()
         val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
