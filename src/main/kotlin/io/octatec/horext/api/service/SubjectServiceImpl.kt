@@ -32,6 +32,14 @@ class SubjectServiceImpl(
         limit: Int,
     ): Page<Subject> = subjectRepository.getPageBySearchAndSpecialityIdAndHourlyLoad(search, specialityId, hourlyLoadId, offset, limit)
 
+    override fun getPageBySearchAndStudyPlanIdAndHourlyLoad(
+        search: String,
+        studyPlanId: Long,
+        hourlyLoadId: Long,
+        offset: Int,
+        limit: Int,
+    ): Page<Subject> = subjectRepository.getPageBySearchAndStudyPlanIdAndHourlyLoad(search, studyPlanId, hourlyLoadId, offset, limit)
+
     override fun getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
         hourlyLoadId: Long,
         studyPlanId: Long,

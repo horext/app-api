@@ -40,6 +40,26 @@ class SubjectController(
         return page
     }
 
+    @GetMapping(params = ["search", "studyPlanId", "hourlyLoadId"])
+    fun getPageBySearch(
+        @RequestParam(name = "search", required = true) search: String,
+        @RequestParam(name = "studyPlanId") studyPlanId: Long,
+        @RequestParam(name = "hourlyLoad") hourlyLoadId: Long,
+        @RequestParam(name = "offset", defaultValue = "0") offset: Int,
+        @RequestParam(name = "limit", defaultValue = "10") limit: Int,
+    ): Page<Subject> {
+        Pagination.validatePageNumberAndSize(offset, limit)
+        val page =
+            subjectService.getPageBySearchAndStudyPlanIdAndHourlyLoad(
+                search,
+                studyPlanId,
+                hourlyLoadId,
+                offset,
+                limit,
+            )
+        return page
+    }
+
     @GetMapping(params = ["hourlyLoadId", "studyPlanId", "cycle"])
     fun getAllByStudyPlanIdAndCycle(
         @RequestParam(name = "hourlyLoadId") hourlyLoadId: Long,
