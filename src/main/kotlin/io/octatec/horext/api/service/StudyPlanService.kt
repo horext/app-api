@@ -6,4 +6,6 @@ interface StudyPlanService {
     fun getAllStudyPlan(): List<StudyPlan>
 
     fun getStudyPlanById(id: Long): List<StudyPlan>
+
+    fun getAllSpecialityId(id: Long): List<StudyPlan>
 }

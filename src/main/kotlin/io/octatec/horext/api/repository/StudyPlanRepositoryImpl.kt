@@ -21,4 +21,14 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
             .where { (sp.id eq id) }
             .map { row -> sp.createEntity(row) }
     }
+
+    override fun getAllSpecialityId(specialityId: Long): List<StudyPlan> {
+        val sp = StudyPlans
+        val ou = OrganizationUnits
+        return sp
+            .leftJoin(ou)
+            .select(sp.columns + ou.columns)
+            .where { (sp.organizationUnitId eq specialityId) }
+            .map { row -> sp.createEntity(row) }
+    }
 }

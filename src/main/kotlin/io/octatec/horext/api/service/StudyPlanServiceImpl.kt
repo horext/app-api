@@ -13,4 +13,6 @@ class StudyPlanServiceImpl(
     override fun getAllStudyPlan(): List<StudyPlan> = studyPlanRepository.getAllStudyPlan()
 
     override fun getStudyPlanById(id: Long): List<StudyPlan> = studyPlanRepository.getStudyPlanById(id)
+
+    override fun getAllSpecialityId(specialityId: Long): List<StudyPlan> = studyPlanRepository.getAllSpecialityId(specialityId)
 }
