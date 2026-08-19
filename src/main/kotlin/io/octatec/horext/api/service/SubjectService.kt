@@ -12,6 +12,14 @@ interface SubjectService {
         hourlyLoadId: Long,
     ): List<Subject>
 
+    fun getPageBySearchAndFacultyIdAndHourlyLoad(
+        search: String,
+        facultyId: Long,
+        hourlyLoadId: Long,
+        offset: Int,
+        limit: Int,
+    ): Page<Subject>
+
     fun getPageBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,

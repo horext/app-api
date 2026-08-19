@@ -20,6 +20,14 @@ interface SubjectRepository {
         limit: Int,
     ): Page<Subject>
 
+    fun getPageBySearchAndFacultyIdAndHourlyLoad(
+        search: String,
+        facultyId: Long,
+        hourlyLoadId: Long,
+        offset: Int,
+        limit: Int,
+    ): Page<Subject>
+
     fun getPageBySearchAndStudyPlanIdAndHourlyLoad(
         search: String,
         studyPlanId: Long,
