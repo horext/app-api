@@ -79,8 +79,10 @@ class SubjectRepositoryImpl : SubjectRepository {
                             },
                     ) and
                     (c.name.unaccent() ilike ("%$search%").unaccent())
-            }.orderBy(sp.fromDate to SortOrder.DESC)
-            .map { row -> s.createEntity(row) }
+            }.orderBy(
+                sp.fromDate to SortOrder.DESC,
+                c.id to SortOrder.ASC,
+            ).map { row -> s.createEntity(row) }
     }
 
     override fun getPageBySearchAndSpecialityIdAndHourlyLoad(
@@ -114,7 +116,10 @@ class SubjectRepositoryImpl : SubjectRepository {
                                 },
                         ) and
                         searchCourse(c, search)
-                }.orderBy(sp.fromDate to SortOrder.DESC)
+                }.orderBy(
+                    sp.fromDate to SortOrder.DESC,
+                    c.id to SortOrder.ASC,
+                )
         val queryResultCount = query.count()
         val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
@@ -154,7 +159,10 @@ class SubjectRepositoryImpl : SubjectRepository {
                                 },
                         ) and
                         searchCourse(c, search)
-                }.orderBy(sp.fromDate to SortOrder.DESC)
+                }.orderBy(
+                    sp.fromDate to SortOrder.DESC,
+                    c.id to SortOrder.ASC,
+                )
         val queryResultCount = query.count()
         val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
@@ -192,7 +200,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                                 },
                         ) and
                         searchCourse(c, search)
-                }
+                }.orderBy(c.id to SortOrder.ASC)
         val queryResultCount = query.count()
         val queryResult = query.limit(limit).offset(offset.toLong())
         val list = queryResult.map { row -> s.createEntity(row) }
@@ -227,7 +235,8 @@ class SubjectRepositoryImpl : SubjectRepository {
                                     (ss.hourlyLoadId eq hourlyLoadId)
                             },
                     )
-            }.map { row -> s.createEntity(row) }
+            }.orderBy(c.id to SortOrder.ASC)
+            .map { row -> s.createEntity(row) }
     }
 
     private fun searchCourse(
