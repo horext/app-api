@@ -25,9 +25,9 @@ interface SubjectRepository {
         limit: Int,
     ): Page<Subject>
 
-    fun getAllBySpecialityIdAndHourlyLoadIdAndCycleId(
-        specialityId: Long,
+    fun getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
         hourlyLoadId: Long,
-        cycleId: Int,
+        studyPlanId: Long,
+        cycle: Int,
     ): List<Subject>
 }
