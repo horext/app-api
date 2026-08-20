@@ -12,6 +12,7 @@ import io.octatec.horext.api.repository.table.SubjectTypes
 import io.octatec.horext.api.repository.table.Subjects
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
+import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -36,7 +37,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             s
                 .innerJoin(c)
                 .leftJoin(st)
-                .select(s.columns + c.columns + st.columns)
+                .select(s.entityColumns + c.columns + st.columns)
                 .where {
                     (s.studyPlanId eq studyPlanId)
                 }.orderBy(c.id to SortOrder.ASC)
@@ -71,7 +72,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             .innerJoin(c)
             .innerJoin(sp)
             .leftJoin(st)
-            .select(s.columns + c.columns + sp.columns + st.columns)
+            .select(s.entityColumns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
                     sp.isActive() and
@@ -98,7 +99,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(c)
                 .innerJoin(sp)
                 .leftJoin(st)
-                .select(s.columns + c.columns + sp.columns + st.columns)
+                .select(s.entityColumns + c.columns + sp.columns + st.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
                         sp.isActive() and
@@ -127,7 +128,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(sp)
                 .innerJoin(ou)
                 .leftJoin(st)
-                .select(s.columns + c.columns + sp.columns + st.columns + ou.columns)
+                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
                 .where {
                     (ou.parentOrganizationId eq facultyId) and
                         sp.isActive() and
@@ -154,7 +155,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(c)
                 .innerJoin(sp)
                 .leftJoin(st)
-                .select(s.columns + c.columns + sp.columns + st.columns)
+                .select(s.entityColumns + c.columns + sp.columns + st.columns)
                 .where {
                     (sp.id eq studyPlanId) and
                         sp.isActive() and
@@ -178,7 +179,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             .innerJoin(c)
             .innerJoin(sp)
             .leftJoin(st)
-            .select(s.columns + c.columns + sp.columns + st.columns)
+            .select(s.entityColumns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.id eq studyPlanId) and
                     sp.isActive() and
@@ -189,6 +190,9 @@ class SubjectRepositoryImpl : SubjectRepository {
     }
 
     private fun Courses.matchesSearch(search: String) = (name.unaccent() ilike ("%$search%").unaccent()) or (id ilike ("%$search%"))
+
+    private val Subjects.entityColumns: List<Expression<*>>
+        get() = listOf(id, courseId, typeId, studyPlanId, credits, cycle)
 
     private fun StudyPlans.isActive() = (fromDate less Instant.now()) and toDate.isNull()
 
