@@ -20,6 +20,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.less
 import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -34,20 +35,24 @@ class SubjectRepositoryImpl : SubjectRepository {
         val subjects =
             s
                 .innerJoin(c)
-                .innerJoin(st)
+                .leftJoin(st)
                 .select(s.columns + c.columns + st.columns)
                 .where {
                     (s.studyPlanId eq studyPlanId)
                 }.orderBy(c.id to SortOrder.ASC)
                 .map { row -> s.createEntity(row) }
+
+        if (subjects.isEmpty()) return emptyList()
+
         val relationships =
             sr
                 .select(sr.columns)
                 .where { sr.subjectId inList subjects.map { it.id } }
                 .map { row -> sr.createEntity(row) }
 
+        val relationshipsBySubjectId = relationships.groupBy { it.subjectId }
         subjects.forEach { subject ->
-            subject.relationships = relationships.filter { it.subjectId == subject.id }
+            subject.relationships = relationshipsBySubjectId[subject.id].orEmpty()
         }
         return subjects
     }
@@ -69,21 +74,11 @@ class SubjectRepositoryImpl : SubjectRepository {
             .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.organizationUnitId eq specialityId) and
-                    (sp.fromDate less Instant.now()) and
-                    (sp.toDate.isNull()) and
-                    exists(
-                        ss
-                            .select(ss.columns)
-                            .where {
-                                (ss.subjectId eq s.id) and
-                                    (ss.hourlyLoadId eq hourlyLoadId)
-                            },
-                    ) and
-                    (c.name.unaccent() ilike ("%$search%").unaccent())
-            }.orderBy(
-                sp.fromDate to SortOrder.DESC,
-                c.id to SortOrder.ASC,
-            ).map { row -> s.createEntity(row) }
+                    sp.isActive() and
+                    ss.hasHourlyLoad(s, hourlyLoadId) and
+                    c.matchesSearch(search)
+            }.orderByStudyPlanAndCourse(sp, c, s)
+            .map { row -> s.createEntity(row) }
     }
 
     override fun getPageBySearchAndSpecialityIdAndHourlyLoad(
@@ -106,25 +101,11 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.columns + c.columns + sp.columns + st.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
-                        (sp.fromDate less Instant.now()) and
-                        (sp.toDate.isNull()) and
-                        exists(
-                            ss
-                                .select(ss.id)
-                                .where {
-                                    (ss.subjectId eq s.id) and
-                                        (ss.hourlyLoadId eq hourlyLoadId)
-                                },
-                        ) and
-                        searchCourse(c, search)
-                }.orderBy(
-                    sp.fromDate to SortOrder.DESC,
-                    c.id to SortOrder.ASC,
-                )
-        val queryResultCount = query.count()
-        val queryResult = query.limit(limit).offset(offset.toLong())
-        val list = queryResult.map { row -> s.createEntity(row) }
-        return Page(offset, limit, queryResultCount.toInt(), content = list)
+                        sp.isActive() and
+                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        c.matchesSearch(search)
+                }.orderByStudyPlanAndCourse(sp, c, s)
+        return query.toSubjectPage(offset, limit)
     }
 
     override fun getPageBySearchAndFacultyIdAndHourlyLoad(
@@ -149,25 +130,11 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.columns + c.columns + sp.columns + st.columns + ou.columns)
                 .where {
                     (ou.parentOrganizationId eq facultyId) and
-                        (sp.fromDate less Instant.now()) and
-                        (sp.toDate.isNull()) and
-                        exists(
-                            ss
-                                .select(ss.id)
-                                .where {
-                                    (ss.subjectId eq s.id) and
-                                        (ss.hourlyLoadId eq hourlyLoadId)
-                                },
-                        ) and
-                        searchCourse(c, search)
-                }.orderBy(
-                    sp.fromDate to SortOrder.DESC,
-                    c.id to SortOrder.ASC,
-                )
-        val queryResultCount = query.count()
-        val queryResult = query.limit(limit).offset(offset.toLong())
-        val list = queryResult.map { row -> s.createEntity(row) }
-        return Page(offset, limit, queryResultCount.toInt(), content = list)
+                        sp.isActive() and
+                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        c.matchesSearch(search)
+                }.orderByStudyPlanAndCourse(sp, c, s)
+        return query.toSubjectPage(offset, limit)
     }
 
     override fun getPageBySearchAndStudyPlanIdAndHourlyLoad(
@@ -190,22 +157,11 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.columns + c.columns + sp.columns + st.columns)
                 .where {
                     (sp.id eq studyPlanId) and
-                        (sp.fromDate less Instant.now()) and
-                        (sp.toDate.isNull()) and
-                        exists(
-                            ss
-                                .select(ss.id)
-                                .where {
-                                    (ss.subjectId eq s.id) and
-                                        (ss.hourlyLoadId eq hourlyLoadId)
-                                },
-                        ) and
-                        searchCourse(c, search)
-                }.orderBy(c.id to SortOrder.ASC)
-        val queryResultCount = query.count()
-        val queryResult = query.limit(limit).offset(offset.toLong())
-        val list = queryResult.map { row -> s.createEntity(row) }
-        return Page(offset, limit, queryResultCount.toInt(), content = list)
+                        sp.isActive() and
+                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        c.matchesSearch(search)
+                }.orderByCourse(c, s)
+        return query.toSubjectPage(offset, limit)
     }
 
     override fun getAllByHourlyLoadIdAndStudyPlanIdAndCycle(
@@ -225,23 +181,56 @@ class SubjectRepositoryImpl : SubjectRepository {
             .select(s.columns + c.columns + sp.columns + st.columns)
             .where {
                 (sp.id eq studyPlanId) and
-                    (sp.fromDate less Instant.now()) and
-                    (sp.toDate.isNull()) and
+                    sp.isActive() and
                     (s.cycle eq cycle) and
-                    exists(
-                        ss
-                            .select(ss.columns)
-                            .where {
-                                (ss.subjectId eq s.id) and
-                                    (ss.hourlyLoadId eq hourlyLoadId)
-                            },
-                    )
-            }.orderBy(c.id to SortOrder.ASC)
+                    ss.hasHourlyLoad(s, hourlyLoadId)
+            }.orderByCourse(c, s)
             .map { row -> s.createEntity(row) }
     }
 
-    private fun searchCourse(
-        c: Courses,
-        search: String,
-    ) = (c.name.unaccent() ilike ("%$search%").unaccent()) or (c.id ilike ("%$search%"))
+    private fun Courses.matchesSearch(search: String) = (name.unaccent() ilike ("%$search%").unaccent()) or (id ilike ("%$search%"))
+
+    private fun StudyPlans.isActive() = (fromDate less Instant.now()) and toDate.isNull()
+
+    private fun ScheduleSubjects.hasHourlyLoad(
+        subjects: Subjects,
+        hourlyLoadId: Long,
+    ) = exists(
+        select(id)
+            .where {
+                (subjectId eq subjects.id) and
+                    (this@hasHourlyLoad.hourlyLoadId eq hourlyLoadId)
+            },
+    )
+
+    private fun Query.orderByStudyPlanAndCourse(
+        studyPlans: StudyPlans,
+        courses: Courses,
+        subjects: Subjects,
+    ) = orderBy(
+        studyPlans.fromDate to SortOrder.DESC,
+        courses.id to SortOrder.ASC,
+        subjects.id to SortOrder.ASC,
+    )
+
+    private fun Query.orderByCourse(
+        courses: Courses,
+        subjects: Subjects,
+    ) = orderBy(
+        courses.id to SortOrder.ASC,
+        subjects.id to SortOrder.ASC,
+    )
+
+    private fun Query.toSubjectPage(
+        offset: Int,
+        limit: Int,
+    ): Page<Subject> {
+        val total = count().toInt()
+        val content =
+            limit(limit)
+                .offset(offset.toLong())
+                .map(Subjects::createEntity)
+
+        return Page(offset, limit, total, content = content)
+    }
 }
