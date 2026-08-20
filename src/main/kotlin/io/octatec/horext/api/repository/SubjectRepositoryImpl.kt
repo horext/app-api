@@ -75,7 +75,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             .where {
                 (sp.organizationUnitId eq specialityId) and
                     sp.isActive() and
-                    ss.hasHourlyLoad(s, hourlyLoadId) and
+                    ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
                     c.matchesSearch(search)
             }.orderByStudyPlanAndCourse(sp, c, s)
             .map { row -> s.createEntity(row) }
@@ -102,7 +102,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .where {
                     (sp.organizationUnitId eq specialityId) and
                         sp.isActive() and
-                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
                         c.matchesSearch(search)
                 }.orderByStudyPlanAndCourse(sp, c, s)
         return query.toSubjectPage(offset, limit)
@@ -131,7 +131,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .where {
                     (ou.parentOrganizationId eq facultyId) and
                         sp.isActive() and
-                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
                         c.matchesSearch(search)
                 }.orderByStudyPlanAndCourse(sp, c, s)
         return query.toSubjectPage(offset, limit)
@@ -158,7 +158,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .where {
                     (sp.id eq studyPlanId) and
                         sp.isActive() and
-                        ss.hasHourlyLoad(s, hourlyLoadId) and
+                        ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
                         c.matchesSearch(search)
                 }.orderByCourse(c, s)
         return query.toSubjectPage(offset, limit)
@@ -183,7 +183,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 (sp.id eq studyPlanId) and
                     sp.isActive() and
                     (s.cycle eq cycle) and
-                    ss.hasHourlyLoad(s, hourlyLoadId)
+                    ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId)
             }.orderByCourse(c, s)
             .map { row -> s.createEntity(row) }
     }
@@ -192,14 +192,14 @@ class SubjectRepositoryImpl : SubjectRepository {
 
     private fun StudyPlans.isActive() = (fromDate less Instant.now()) and toDate.isNull()
 
-    private fun ScheduleSubjects.hasHourlyLoad(
+    private fun ScheduleSubjects.existsForSubjectAndHourlyLoad(
         subjects: Subjects,
-        hourlyLoadId: Long,
+        requestedHourlyLoadId: Long,
     ) = exists(
         select(id)
             .where {
                 (subjectId eq subjects.id) and
-                    (this@hasHourlyLoad.hourlyLoadId eq hourlyLoadId)
+                    (hourlyLoadId eq requestedHourlyLoadId)
             },
     )
 
