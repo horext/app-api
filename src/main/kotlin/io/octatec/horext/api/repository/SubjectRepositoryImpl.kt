@@ -15,6 +15,7 @@ import io.octatec.horext.api.util.unaccent
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.anyFrom
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.exists
 import org.jetbrains.exposed.v1.core.inList
@@ -56,6 +57,23 @@ class SubjectRepositoryImpl : SubjectRepository {
             subject.relationships = relationshipsBySubjectId[subject.id].orEmpty()
         }
         return subjects
+    }
+
+    override fun getAllByIds(ids: List<Long>): List<Subject> {
+        val s = Subjects
+        val c = Courses
+        val sp = StudyPlans
+        val st = SubjectTypes
+        val ou = OrganizationUnits
+        return s
+            .innerJoin(c)
+            .innerJoin(sp)
+            .innerJoin(ou)
+            .leftJoin(st)
+            .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+            .where(s.id eq anyFrom(ids))
+            .orderBy(s.id to SortOrder.ASC)
+            .map(s::createEntity)
     }
 
     override fun getPageBySearchAndSpecialityIdAndHourlyLoad(

@@ -13,6 +13,8 @@ class SubjectServiceImpl(
 ) : SubjectService {
     override fun getAllByStudyPlanId(studyPlanId: Long): List<Subject> = subjectRepository.getAllByStudyPlanId(studyPlanId)
 
+    override fun getAllByIds(ids: List<Long>): List<Subject> = subjectRepository.getAllByIds(ids)
+
     override fun getPageBySearchAndFacultyIdAndHourlyLoad(
         search: String,
         facultyId: Long,

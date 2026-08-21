@@ -45,4 +45,16 @@ class SubjectServiceImplTest {
         }
         verify(subjectRepository).getAllByStudyPlanId(studyPlanId)
     }
+
+    @Test
+    fun getAllByIds_returnsRepositoryResult() {
+        val ids = listOf(3L, 1L)
+        val expected = listOf(Subject(id = 1L), Subject(id = 3L))
+        `when`(subjectRepository.getAllByIds(ids)).thenReturn(expected)
+
+        val result = service.getAllByIds(ids)
+
+        assertEquals(expected, result)
+        verify(subjectRepository).getAllByIds(ids)
+    }
 }
