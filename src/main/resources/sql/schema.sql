@@ -35,8 +35,8 @@ create table course
     id         varchar(255) not null
         constraint course_pkey
             primary key,
-    created_at timestamp,
-    updated_at timestamp,
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now(),
     name       varchar(255)
 );
 

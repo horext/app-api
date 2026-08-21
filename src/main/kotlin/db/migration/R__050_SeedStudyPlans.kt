@@ -292,6 +292,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             Courses.upsert {
                 it[Courses.id] = EntityID(courseCode, Courses)
                 it[Courses.name] = courseName.takeIf { name -> name.isNotBlank() }
+                it[Courses.updatedAt] = Instant.now()
             }
         }
 
