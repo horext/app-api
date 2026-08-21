@@ -4,7 +4,6 @@ import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.dto.SubjectSearchQuery
 import io.octatec.horext.api.service.SubjectService
-import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,43 +19,49 @@ class HourlyLoadSubjectController(
     fun searchByFaculty(
         @PathVariable hourlyLoadId: Long,
         @PathVariable facultyId: Long,
-        @Valid @ModelAttribute query: SubjectSearchQuery,
-    ): Page<Subject> =
-        subjectService.getPageBySearchAndFacultyIdAndHourlyLoad(
+        @ModelAttribute query: SubjectSearchQuery,
+    ): Page<Subject> {
+        query.validate()
+        return subjectService.getPageBySearchAndFacultyIdAndHourlyLoad(
             query.search,
             facultyId,
             hourlyLoadId,
             query.offset,
             query.limit,
         )
+    }
 
     @GetMapping("specialities/{specialityId}/subjects")
     fun searchBySpeciality(
         @PathVariable hourlyLoadId: Long,
         @PathVariable specialityId: Long,
-        @Valid @ModelAttribute query: SubjectSearchQuery,
-    ): Page<Subject> =
-        subjectService.getPageBySearchAndSpecialityIdAndHourlyLoad(
+        @ModelAttribute query: SubjectSearchQuery,
+    ): Page<Subject> {
+        query.validate()
+        return subjectService.getPageBySearchAndSpecialityIdAndHourlyLoad(
             query.search,
             specialityId,
             hourlyLoadId,
             query.offset,
             query.limit,
         )
+    }
 
     @GetMapping("studyPlans/{studyPlanId}/subjects")
     fun searchByStudyPlan(
         @PathVariable hourlyLoadId: Long,
         @PathVariable studyPlanId: Long,
-        @Valid @ModelAttribute query: SubjectSearchQuery,
-    ): Page<Subject> =
-        subjectService.getPageBySearchAndStudyPlanIdAndHourlyLoad(
+        @ModelAttribute query: SubjectSearchQuery,
+    ): Page<Subject> {
+        query.validate()
+        return subjectService.getPageBySearchAndStudyPlanIdAndHourlyLoad(
             query.search,
             studyPlanId,
             hourlyLoadId,
             query.offset,
             query.limit,
         )
+    }
 
     @GetMapping("studyPlans/{studyPlanId}/cycles/{cycle}/subjects")
     fun getAllByStudyPlanAndCycle(
