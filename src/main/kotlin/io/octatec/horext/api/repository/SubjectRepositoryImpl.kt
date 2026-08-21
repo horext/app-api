@@ -126,12 +126,14 @@ class SubjectRepositoryImpl : SubjectRepository {
         val sp = StudyPlans
         val st = SubjectTypes
         val ss = ScheduleSubjects
+        val ou = OrganizationUnits
         val query =
             s
                 .innerJoin(c)
                 .innerJoin(sp)
+                .innerJoin(ou)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.columns + st.columns)
+                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
                 .where {
                     (sp.id eq studyPlanId) and
                         sp.isActive() and
@@ -151,11 +153,13 @@ class SubjectRepositoryImpl : SubjectRepository {
         val sp = StudyPlans
         val ss = ScheduleSubjects
         val st = SubjectTypes
+        val ou = OrganizationUnits
         return s
             .innerJoin(c)
             .innerJoin(sp)
+            .innerJoin(ou)
             .leftJoin(st)
-            .select(s.entityColumns + c.columns + sp.columns + st.columns)
+            .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
             .where {
                 (sp.id eq studyPlanId) and
                     sp.isActive() and
