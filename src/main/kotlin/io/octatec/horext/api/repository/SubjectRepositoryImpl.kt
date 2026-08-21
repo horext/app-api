@@ -71,7 +71,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(sp)
                 .innerJoin(ou)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where { s.id eq id }
                 .map(s::createEntity)
                 .singleOrNull()
@@ -96,7 +96,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             .innerJoin(sp)
             .innerJoin(ou)
             .leftJoin(st)
-            .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+            .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
             .where(s.id eq anyFrom(ids))
             .orderBy(s.id to SortOrder.ASC)
             .map(s::createEntity)
@@ -119,7 +119,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(c)
                 .innerJoin(sp)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.columns + st.columns)
+                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
                         sp.isActive() and
@@ -148,7 +148,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(sp)
                 .innerJoin(ou)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (ou.parentOrganizationId eq facultyId) and
                         sp.isActive() and
@@ -177,7 +177,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .innerJoin(sp)
                 .innerJoin(ou)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (sp.id eq studyPlanId) and
                         sp.isActive() and
@@ -203,7 +203,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             .innerJoin(sp)
             .innerJoin(ou)
             .leftJoin(st)
-            .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+            .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
             .where {
                 (sp.id eq studyPlanId) and
                     sp.isActive() and

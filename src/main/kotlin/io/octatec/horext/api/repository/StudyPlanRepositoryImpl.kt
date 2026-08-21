@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
 class StudyPlanRepositoryImpl : StudyPlanRepository {
     override fun getAllStudyPlan(): List<StudyPlan> =
         StudyPlans
-            .selectAll()
+            .select(StudyPlans.entityColumns)
             .orderBy(
                 StudyPlans.fromDate to SortOrder.DESC,
             ).map { row -> StudyPlans.createEntity(row) }
@@ -23,7 +23,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
         val ou = OrganizationUnits
         return sp
             .leftJoin(ou)
-            .select(sp.columns + ou.columns)
+            .select(sp.entityColumns + ou.columns)
             .where { (sp.id eq id) }
             .orderBy(
                 sp.fromDate to SortOrder.DESC,
@@ -36,7 +36,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
         val ou = OrganizationUnits
         return sp
             .leftJoin(ou)
-            .select(sp.columns + ou.columns)
+            .select(sp.entityColumns + ou.columns)
             .where { (sp.organizationUnitId eq specialityId) }
             .orderBy(
                 sp.fromDate to SortOrder.DESC,

@@ -218,7 +218,8 @@ create table study_plan
             references organization_unit,
     speciality_id        bigint,
     created_at           timestamp not null default now(),
-    updated_at           timestamp not null default now()
+    updated_at           timestamp not null default now(),
+    source_checksum      varchar(64)
 );
 
 
