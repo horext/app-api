@@ -28,8 +28,8 @@ class FacultyControllerTest {
     fun testGetAll() {
         val expectedFacultyList =
             listOf(
-                OrganizationUnit(id = 1, name = "Faculty 1"),
-                OrganizationUnit(id = 2, name = "Faculty 2"),
+                OrganizationUnit(id = 1, code = "F1", name = "Faculty 1"),
+                OrganizationUnit(id = 2, code = "F2", name = "Faculty 2"),
             )
         `when`(organizationUnitService.getAllFaculty()).thenReturn(expectedFacultyList)
 
@@ -44,8 +44,8 @@ class FacultyControllerTest {
         val facultyId = 1L
         val expectedSpecialityList =
             listOf(
-                OrganizationUnit(id = 1, name = "Speciality 1"),
-                OrganizationUnit(id = 2, name = "Speciality 2"),
+                OrganizationUnit(id = 1, code = "I1", name = "Speciality 1"),
+                OrganizationUnit(id = 2, code = "I2", name = "Speciality 2"),
             )
         `when`(organizationUnitService.getAllSpecialityByFacultyId(facultyId)).thenReturn(expectedSpecialityList)
 

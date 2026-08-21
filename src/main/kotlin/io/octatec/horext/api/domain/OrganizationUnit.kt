@@ -8,5 +8,5 @@ data class OrganizationUnit(
     var type: OrganizationUnitType?,
 ) {
     constructor(id: Long) : this(id, null, null, null, null)
-    constructor(id: Long, name: String) : this(id, null, null, name, null)
+    constructor(id: Long, code: String, name: String) : this(id, null, code, name, null)
 }

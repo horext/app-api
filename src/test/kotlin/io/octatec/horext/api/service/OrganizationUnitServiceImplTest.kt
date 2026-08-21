@@ -25,7 +25,7 @@ class OrganizationUnitServiceImplTest {
 
     @Test
     fun getAllFaculty_returnsRepositoryResult() {
-        val expected = listOf(OrganizationUnit(id = 1, name = "Faculty"))
+        val expected = listOf(OrganizationUnit(id = 1, code = "F", name = "Faculty"))
         `when`(organizationUnitRepository.getFacultiesHavingStudyPlans()).thenReturn(expected)
 
         val result = service.getAllFaculty()
