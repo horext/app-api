@@ -13,10 +13,14 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -181,6 +185,19 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             val studyPlanCode = requiredValue(row, iCode, COL_STUDY_PLAN_CODE, table.path)
             val organizationUnitCode =
                 requiredValue(row, iOrganizationUnit, COL_ORGANIZATION_UNIT_CODE, table.path)
+            val fromDate =
+                parseOptionalInstant(
+                    value = value(row, iFromDate),
+                    field = COL_FROM_DATE,
+                    path = table.path,
+                    rowNumber = row.rowNumber,
+                )
+            val sourceChecksum =
+                calculateStudyPlanChecksum(
+                    code = studyPlanCode,
+                    fromDate = fromDate,
+                    organizationUnitCode = organizationUnitCode,
+                )
 
             val organizationUnitId =
                 OrganizationUnits
@@ -194,21 +211,44 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                             "for study plan '$studyPlanCode' at row ${row.rowNumber} in '${table.path}'",
                     )
 
-            StudyPlans.upsert(StudyPlans.code) {
-                it[StudyPlans.code] = studyPlanCode
-                it[StudyPlans.updatedAt] = Instant.now()
-                it[StudyPlans.fromDate] =
-                    parseOptionalInstant(
-                        value = value(row, iFromDate),
-                        field = COL_FROM_DATE,
-                        path = table.path,
-                        rowNumber = row.rowNumber,
-                    )
-                it[StudyPlans.organizationUnitId] =
-                    EntityID(organizationUnitId, OrganizationUnits)
+            val existingStudyPlan =
+                StudyPlans
+                    .select(StudyPlans.sourceChecksum)
+                    .where { StudyPlans.code eq studyPlanCode }
+                    .firstOrNull()
+
+            if (existingStudyPlan?.get(StudyPlans.sourceChecksum) == sourceChecksum) {
+                continue
+            }
+
+            if (existingStudyPlan == null) {
+                StudyPlans.insert {
+                    it[StudyPlans.code] = studyPlanCode
+                    it[StudyPlans.fromDate] = fromDate
+                    it[StudyPlans.organizationUnitId] =
+                        EntityID(organizationUnitId, OrganizationUnits)
+                    it[StudyPlans.sourceChecksum] = sourceChecksum
+                }
+            } else {
+                StudyPlans.update({ StudyPlans.code eq studyPlanCode }) {
+                    it[StudyPlans.fromDate] = fromDate
+                    it[StudyPlans.organizationUnitId] = EntityID(organizationUnitId, OrganizationUnits)
+                    it[StudyPlans.updatedAt] = Instant.now()
+                    it[StudyPlans.sourceChecksum] = sourceChecksum
+                }
             }
         }
     }
+
+    private fun calculateStudyPlanChecksum(
+        code: String,
+        fromDate: Instant?,
+        organizationUnitCode: String,
+    ): String =
+        MessageDigest
+            .getInstance("SHA-256")
+            .digest(listOf(code, fromDate?.toString().orEmpty(), organizationUnitCode).joinToString("\u0000").toByteArray())
+            .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedAllSubjects() {
         val allStudyPlans =
