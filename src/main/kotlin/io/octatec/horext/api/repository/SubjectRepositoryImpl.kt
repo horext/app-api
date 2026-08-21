@@ -216,7 +216,7 @@ class SubjectRepositoryImpl : SubjectRepository {
     private fun Courses.matchesSearch(search: String) = (name.unaccent() ilike ("%$search%").unaccent()) or (id ilike ("%$search%"))
 
     private val Subjects.entityColumns: List<Expression<*>>
-        get() = listOf(id, courseId, typeId, studyPlanId, credits, cycle)
+        get() = listOf(id, courseId, typeId, studyPlanId, credits, cycle, createdAt, updatedAt)
 
     private fun StudyPlans.isActive() = (fromDate less Instant.now()) and toDate.isNull()
 

@@ -6,6 +6,7 @@ import io.octatec.horext.api.domain.Subject
 import io.octatec.horext.api.domain.SubjectType
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.javatime.timestamp
 
 object Subjects : LongIdTable("subject") {
     val courseId = reference("course_id", Courses)
@@ -40,6 +41,10 @@ object Subjects : LongIdTable("subject") {
 
     val position = integer("position").nullable()
 
+    val createdAt = timestamp("created_at")
+
+    val updatedAt = timestamp("updated_at")
+
     fun createEntity(row: ResultRow): Subject =
         Subject(
             id = row[id].value,
@@ -56,5 +61,7 @@ object Subjects : LongIdTable("subject") {
                 },
             credits = row[credits],
             cycle = row[cycle],
+            createdAt = row[createdAt],
+            updatedAt = row[updatedAt],
         )
 }

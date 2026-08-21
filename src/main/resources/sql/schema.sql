@@ -357,10 +357,10 @@ create table subject
             references study_plan,
     subject_type_id                  bigint
         constraint subject_subject_type_id_fkey
-            references subject_type
+            references subject_type,
+    created_at                       timestamp not null default now(),
+    updated_at                       timestamp not null default now()
 );
-
-
 
 create index subject_evaluation_system_id_idx
     on subject (evaluation_system_id);

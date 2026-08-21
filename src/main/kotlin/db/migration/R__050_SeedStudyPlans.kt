@@ -319,6 +319,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             ) {
                 it[Subjects.courseId] = EntityID(courseCode, Courses)
                 it[Subjects.studyPlanId] = EntityID(planId, StudyPlans)
+                it[Subjects.updatedAt] = Instant.now()
 
                 it[Subjects.credits] =
                     parseOptionalInt(
