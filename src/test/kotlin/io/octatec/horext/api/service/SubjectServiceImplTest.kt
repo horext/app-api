@@ -1,6 +1,7 @@
 package io.octatec.horext.api.service
 
 import io.octatec.horext.api.domain.Subject
+import io.octatec.horext.api.exception.ResourceNotFoundException
 import io.octatec.horext.api.repository.SubjectRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -44,6 +45,24 @@ class SubjectServiceImplTest {
             service.getAllByStudyPlanId(studyPlanId)
         }
         verify(subjectRepository).getAllByStudyPlanId(studyPlanId)
+    }
+
+    @Test
+    fun getById_returnsRepositoryResult() {
+        val subject = Subject(id = 1L)
+        `when`(subjectRepository.getById(subject.id)).thenReturn(subject)
+
+        assertEquals(subject, service.getById(subject.id))
+        verify(subjectRepository).getById(subject.id)
+    }
+
+    @Test
+    fun getById_throwsNotFoundWhenSubjectDoesNotExist() {
+        val subjectId = 1L
+        `when`(subjectRepository.getById(subjectId)).thenReturn(null)
+
+        assertThrows(ResourceNotFoundException::class.java) { service.getById(subjectId) }
+        verify(subjectRepository).getById(subjectId)
     }
 
     @Test

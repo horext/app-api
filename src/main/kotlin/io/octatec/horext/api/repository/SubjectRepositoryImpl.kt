@@ -59,6 +59,32 @@ class SubjectRepositoryImpl : SubjectRepository {
         return subjects
     }
 
+    override fun getById(id: Long): Subject? {
+        val s = Subjects
+        val c = Courses
+        val sp = StudyPlans
+        val st = SubjectTypes
+        val ou = OrganizationUnits
+        val subject =
+            s
+                .innerJoin(c)
+                .innerJoin(sp)
+                .innerJoin(ou)
+                .leftJoin(st)
+                .select(s.entityColumns + c.columns + sp.columns + st.columns + ou.columns)
+                .where { s.id eq id }
+                .map(s::createEntity)
+                .singleOrNull()
+                ?: return null
+
+        subject.relationships =
+            SubjectRelationships
+                .select(SubjectRelationships.columns)
+                .where { SubjectRelationships.subjectId eq id }
+                .map(SubjectRelationships::createEntity)
+        return subject
+    }
+
     override fun getAllByIds(ids: List<Long>): List<Subject> {
         val s = Subjects
         val c = Courses

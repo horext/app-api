@@ -5,6 +5,7 @@ import io.octatec.horext.api.dto.Page
 import io.octatec.horext.api.service.SubjectService
 import io.octatec.horext.api.util.Pagination
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -14,6 +15,11 @@ import org.springframework.web.bind.annotation.RestController
 class SubjectController(
     val subjectService: SubjectService,
 ) {
+    @GetMapping("{subjectId}")
+    fun getById(
+        @PathVariable subjectId: Long,
+    ): Subject = subjectService.getById(subjectId)
+
     @GetMapping(params = ["ids", "!search"])
     fun getAllByIds(
         @RequestParam ids: List<Long>,
