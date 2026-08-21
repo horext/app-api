@@ -67,6 +67,13 @@ class CsvSourceTest {
     }
 
     @Test
+    fun `rejects unnamed headers`() {
+        val error = assertThrows<CsvImportException> { read("first,\na,b") }
+
+        assertIs<CsvImportError.MalformedRecord>(error.errors.single())
+    }
+
+    @Test
     fun `rejects an unmatched quote`() {
         val error = assertThrows<CsvImportException> { read("first,second\n\"unfinished,value") }
 

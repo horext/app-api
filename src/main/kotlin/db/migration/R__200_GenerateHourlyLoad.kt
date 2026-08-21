@@ -1,5 +1,7 @@
 package db.migration
 
+import db.csv.CsvLimits
+import db.migration.schema.hourlyLoadCsvSchema
 import io.octatec.horext.api.repository.table.AcademicPeriodOrganizationUnits
 import io.octatec.horext.api.repository.table.AcademicPeriods
 import io.octatec.horext.api.repository.table.ClassSessionTypes
@@ -38,9 +40,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
     companion object {
@@ -864,105 +864,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         resourcePath: String,
         defaultFacultyCode: String,
     ): List<ScheduleResume> {
-        val stream = openClasspathResource(resourcePath) ?: return emptyList()
-        val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+        val source = openClasspathResource(resourcePath) ?: return emptyList()
+        val defaultUpdatedAt = LocalDateTime.now()
+        val schema = hourlyLoadCsvSchema(defaultFacultyCode, defaultUpdatedAt)
 
-        fun parseTime(s: String): String {
-            val trimmed = s.trim()
-            if (trimmed.isBlank()) return ""
-
-            val hour = trimmed.toIntOrNull()
-            return if (hour != null) {
-                LocalTime.of(hour, 0).format(timeFmt)
-            } else {
-                LocalTime.parse(trimmed).format(timeFmt)
-            }
-        }
-        return bomAwareReader(stream).useLines { lines ->
-            val iter = lines.filter { it.isNotBlank() }.iterator()
-            if (!iter.hasNext()) return@useLines emptyList()
-            val headerLine = iter.next()
-            val delimiter = if (headerLine.contains(';')) ';' else ','
-            val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
-
-            fun idx(name: String) =
-                header.indexOf(name).also {
-                    require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
-                }
-
-            fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
-            val iCodigoFacultad = optIdx(COL_FACULTY_CODE)
-            val iCurso = idx(COL_COURSE)
-            val iSeccion = idx(COL_SECTION)
-            val iVacantes = optIdx(COL_VACANCIES)
-            val iUpdatedAt = optIdx(COL_UPDATED_AT)
-            val iDeletedAt = optIdx(COL_DELETED_AT)
-            val defaultUpdatedAt = LocalDateTime.now()
-            val iInicio = idx(COL_START_TIME)
-            val iFin = idx(COL_END_TIME)
-            val iAula = optIdx(COL_CLASSROOM)
-            val iDni = optIdx(COL_DNI)
-            val iDocente = idx(COL_TEACHER)
-            val iTipo = optIdx(COL_TYPE)
-            val iDia = idx(COL_DAY)
-            iter
-                .asSequence()
-                .map { line -> parseCsvLine(line, delimiter) }
-                .filter { cols -> cols.any { it.isNotBlank() } }
-                .map { cols ->
-                    ScheduleResume(
-                        facultyCode =
-                            iCodigoFacultad
-                                ?.let { index -> cols.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() } }
-                                ?: defaultFacultyCode,
-                        course = cols[iCurso].trim().replace("-", ""),
-                        section = cols[iSeccion].trim(),
-                        vacancies =
-                            if (iVacantes == null || cols.getOrNull(iVacantes).isNullOrBlank()) {
-                                0
-                            } else {
-                                cols[iVacantes].trim().toInt()
-                            },
-                        updatedAt =
-                            iUpdatedAt
-                                ?.let { index ->
-                                    cols
-                                        .getOrNull(index)
-                                        ?.trim()
-                                        ?.takeIf { it.isNotBlank() }
-                                        ?.let { LocalDateTime.parse(it, fmt) }
-                                }
-                                ?: defaultUpdatedAt,
-                        deletedAt =
-                            if (iDeletedAt != null) {
-                                cols[iDeletedAt].takeIf { it.isNotBlank() }?.let { LocalDateTime.parse(it, fmt) }
-                            } else {
-                                null
-                            },
-                        startTime = parseTime(cols[iInicio]),
-                        endTime = parseTime(cols[iFin]),
-                        classroom =
-                            iAula
-                                ?.let { index -> cols.getOrNull(index) }
-                                ?.trim()
-                                ?.uppercase()
-                                ?.takeIf { it.isNotBlank() }
-                                ?: DEFAULT_CLASSROOM_CODE,
-                        teacherDni =
-                            iDni
-                                ?.let { index -> cols.getOrNull(index)?.trim()?.takeIf { it.isNotBlank() } },
-                        teacherName = normalizeTeacherName(cols[iDocente]),
-                        sessionType =
-                            iTipo
-                                ?.let { index -> cols.getOrNull(index) }
-                                ?.trim()
-                                ?.uppercase()
-                                ?.takeIf { it.isNotBlank() }
-                                ?: DEFAULT_SESSION_TYPE_CODE,
-                        day = cols[iDia],
-                    )
-                }.toList()
-        }
+        return source.use { schema.parse(resourcePath, it).rows }
     }
 }
