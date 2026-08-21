@@ -1,5 +1,6 @@
 package db.migration
 
+import db.migration.schema.academicPeriodCsvSchema
 import io.octatec.horext.api.repository.table.AcademicPeriodOrganizationUnits
 import io.octatec.horext.api.repository.table.AcademicPeriods
 import io.octatec.horext.api.repository.table.OrganizationUnits
@@ -15,10 +16,6 @@ import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatterBuilder
 import java.util.zip.CRC32
 
 class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
@@ -119,56 +116,9 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
         }
 
     private fun loadCsv(resourcePath: String): List<AcademicPeriodRow> {
-        val stream = openClasspathResource(resourcePath) ?: return emptyList()
-        val fmt =
-            DateTimeFormatterBuilder()
-                .appendPattern("yyyy-MM-dd HH:mm:ss")
-                .optionalStart()
-                .appendOffsetId()
-                .optionalEnd()
-                .toFormatter()
-
-        fun parseInstant(s: String): Instant? =
-            s
-                .trim()
-                .takeIf { it.isNotBlank() }
-                ?.let { str ->
-                    fmt.parseBest(str, OffsetDateTime::from, LocalDateTime::from).let { temporal ->
-                        when (temporal) {
-                            is OffsetDateTime -> temporal.toInstant()
-                            is LocalDateTime -> temporal.toInstant(ZoneOffset.UTC)
-                            else -> error("Unexpected temporal: $temporal")
-                        }
-                    }
-                }
-        return stream.bufferedReader(Charsets.UTF_8).useLines { lines ->
-            val iter = lines.filter { it.isNotBlank() }.iterator()
-            if (!iter.hasNext()) return@useLines emptyList()
-            val headerLine = iter.next()
-            val delimiter = if (headerLine.contains(';')) ';' else ','
-            val header = parseCsvLine(headerLine, delimiter).map { it.trim().lowercase() }
-
-            fun idx(name: String) =
-                header.indexOf(name).also {
-                    require(it >= 0) { "Column '$name' not found in CSV header of $resourcePath" }
-                }
-
-            fun optIdx(name: String) = header.indexOf(name).takeIf { it >= 0 }
-            val iCode = idx(COL_CODE)
-            val iFromDate = optIdx(COL_FROM_DATE)
-            val iToDate = optIdx(COL_TO_DATE)
-            val iFacultyCode = idx(COL_FACULTY_CODE)
-            iter
-                .asSequence()
-                .map { line ->
-                    val cols = parseCsvLine(line, delimiter)
-                    AcademicPeriodRow(
-                        code = cols[iCode].trim(),
-                        fromDate = iFromDate?.let { parseInstant(cols[it]) },
-                        toDate = iToDate?.let { parseInstant(cols[it]) },
-                        facultyCode = cols[iFacultyCode].trim(),
-                    )
-                }.toList()
+        val source = openClasspathResource(resourcePath) ?: return emptyList()
+        return source.use {
+            academicPeriodCsvSchema().parse(resourcePath, it).rows
         }
     }
 }

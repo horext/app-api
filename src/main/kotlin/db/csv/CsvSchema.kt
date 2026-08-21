@@ -1,8 +1,13 @@
 package db.csv
 
 import java.io.InputStream
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 import java.util.Locale
 
@@ -43,15 +48,17 @@ class CsvSchema<T> internal constructor(
     ): CsvImport<T> {
         val errors = mutableListOf<CsvImportError>()
         val records =
-            CsvSource(delimiter, limits)
-                .read(file, input, columns.map { it.header }.toSet()) { context ->
-                    val outcome = decode(context)
-                    errors += outcome.errors
-                    if (errors.size >= limits.maxErrors) {
-                        throw CsvImportException(errors.take(limits.maxErrors))
-                    }
-                    outcome.record
-                }.filterNotNull()
+            CsvSource(
+                delimiter = delimiter,
+                limits = limits,
+            ).read(file, input, columns.filter { it.requiredHeader }.map { it.header }.toSet()) { context ->
+                val outcome = decode(context)
+                errors += outcome.errors
+                if (errors.size >= limits.maxErrors) {
+                    throw CsvImportException(errors.take(limits.maxErrors))
+                }
+                outcome.record
+            }.filterNotNull()
         validators.forEach { validator -> errors += validator.validate(file, records) }
         if (errors.isNotEmpty()) throw CsvImportException(errors.take(limits.maxErrors))
         return CsvImport(file, records)
@@ -61,7 +68,7 @@ class CsvSchema<T> internal constructor(
         val errors = mutableListOf<CsvImportError>()
         val values =
             columns.map { column ->
-                val raw = context.record.get(column.header)
+                val raw = if (context.record.isMapped(column.header)) context.record.get(column.header) else ""
                 column
                     .decode(raw, CsvLocation(context.file, context.rowNumber, column.header))
                     .fold(
@@ -113,9 +120,9 @@ class CsvSchemaBuilder<T> internal constructor(
         header: String,
         block: StringColumnBuilder.() -> Unit = {},
     ): CsvColumn<String> {
-        val definition = StringColumnBuilder(header, required = true).apply(block).build()
+        val definition = StringColumnBuilder(header, required = true, requiredHeader = true).apply(block).build()
         return add(
-            object : ColumnDefinition<String>(header) {
+            object : ColumnDefinition<String>(header, requiredHeader = true) {
                 override fun decode(
                     raw: String,
                     location: CsvLocation,
@@ -126,8 +133,9 @@ class CsvSchemaBuilder<T> internal constructor(
 
     fun optionalString(
         header: String,
+        requiredHeader: Boolean = false,
         block: StringColumnBuilder.() -> Unit = {},
-    ): CsvColumn<String?> = add(StringColumnBuilder(header, required = false).apply(block).build())
+    ): CsvColumn<String?> = add(StringColumnBuilder(header, required = false, requiredHeader = requiredHeader).apply(block).build())
 
     fun intColumn(
         header: String,
@@ -138,6 +146,13 @@ class CsvSchemaBuilder<T> internal constructor(
         header: String,
         block: TimeColumnBuilder.() -> Unit = {},
     ): CsvColumn<LocalTime?> = add(TimeColumnBuilder(header).apply(block).build())
+
+    fun dateTimeColumn(
+        header: String,
+        block: DateTimeColumnBuilder.() -> Unit = {},
+    ): CsvColumn<LocalDateTime?> = add(DateTimeColumnBuilder(header).apply(block).build())
+
+    fun instantColumn(header: String): CsvColumn<Instant?> = add(InstantColumnDefinition(header))
 
     fun mapRow(block: CsvRowScope.() -> T) {
         check(mapper == null) { "mapRow may only be declared once" }
@@ -159,7 +174,14 @@ class CsvSchemaBuilder<T> internal constructor(
                 .keys
         require(duplicates.isEmpty()) { "duplicate schema columns: ${duplicates.sorted().joinToString()}" }
         val rowMapper = requireNotNull(mapper) { "schema must declare mapRow" }
-        return CsvSchema(name, limits, delimiter, columns.toList(), rowMapper, validators.toList())
+        return CsvSchema(
+            name,
+            limits,
+            delimiter,
+            columns.toList(),
+            rowMapper,
+            validators.toList(),
+        )
     }
 
     private fun <V> add(definition: ColumnDefinition<V>): CsvColumn<V> {
@@ -189,6 +211,7 @@ internal class CsvColumnException(
 
 internal abstract class ColumnDefinition<T>(
     val header: String,
+    val requiredHeader: Boolean,
 ) {
     abstract fun decode(
         raw: String,
@@ -199,6 +222,7 @@ internal abstract class ColumnDefinition<T>(
 class StringColumnBuilder internal constructor(
     private val header: String,
     private val required: Boolean,
+    private val requiredHeader: Boolean,
 ) {
     private var trim = false
     private var uppercase = false
@@ -235,7 +259,7 @@ class StringColumnBuilder internal constructor(
 
     internal fun build(): ColumnDefinition<String?> {
         val transforms = normalizers.toList()
-        return object : ColumnDefinition<String?>(header) {
+        return object : ColumnDefinition<String?>(header, requiredHeader) {
             override fun decode(
                 raw: String,
                 location: CsvLocation,
@@ -280,7 +304,7 @@ class IntColumnBuilder internal constructor(
     }
 
     internal fun build(): ColumnDefinition<Int> =
-        object : ColumnDefinition<Int>(header) {
+        object : ColumnDefinition<Int>(header, requiredHeader = false) {
             override fun decode(
                 raw: String,
                 location: CsvLocation,
@@ -318,7 +342,7 @@ class TimeColumnBuilder internal constructor(
 
     internal fun build(): ColumnDefinition<LocalTime?> {
         val formatters = patterns.map(DateTimeFormatter::ofPattern)
-        return object : ColumnDefinition<LocalTime?>(header) {
+        return object : ColumnDefinition<LocalTime?>(header, requiredHeader = true) {
             override fun decode(
                 raw: String,
                 location: CsvLocation,
@@ -338,4 +362,70 @@ class TimeColumnBuilder internal constructor(
                 }
         }
     }
+}
+
+class DateTimeColumnBuilder internal constructor(
+    private val header: String,
+) {
+    private var patterns = listOf("yyyy-MM-dd HH:mm:ss")
+
+    fun formats(vararg values: String) {
+        require(values.isNotEmpty())
+        patterns = values.toList()
+    }
+
+    internal fun build(): ColumnDefinition<LocalDateTime?> {
+        val formatters = patterns.map(DateTimeFormatter::ofPattern)
+        return object : ColumnDefinition<LocalDateTime?>(header, requiredHeader = false) {
+            override fun decode(
+                raw: String,
+                location: CsvLocation,
+            ): Result<LocalDateTime?> =
+                runCatching {
+                    val value = raw.trim()
+                    if (value.isEmpty()) return@runCatching null
+                    formatters.firstNotNullOfOrNull { formatter ->
+                        try {
+                            LocalDateTime.parse(value, formatter)
+                        } catch (_: DateTimeParseException) {
+                            null
+                        }
+                    } ?: throw CsvColumnException(
+                        CsvImportError.InvalidValue(location, raw, "expected one of: ${patterns.joinToString()}"),
+                    )
+                }
+        }
+    }
+}
+
+private class InstantColumnDefinition(
+    header: String,
+) : ColumnDefinition<Instant?>(header, requiredHeader = false) {
+    private val formatter =
+        DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd HH:mm:ss")
+            .optionalStart()
+            .appendOffsetId()
+            .optionalEnd()
+            .toFormatter()
+
+    override fun decode(
+        raw: String,
+        location: CsvLocation,
+    ): Result<Instant?> =
+        runCatching {
+            val value = raw.trim()
+            if (value.isEmpty()) return@runCatching null
+            val temporal = formatter.parseBest(value, OffsetDateTime::from, LocalDateTime::from)
+            when (temporal) {
+                is OffsetDateTime -> temporal.toInstant()
+                is LocalDateTime -> temporal.toInstant(ZoneOffset.UTC)
+                else -> throw DateTimeParseException("unsupported timestamp", value, 0)
+            }
+        }.recoverCatching { error ->
+            if (error is CsvColumnException) throw error
+            throw CsvColumnException(
+                CsvImportError.InvalidValue(location, raw, "expected yyyy-MM-dd HH:mm:ss with optional offset"),
+            )
+        }
 }

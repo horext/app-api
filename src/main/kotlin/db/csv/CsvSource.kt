@@ -20,11 +20,13 @@ data class CsvRecordContext(
 class CsvSource(
     private val delimiter: Char = ',',
     private val limits: CsvLimits = CsvLimits.MIGRATION_DEFAULTS,
+    private val requireConsistentRecords: Boolean = true,
 ) {
     fun <T> read(
         file: String,
         input: InputStream,
         requiredHeaders: Set<String> = emptySet(),
+        onHeaders: (List<String>) -> Unit = {},
         map: (CsvRecordContext) -> T,
     ): List<T> {
         try {
@@ -37,6 +39,8 @@ class CsvSource(
                             .setHeader()
                             .setSkipHeaderRecord(true)
                             .setIgnoreEmptyLines(true)
+                            .setIgnoreHeaderCase(true)
+                            .setIgnoreSurroundingSpaces(true)
                             .setAllowMissingColumnNames(false)
                             .setDuplicateHeaderMode(DuplicateHeaderMode.DISALLOW)
                             .get()
@@ -48,7 +52,12 @@ class CsvSource(
                             throw malformed(file, error)
                         }
                     parser.use {
-                        val missing = requiredHeaders - parser.headerMap.keys
+                        onHeaders(parser.headerNames)
+                        val availableHeaders =
+                            parser.headerMap.keys
+                                .map { it.trim().lowercase() }
+                                .toSet()
+                        val missing = requiredHeaders.filterNot { it.trim().lowercase() in availableHeaders }.toSet()
                         if (missing.isNotEmpty()) {
                             throw CsvImportException(
                                 missing.sorted().map {
@@ -92,7 +101,7 @@ class CsvSource(
         record: CSVRecord,
         headers: List<String>,
     ) {
-        if (!record.isConsistent) {
+        if (requireConsistentRecords && !record.isConsistent) {
             throw CsvImportException(
                 listOf(
                     CsvImportError.MalformedRecord(

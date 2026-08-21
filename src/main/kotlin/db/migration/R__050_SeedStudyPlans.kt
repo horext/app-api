@@ -1,5 +1,6 @@
 package db.migration
 
+import db.csv.CsvSource
 import io.octatec.horext.api.repository.table.Courses
 import io.octatec.horext.api.repository.table.OrganizationUnits
 import io.octatec.horext.api.repository.table.StudyPlans
@@ -610,48 +611,28 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
 
     private fun readCsv(path: String): CsvTable? {
         val stream = openClasspathResource(path) ?: return null
+        var headers = emptyList<String>()
+        val rows =
+            CsvSource(requireConsistentRecords = false)
+                .read(
+                    file = path,
+                    input = stream,
+                    onHeaders = { parsed ->
+                        headers =
+                            parsed.mapIndexed { index, value ->
+                                (if (index == 0) value.removePrefix("\uFEFF") else value).trim()
+                            }
+                    },
+                ) { context ->
+                    CsvRow(
+                        rowNumber = context.rowNumber.toInt(),
+                        values = context.record.toList(),
+                    )
+                }.filterNot { row -> row.values.all { it.isBlank() } }
 
-        return bomAwareReader(stream).useLines { sequence ->
-            val lines =
-                sequence
-                    .filter { it.isNotBlank() }
-                    .toList()
-
-            if (lines.isEmpty()) {
-                error("CSV file '$path' is empty")
-            }
-
-            val headers =
-                parseCsvLine(lines.first()).mapIndexed { index, value ->
-                    (if (index == 0) value.removePrefix("\uFEFF") else value).trim()
-                }
-
-            require(headers.any { it.isNotBlank() }) {
-                "CSV file '$path' has an empty header"
-            }
-
-            val rows =
-                lines
-                    .drop(1)
-                    .mapIndexedNotNull { index, line ->
-                        val values = parseCsvLine(line)
-
-                        if (values.all { it.isBlank() }) {
-                            return@mapIndexedNotNull null
-                        }
-
-                        CsvRow(
-                            rowNumber = index + 2,
-                            values = values,
-                        )
-                    }
-
-            CsvTable(
-                path = path,
-                headers = headers,
-                rows = rows,
-            )
-        }
+        if (headers.isEmpty()) error("CSV file '$path' is empty")
+        require(headers.any { it.isNotBlank() }) { "CSV file '$path' has an empty header" }
+        return CsvTable(path = path, headers = headers, rows = rows)
     }
 
     private fun requiredValue(

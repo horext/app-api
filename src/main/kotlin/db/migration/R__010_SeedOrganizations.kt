@@ -1,5 +1,6 @@
 package db.migration
 
+import db.csv.CsvSource
 import io.octatec.horext.api.repository.table.OrganizationUnitTypes
 import io.octatec.horext.api.repository.table.OrganizationUnits
 import org.flywaydb.core.api.migration.Context
@@ -45,14 +46,9 @@ class R__010_SeedOrganizations : BaseCsvMigration() {
         log.info("R__010_SeedOrganizations: seeding $UNITS_FILE")
 
         val lines =
-            bomAwareReader(stream).useLines { seq ->
-                seq
-                    .drop(1)
-                    .filter { it.isNotBlank() }
-                    .map { parseCsvLine(it) }
-                    .filter { it.size >= 4 }
-                    .toList()
-            }
+            CsvSource(requireConsistentRecords = false)
+                .read(UNITS_FILE, stream) { it.record.toList() }
+                .filter { columns -> columns.size >= 4 && columns.any { it.isNotBlank() } }
 
         val typeIdByName =
             OrganizationUnitTypes

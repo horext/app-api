@@ -74,6 +74,18 @@ class CsvSchemaTest {
     }
 
     @Test
+    fun `matches headers case-insensitively and ignores surrounding spaces`() {
+        val csv =
+            " CODE , NAME , VACANCIES , START , TEACHER_DNI \n" +
+                "AB1,Ada,0,08:00,1"
+
+        val row = schema.parse("headers.csv", csv.byteInputStream()).rows.single()
+
+        assertEquals("AB1", row.code)
+        assertEquals("Ada", row.name)
+    }
+
+    @Test
     fun `collects typed field errors with row and column locations`() {
         val error =
             assertThrows<CsvImportException> {
