@@ -58,30 +58,6 @@ class SubjectRepositoryImpl : SubjectRepository {
         return subjects
     }
 
-    override fun getAllBySearchAndSpecialityIdAndHourlyLoad(
-        search: String,
-        specialityId: Long,
-        hourlyLoadId: Long,
-    ): List<Subject> {
-        val s = Subjects
-        val c = Courses
-        val sp = StudyPlans
-        val ss = ScheduleSubjects
-        val st = SubjectTypes
-        return s
-            .innerJoin(c)
-            .innerJoin(sp)
-            .leftJoin(st)
-            .select(s.entityColumns + c.columns + sp.columns + st.columns)
-            .where {
-                (sp.organizationUnitId eq specialityId) and
-                    sp.isActive() and
-                    ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
-                    c.matchesSearch(search)
-            }.orderByStudyPlanAndCourse(sp, c, s)
-            .map { row -> s.createEntity(row) }
-    }
-
     override fun getPageBySearchAndSpecialityIdAndHourlyLoad(
         search: String,
         specialityId: Long,

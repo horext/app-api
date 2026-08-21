@@ -6,12 +6,6 @@ import io.octatec.horext.api.dto.Page
 interface SubjectService {
     fun getAllByStudyPlanId(studyPlanId: Long): List<Subject>
 
-    fun getAllBySearchAndSpecialityIdAndHourlyLoad(
-        search: String,
-        specialityId: Long,
-        hourlyLoadId: Long,
-    ): List<Subject>
-
     fun getPageBySearchAndFacultyIdAndHourlyLoad(
         search: String,
         facultyId: Long,
