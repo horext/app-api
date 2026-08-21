@@ -9,6 +9,8 @@ data class StudyPlan(
     var fromDate: Instant?,
     var toDate: Instant?,
     var organizationUnit: OrganizationUnit?,
+    var createdAt: Instant? = null,
+    var updatedAt: Instant? = null,
 ) {
     constructor(id: Long) : this(id, null, null, null, null, null)
 }

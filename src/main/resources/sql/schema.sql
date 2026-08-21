@@ -216,7 +216,9 @@ create table study_plan
     organization_unit_id bigint
         constraint study_plan_organization_unit_id_fkey
             references organization_unit,
-    speciality_id        bigint
+    speciality_id        bigint,
+    created_at           timestamp not null default now(),
+    updated_at           timestamp not null default now()
 );
 
 

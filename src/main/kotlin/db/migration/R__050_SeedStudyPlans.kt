@@ -196,6 +196,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
 
             StudyPlans.upsert(StudyPlans.code) {
                 it[StudyPlans.code] = studyPlanCode
+                it[StudyPlans.updatedAt] = Instant.now()
                 it[StudyPlans.fromDate] =
                     parseOptionalInstant(
                         value = value(row, iFromDate),
