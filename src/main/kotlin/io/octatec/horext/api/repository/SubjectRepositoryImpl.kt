@@ -114,12 +114,13 @@ class SubjectRepositoryImpl : SubjectRepository {
         val sp = StudyPlans
         val st = SubjectTypes
         val ss = ScheduleSubjects
+        val ou = OrganizationUnits
         val query =
             s
                 .innerJoin(c)
                 .innerJoin(sp)
                 .leftJoin(st)
-                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns)
+                .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
                         sp.isActive() and
