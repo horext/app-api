@@ -6,6 +6,7 @@ data class CsvLimits(
     val maxColumns: Int = 50,
     val maxRecordLength: Int = 16_384,
     val maxFieldLength: Int = 1_000,
+    val maxErrors: Int = 100,
 ) {
     init {
         require(maxFileBytes > 0) { "maxFileBytes must be positive" }
@@ -13,6 +14,7 @@ data class CsvLimits(
         require(maxColumns > 0) { "maxColumns must be positive" }
         require(maxRecordLength > 0) { "maxRecordLength must be positive" }
         require(maxFieldLength > 0) { "maxFieldLength must be positive" }
+        require(maxErrors > 0) { "maxErrors must be positive" }
     }
 
     companion object {

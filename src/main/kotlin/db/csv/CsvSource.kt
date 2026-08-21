@@ -92,6 +92,16 @@ class CsvSource(
         record: CSVRecord,
         headers: List<String>,
     ) {
+        if (!record.isConsistent) {
+            throw CsvImportException(
+                listOf(
+                    CsvImportError.MalformedRecord(
+                        CsvLocation(file, row),
+                        "record has ${record.size()} values but ${headers.size} headers",
+                    ),
+                ),
+            )
+        }
         if (record.size() > limits.maxColumns) {
             throw limit(file, row, "columns", record.size().toLong(), limits.maxColumns.toLong())
         }

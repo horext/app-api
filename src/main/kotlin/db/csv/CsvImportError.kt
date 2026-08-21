@@ -24,6 +24,44 @@ sealed interface CsvImportError {
         override val message = "duplicate column \"$header\""
     }
 
+    data class MissingValue(
+        override val location: CsvLocation,
+    ) : CsvImportError {
+        override val message = "required value is blank"
+    }
+
+    data class InvalidValue(
+        override val location: CsvLocation,
+        val value: String,
+        val reason: String,
+    ) : CsvImportError {
+        override val message = "invalid value ${safeValue(value)}: $reason"
+    }
+
+    data class ValueTooLong(
+        override val location: CsvLocation,
+        val actual: Int,
+        val maximum: Int,
+    ) : CsvImportError {
+        override val message = "value length $actual exceeds maximum $maximum"
+    }
+
+    data class DuplicateValue(
+        override val location: CsvLocation,
+        val rule: String,
+        val firstRow: Long,
+    ) : CsvImportError {
+        override val message = "duplicate value for $rule; first seen at row $firstRow"
+    }
+
+    data class ConflictingMapping(
+        override val location: CsvLocation,
+        val rule: String,
+        val firstRow: Long,
+    ) : CsvImportError {
+        override val message = "conflicting mapping for $rule; first seen at row $firstRow"
+    }
+
     data class LimitExceeded(
         override val location: CsvLocation,
         val limit: String,
@@ -55,3 +93,18 @@ fun renderCsvError(error: CsvImportError): String =
         error.location.column?.let { append(", column \"").append(it).append('"') }
         append(":\n  ").append(error.message)
     }
+
+private fun safeValue(value: String): String {
+    val rendered =
+        value
+            .take(100)
+            .flatMap { character ->
+                when (character) {
+                    '\n' -> "\\n".toList()
+                    '\r' -> "\\r".toList()
+                    '\t' -> "\\t".toList()
+                    else -> if (character.isISOControl()) "\\u%04x".format(character.code).toList() else listOf(character)
+                }
+            }.joinToString("")
+    return "\"$rendered${if (value.length > 100) "…" else ""}\""
+}
