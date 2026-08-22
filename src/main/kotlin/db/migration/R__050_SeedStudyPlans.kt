@@ -202,8 +202,9 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
 
             val organizationUnitId =
                 OrganizationUnits
-                    .selectAll()
+                    .select(OrganizationUnits.id)
                     .where { OrganizationUnits.code eq organizationUnitCode }
+                    .limit(1)
                     .firstOrNull()
                     ?.get(OrganizationUnits.id)
                     ?.value
@@ -216,6 +217,7 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                 StudyPlans
                     .select(StudyPlans.sourceChecksum)
                     .where { StudyPlans.code eq studyPlanCode }
+                    .limit(1)
                     .firstOrNull()
 
             if (existingStudyPlan?.get(StudyPlans.sourceChecksum) == sourceChecksum) {

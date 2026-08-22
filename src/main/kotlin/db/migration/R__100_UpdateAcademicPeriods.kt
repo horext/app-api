@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
@@ -68,8 +69,9 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
             val apId = upsertAcademicPeriod(row)
             val facultyId =
                 OrganizationUnits
-                    .selectAll()
+                    .select(OrganizationUnits.id)
                     .where { OrganizationUnits.code eq row.facultyCode }
+                    .limit(1)
                     .firstOrNull()
                     ?.get(OrganizationUnits.id)
                     ?.value
@@ -77,11 +79,12 @@ class R__100_UpdateAcademicPeriods : BaseCsvMigration() {
 
             val apouId =
                 AcademicPeriodOrganizationUnits
-                    .selectAll()
+                    .select(AcademicPeriodOrganizationUnits.id)
                     .where {
                         (AcademicPeriodOrganizationUnits.academicPeriodId eq apId) and
                             (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId)
-                    }.firstOrNull()
+                    }.limit(1)
+                    .firstOrNull()
                     ?.get(AcademicPeriodOrganizationUnits.id)
                     ?.value
 

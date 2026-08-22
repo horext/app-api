@@ -116,8 +116,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         for ((facultyCode, facultyRows) in rowsByFaculty) {
             val faculty =
                 OrganizationUnits
-                    .selectAll()
+                    .select(OrganizationUnits.id)
                     .where { OrganizationUnits.code eq facultyCode }
+                    .limit(1)
                     .firstOrNull() ?: error("Faculty not found with code: $facultyCode")
             val facultyId = faculty[OrganizationUnits.id].value
             validateFaculty(facultyCode, facultyId, facultyRows)
@@ -237,8 +238,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val apId =
             AcademicPeriods
-                .selectAll()
+                .select(AcademicPeriods.id)
                 .where { AcademicPeriods.code eq meta.academicCode }
+                .limit(1)
                 .firstOrNull()
                 ?.get(AcademicPeriods.id)
                 ?.value
@@ -246,11 +248,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         val apouId =
             AcademicPeriodOrganizationUnits
-                .selectAll()
+                .select(AcademicPeriodOrganizationUnits.id)
                 .where {
                     (AcademicPeriodOrganizationUnits.academicPeriodId eq apId) and
                         (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId)
-                }.firstOrNull()
+                }.limit(1)
+                .firstOrNull()
                 ?.get(AcademicPeriodOrganizationUnits.id)
                 ?.value
                 ?: error("APOU for period '${meta.academicCode}' + faculty not found — run R__UpdateAcademicPeriods first")
@@ -292,12 +295,12 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .any()
             if (exactMatchExists) continue
 
-            val byName =
+            val teacherWithNameExists =
                 Teachers
-                    .select(Teachers.id, Teachers.code)
+                    .select(Teachers.id)
                     .where { Teachers.fullName eq csvName }
-                    .firstOrNull()
-            if (byName != null) {
+                    .any()
+            if (teacherWithNameExists) {
                 continue
             }
 
@@ -332,7 +335,8 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 ).where {
                     (HourlyLoads.academicPeriodOrganizationUnitId eq apouId) and
                         (HourlyLoads.name eq meta.hourlyLoadName)
-                }.firstOrNull()
+                }.limit(1)
+                .firstOrNull()
 
         if (existingHourlyLoad != null) {
             val hourlyLoadId = existingHourlyLoad[HourlyLoads.id].value
