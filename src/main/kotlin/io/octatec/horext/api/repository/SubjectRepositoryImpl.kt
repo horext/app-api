@@ -41,7 +41,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                 .select(s.entityColumns + c.columns + st.columns)
                 .where {
                     (s.studyPlanId eq studyPlanId)
-                }.orderBy(c.id to SortOrder.ASC)
+                }.orderByCurriculum(s, c)
                 .map { row -> s.createEntity(row) }
 
         if (subjects.isEmpty()) return emptyList()
@@ -119,6 +119,7 @@ class SubjectRepositoryImpl : SubjectRepository {
             s
                 .innerJoin(c)
                 .innerJoin(sp)
+                .innerJoin(ou)
                 .leftJoin(st)
                 .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
@@ -184,7 +185,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                         sp.isActive() and
                         ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId) and
                         c.matchesSearch(search)
-                }.orderByCourse(c, s)
+                }.orderByCurriculum(s, c)
         return query.toSubjectPage(offset, limit)
     }
 
@@ -210,7 +211,7 @@ class SubjectRepositoryImpl : SubjectRepository {
                     sp.isActive() and
                     (s.cycle eq cycle) and
                     ss.existsForSubjectAndHourlyLoad(s, hourlyLoadId)
-            }.orderByCourse(c, s)
+            }.orderByCurriculum(s, c)
             .map { row -> s.createEntity(row) }
     }
 
@@ -237,15 +238,17 @@ class SubjectRepositoryImpl : SubjectRepository {
         courses: Courses,
         subjects: Subjects,
     ) = orderBy(
-        studyPlans.fromDate to SortOrder.DESC,
+        studyPlans.fromDate to SortOrder.DESC_NULLS_LAST,
+        subjects.cycle to SortOrder.ASC_NULLS_LAST,
         courses.id to SortOrder.ASC,
         subjects.id to SortOrder.ASC,
     )
 
-    private fun Query.orderByCourse(
-        courses: Courses,
+    private fun Query.orderByCurriculum(
         subjects: Subjects,
+        courses: Courses,
     ) = orderBy(
+        subjects.cycle to SortOrder.ASC_NULLS_LAST,
         courses.id to SortOrder.ASC,
         subjects.id to SortOrder.ASC,
     )

@@ -5,10 +5,12 @@ import io.octatec.horext.api.domain.OrganizationUnitTypeCode
 import io.octatec.horext.api.repository.table.OrganizationUnits
 import io.octatec.horext.api.repository.table.StudyPlans
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.alias
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.exists
+import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.springframework.stereotype.Repository
@@ -19,6 +21,7 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
         OrganizationUnits
             .selectAll()
             .where { OrganizationUnits.typeId eq typeId.id }
+            .orderByName()
             .map { row ->
                 OrganizationUnits.createEntity(row)
             }
@@ -29,7 +32,8 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             .where {
                 (OrganizationUnits.parentOrganizationId eq id) and
                     (OrganizationUnits.typeId eq OrganizationUnitTypeCode.SPECIALITY.id)
-            }.map { row ->
+            }.orderByName()
+            .map { row ->
                 OrganizationUnits.createEntity(row)
             }
 
@@ -49,7 +53,8 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             .where {
                 (OrganizationUnits.typeId eq OrganizationUnitTypeCode.FACULTY.id) and
                     exists(specialityWithStudyPlanExists)
-            }.map { row -> OrganizationUnits.createEntity(row) }
+            }.orderByName()
+            .map { row -> OrganizationUnits.createEntity(row) }
     }
 
     override fun getById(
@@ -64,4 +69,10 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             }.map { row ->
                 OrganizationUnits.createEntity(row)
             }.firstOrNull()
+
+    private fun Query.orderByName() =
+        orderBy(
+            OrganizationUnits.name to SortOrder.ASC,
+            OrganizationUnits.id to SortOrder.ASC,
+        )
 }

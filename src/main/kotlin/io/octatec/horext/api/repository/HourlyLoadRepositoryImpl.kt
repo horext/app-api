@@ -22,8 +22,10 @@ class HourlyLoadRepositoryImpl : HourlyLoadRepository {
             .where {
                 (apou.organizationUnitId eq facultyId) and
                     (hl.publishedAt lessEq Instant.now())
-            }.orderBy(hl.publishedAt to SortOrder.DESC)
-            .map { row -> hl.createEntity(row) }
+            }.orderBy(
+                hl.publishedAt to SortOrder.DESC,
+                hl.id to SortOrder.DESC,
+            ).map { row -> hl.createEntity(row) }
             .firstOrNull()
     }
 }

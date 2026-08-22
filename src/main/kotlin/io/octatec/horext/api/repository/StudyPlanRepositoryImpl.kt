@@ -5,6 +5,7 @@ import io.octatec.horext.api.repository.table.OrganizationUnits
 import io.octatec.horext.api.repository.table.StudyPlans
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.springframework.stereotype.Repository
@@ -14,9 +15,8 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
     override fun getAllStudyPlan(): List<StudyPlan> =
         StudyPlans
             .select(StudyPlans.entityColumns)
-            .orderBy(
-                StudyPlans.fromDate to SortOrder.DESC,
-            ).map { row -> StudyPlans.createEntity(row) }
+            .orderByNewest()
+            .map { row -> StudyPlans.createEntity(row) }
 
     override fun getStudyPlanById(id: Long): StudyPlan? {
         val sp = StudyPlans
@@ -25,9 +25,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
             .leftJoin(ou)
             .select(sp.entityColumns + ou.columns)
             .where { (sp.id eq id) }
-            .orderBy(
-                sp.fromDate to SortOrder.DESC,
-            ).map { row -> sp.createEntity(row) }
+            .map { row -> sp.createEntity(row) }
             .firstOrNull()
     }
 
@@ -38,8 +36,13 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
             .leftJoin(ou)
             .select(sp.entityColumns + ou.columns)
             .where { (sp.organizationUnitId eq specialityId) }
-            .orderBy(
-                sp.fromDate to SortOrder.DESC,
-            ).map { row -> sp.createEntity(row) }
+            .orderByNewest()
+            .map { row -> sp.createEntity(row) }
     }
+
+    private fun Query.orderByNewest() =
+        orderBy(
+            StudyPlans.fromDate to SortOrder.DESC_NULLS_LAST,
+            StudyPlans.id to SortOrder.DESC,
+        )
 }

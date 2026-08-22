@@ -3,6 +3,7 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.Schedule
 import io.octatec.horext.api.repository.table.ScheduleSubjects
 import io.octatec.horext.api.repository.table.Schedules
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
@@ -20,10 +21,11 @@ class ScheduleRepositoryImpl : ScheduleRepository {
         val s = Schedules
         return s
             .innerJoin(ss)
-            .select(ss.columns)
+            .select(s.columns)
             .where {
                 (ss.subjectId eq subjectId) and
                     (ss.hourlyLoadId eq hourlyLoadId)
-            }.map { row -> s.createEntity(row) }
+            }.orderBy(s.id to SortOrder.ASC)
+            .map { row -> s.createEntity(row) }
     }
 }

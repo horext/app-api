@@ -11,6 +11,9 @@ object Pagination {
         if (page < 0) {
             throw BadRequestException("Page number cannot be less than zero.")
         }
+        if (size <= 0) {
+            throw BadRequestException("Page size must be greater than zero.")
+        }
         if (size > AppConstants.MAX_PAGE_SIZE) {
             throw BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE)
         }
