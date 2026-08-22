@@ -25,7 +25,8 @@ class HourlyLoadRepositoryImpl : HourlyLoadRepository {
             }.orderBy(
                 hl.publishedAt to SortOrder.DESC,
                 hl.id to SortOrder.DESC,
-            ).map { row -> hl.createEntity(row) }
+            ).limit(1)
             .firstOrNull()
+            ?.let(hl::createEntity)
     }
 }

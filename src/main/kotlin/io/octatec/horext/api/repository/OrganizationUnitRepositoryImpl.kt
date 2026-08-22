@@ -66,9 +66,9 @@ class OrganizationUnitRepositoryImpl : OrganizationUnitRepository {
             .where {
                 (OrganizationUnits.id eq id) and
                     (OrganizationUnits.typeId eq type.id)
-            }.map { row ->
-                OrganizationUnits.createEntity(row)
-            }.firstOrNull()
+            }.limit(1)
+            .firstOrNull()
+            ?.let(OrganizationUnits::createEntity)
 
     private fun Query.orderByName() =
         orderBy(

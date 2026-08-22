@@ -25,8 +25,9 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
             .leftJoin(ou)
             .select(sp.entityColumns + ou.columns)
             .where { (sp.id eq id) }
-            .map { row -> sp.createEntity(row) }
+            .limit(1)
             .firstOrNull()
+            ?.let(sp::createEntity)
     }
 
     override fun getAllSpecialityId(specialityId: Long): List<StudyPlan> {
