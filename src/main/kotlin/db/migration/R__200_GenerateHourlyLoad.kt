@@ -425,10 +425,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val existingCourseSections =
             ScheduleSubjects
                 .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
-                .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
-                .select(Subjects.courseId, Schedules.sectionId)
+                .select(Schedules.courseId, Schedules.sectionId)
                 .where { ScheduleSubjects.hourlyLoadId eq hourlyLoadId }
-                .map { it[Subjects.courseId].value to it[Schedules.sectionId].value }
+                .map { it[Schedules.courseId].value to it[Schedules.sectionId].value }
                 .distinct()
                 .toSet()
 
@@ -519,6 +518,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             Schedules
                 .insertAndGetId {
                     it[Schedules.sectionId] = EntityID(section, Sections)
+                    it[Schedules.courseId] = EntityID(courseCode, Courses)
                     it[Schedules.vacancies] = vacancies
                 }.value
 
@@ -566,11 +566,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val scheduleIds =
             ScheduleSubjects
                 .join(Schedules, JoinType.INNER, ScheduleSubjects.scheduleId, Schedules.id)
-                .join(Subjects, JoinType.INNER, ScheduleSubjects.subjectId, Subjects.id)
                 .select(ScheduleSubjects.scheduleId)
                 .where {
                     (Schedules.sectionId eq EntityID(section, Sections)) and
-                        (Subjects.courseId eq EntityID(courseCode, Courses)) and
+                        (Schedules.courseId eq EntityID(courseCode, Courses)) and
                         (ScheduleSubjects.hourlyLoadId eq hourlyLoadId)
                 }.map { it[ScheduleSubjects.scheduleId].value }
                 .distinct()

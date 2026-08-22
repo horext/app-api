@@ -1,5 +1,6 @@
 package io.octatec.horext.api.repository.table
 
+import io.octatec.horext.api.domain.Course
 import io.octatec.horext.api.domain.Schedule
 import io.octatec.horext.api.domain.Section
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -11,6 +12,8 @@ object Schedules : LongIdTable("schedule") {
 
     val sectionId = reference("section_id", Sections)
 
+    val courseId = reference("course_id", Courses)
+
     val vacancies = integer("vacancies").nullable()
 
     val updatedAt = timestamp("updated_at").nullable()
@@ -21,6 +24,7 @@ object Schedules : LongIdTable("schedule") {
         Schedule(
             row[Schedules.id].value,
             Section(row[sectionId].value),
+            Course(row[courseId].value),
             row[deleteAt],
         )
 }

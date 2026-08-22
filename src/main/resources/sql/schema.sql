@@ -177,6 +177,9 @@ create table schedule
     created_at timestamp default now(),
     updated_at timestamp default now(),
     vacancies  integer,
+    course_id  varchar(255) not null
+        constraint schedule_course_id_fkey
+            references course,
     section_id varchar(255)
         constraint schedule_section_id_fkey
             references section,
@@ -191,6 +194,9 @@ create index schedule_delete_at_index
 
 create index schedule_section_id_idx
     on schedule using hash (section_id);
+
+create index schedule_course_id_idx
+    on schedule (course_id);
 
 create table section_organization_unit
 (
