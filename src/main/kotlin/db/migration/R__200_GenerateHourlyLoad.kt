@@ -17,10 +17,7 @@ import io.octatec.horext.api.repository.table.StudyPlans
 import io.octatec.horext.api.repository.table.Subjects
 import io.octatec.horext.api.repository.table.Teachers
 import org.flywaydb.core.api.migration.Context
-import org.jetbrains.exposed.v1.core.IntegerColumnType
 import org.jetbrains.exposed.v1.core.JoinType
-import org.jetbrains.exposed.v1.core.LongColumnType
-import org.jetbrains.exposed.v1.core.VarCharColumnType
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
@@ -29,6 +26,7 @@ import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.batchUpsert
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
@@ -40,6 +38,7 @@ import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneOffset
 
 class R__200_GenerateHourlyLoad : BaseCsvMigration() {
@@ -83,6 +82,15 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val teacherName: String,
         val sessionType: String,
         val day: String,
+    )
+
+    private data class ResolvedClassSession(
+        val day: Int,
+        val startTime: LocalTime,
+        val endTime: LocalTime,
+        val typeId: Long,
+        val classroomId: Long,
+        val teacherId: Long,
     )
 
     private fun normalizeTeacherName(value: String): String = value.trim().ifBlank { "NN" }
@@ -682,13 +690,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                 .groupBy({ it.first }, { it.second })
                 .mapValues { (_, ids) -> ids.min() }
 
-        val conflictClause =
-            if (onConflictDoNothing) {
-                "ON CONFLICT ON CONSTRAINT class_session_pk DO NOTHING"
-            } else {
-                "ON CONFLICT ON CONSTRAINT class_session_pk DO UPDATE SET deleted_at = NULL"
-            }
-
         val unresolvedTypeCodes = typeCodes.filter { typeIdByCode[it] == null }
         val unresolvedClassrooms = classroomCodes.filter { roomIdByCode[it] == null }
         if (unresolvedClassrooms.isNotEmpty()) {
@@ -707,55 +708,78 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             )
         }
 
-        val valuePlaceholders = sessions.joinToString(", ") { "(?, ?::time, ?::time, ?, ?, ?, ?)" }
-        val args =
-            buildList {
-                for (r in sessions) {
-                    val dayNum = dayNameToNumber(r.day)
-                    val typeId = typeIdByCode[r.sessionType]
-                    val roomId =
-                        roomIdByCode[r.classroom.trim()]
-                            ?: error(
-                                "R__200: classroom '${r.classroom}' not found for scheduleId=$scheduleId",
-                            )
-                    val tid =
-                        if (r.teacherDni?.isNotBlank() == true) {
-                            val normalizedName = normalizeTeacherName(r.teacherName)
-                            teacherIdByDniAndName[Pair(r.teacherDni, normalizedName)]
-                                ?: teacherIdByName[normalizedName]
-                                ?: teacherIdByDni[r.teacherDni]
-                        } else {
-                            teacherIdByName[normalizeTeacherName(r.teacherName)]
-                        }
-                    add(IntegerColumnType() to dayNum)
-                    add(VarCharColumnType() to r.endTime)
-                    add(VarCharColumnType() to r.startTime)
-                    add(LongColumnType() to typeId)
-                    add(LongColumnType() to roomId)
-                    add(LongColumnType() to scheduleId)
-                    add(LongColumnType() to tid)
-                }
+        val resolvedSessions =
+            sessions.map { session ->
+                val normalizedTeacherName = normalizeTeacherName(session.teacherName)
+                val teacherId =
+                    if (session.teacherDni?.isNotBlank() == true) {
+                        teacherIdByDniAndName[session.teacherDni to normalizedTeacherName]
+                            ?: teacherIdByName[normalizedTeacherName]
+                            ?: teacherIdByDni[session.teacherDni]
+                    } else {
+                        teacherIdByName[normalizedTeacherName]
+                    }
+
+                ResolvedClassSession(
+                    day = dayNameToNumber(session.day) ?: error("Unknown day '${session.day}' for scheduleId=$scheduleId"),
+                    startTime = LocalTime.parse(session.startTime),
+                    endTime = LocalTime.parse(session.endTime),
+                    typeId =
+                        typeIdByCode[session.sessionType]
+                            ?: error("Class session type '${session.sessionType}' not found for scheduleId=$scheduleId"),
+                    classroomId =
+                        roomIdByCode[session.classroom.trim()]
+                            ?: error("Classroom '${session.classroom}' not found for scheduleId=$scheduleId"),
+                    teacherId = teacherId ?: error("Teacher '${session.teacherName}' not found for scheduleId=$scheduleId"),
+                )
             }
 
         try {
-            exec(
-                """
-                INSERT INTO class_session
-                    (day, end_time, start_time, class_session_type_id, classroom_id, schedule_id, teacher_id)
-                VALUES $valuePlaceholders
-                $conflictClause
-                """.trimIndent(),
-                args,
-            )
+            if (onConflictDoNothing) {
+                ClassSessions.batchInsert(
+                    data = resolvedSessions,
+                    ignore = true,
+                    shouldReturnGeneratedValues = false,
+                ) { session ->
+                    this[ClassSessions.day] = session.day
+                    this[ClassSessions.startTime] = session.startTime
+                    this[ClassSessions.endTime] = session.endTime
+                    this[ClassSessions.classSessionTypeId] = EntityID(session.typeId, ClassSessionTypes)
+                    this[ClassSessions.classroomId] = EntityID(session.classroomId, Classrooms)
+                    this[ClassSessions.scheduleId] = EntityID(scheduleId, Schedules)
+                    this[ClassSessions.teacherId] = EntityID(session.teacherId, Teachers)
+                }
+            } else {
+                ClassSessions.batchUpsert(
+                    data = resolvedSessions,
+                    ClassSessions.scheduleId,
+                    ClassSessions.day,
+                    ClassSessions.startTime,
+                    ClassSessions.endTime,
+                    ClassSessions.teacherId,
+                    ClassSessions.classroomId,
+                    ClassSessions.classSessionTypeId,
+                    onUpdate = { statement -> statement[ClassSessions.deletedAt] = null },
+                    shouldReturnGeneratedValues = false,
+                ) { session ->
+                    this[ClassSessions.day] = session.day
+                    this[ClassSessions.startTime] = session.startTime
+                    this[ClassSessions.endTime] = session.endTime
+                    this[ClassSessions.classSessionTypeId] = EntityID(session.typeId, ClassSessionTypes)
+                    this[ClassSessions.classroomId] = EntityID(session.classroomId, Classrooms)
+                    this[ClassSessions.scheduleId] = EntityID(scheduleId, Schedules)
+                    this[ClassSessions.teacherId] = EntityID(session.teacherId, Teachers)
+                }
+            }
         } catch (e: Exception) {
             val sample = sessions.firstOrNull()
             log.error(
-                "R__200: class_session insert failed scheduleId={} rows={} conflictClause='{}'" +
+                "R__200: class_session insert failed scheduleId={} rows={} conflictMode='{}'" +
                     " unresolvedTypes={} unresolvedClassrooms={} unresolvedTeachersByDni={} unresolvedTeachersByName={}" +
                     " sampleDni={} sampleName={} message={}",
                 scheduleId,
                 sessions.size,
-                conflictClause,
+                if (onConflictDoNothing) "DO_NOTHING" else "REACTIVATE",
                 unresolvedTypeCodes,
                 unresolvedClassrooms,
                 unresolvedTeachersByDni,
