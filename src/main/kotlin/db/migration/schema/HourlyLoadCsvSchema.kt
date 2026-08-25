@@ -79,6 +79,12 @@ fun hourlyLoadCsvSchema(
                 maxLength(20)
                 rejectControlCharacters()
             }
+        val note =
+            optionalString("nota") {
+                trim()
+                maxLength(500)
+                rejectControlCharacters()
+            }
 
         mapRow {
             ScheduleResume(
@@ -95,6 +101,7 @@ fun hourlyLoadCsvSchema(
                 teacherName = requireNotNull(teacher()),
                 sessionType = requireNotNull(sessionType()),
                 day = day().orEmpty(),
+                note = note(),
             )
         }
 
@@ -102,6 +109,11 @@ fun hourlyLoadCsvSchema(
             maxDistinct("teachers", 1_000) { it.teacherDni ?: it.teacherName }
             maxDistinct("classrooms", 500) { it.classroom }
             consistentMapping("teacher DNI to name", { it.teacherDni }, { it.teacherName })
+            consistentMapping(
+                "schedule to note",
+                { row -> row.note?.let { row.course to row.section.trim() } },
+                { it.note },
+            )
         }
     }
 }

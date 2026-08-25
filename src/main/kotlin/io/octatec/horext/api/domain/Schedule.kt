@@ -8,6 +8,7 @@ data class Schedule(
     var course: Course?,
     var deleteAt: Instant?,
     var sessions: List<ClassSession>? = ArrayList(),
+    var note: String? = null,
 ) {
     constructor(id: Long) : this(id, null, null, null, null)
 }

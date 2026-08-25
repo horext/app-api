@@ -183,6 +183,7 @@ create table schedule
     section_id varchar(255)
         constraint schedule_section_id_fkey
             references section,
+    note       varchar(500),
     delete_at  timestamp,
     deleted_at timestamp
 );

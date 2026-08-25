@@ -16,8 +16,8 @@ class HourlyLoadCsvSchemaTest {
     fun `maps the hourly-load shape with explicit normalization and defaults`() {
         val csv =
             """
-            codigo_curso,seccion,inicio,fin,nombre_docente,dia
-            AB-123, 01 ,8,09:30,"José ""Pepe"", Álvarez",LU
+            codigo_curso,seccion,inicio,fin,nombre_docente,dia,nota
+            AB-123, 01 ,8,09:30,"José ""Pepe"", Álvarez",LU,"  Solo para PC  "
             """.trimIndent()
 
         val row = parse(csv).single()
@@ -32,6 +32,7 @@ class HourlyLoadCsvSchemaTest {
         assertEquals("José \"Pepe\", Álvarez", row.teacherName)
         assertEquals("NO_CLASSROOM", row.classroom)
         assertEquals("UNSPECIFIED", row.sessionType)
+        assertEquals("Solo para PC", row.note)
     }
 
     @Test
@@ -117,6 +118,20 @@ class HourlyLoadCsvSchemaTest {
 
             assertTrue(error.errors.any { it.location.column == "dni_docente" })
         }
+    }
+
+    @Test
+    fun `rejects conflicting non-empty notes for one schedule`() {
+        val error =
+            assertThrows<CsvImportException> {
+                parse(
+                    "codigo_curso,seccion,inicio,fin,nombre_docente,dia,nota\n" +
+                        "CS101,A,08:00,09:00,Ada,LU,Solo para PC\n" +
+                        "CS101,A,10:00,11:00,Ada,MA,Solo para laboratorio",
+                )
+            }
+
+        assertIs<CsvImportError.ConflictingMapping>(error.errors.single())
     }
 
     private fun parse(csv: String) =

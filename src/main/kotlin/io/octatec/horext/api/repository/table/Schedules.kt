@@ -16,15 +16,18 @@ object Schedules : LongIdTable("schedule") {
 
     val vacancies = integer("vacancies").nullable()
 
+    val note = varchar("note", 500).nullable()
+
     val updatedAt = timestamp("updated_at").nullable()
 
     val deletedAt = timestamp("deleted_at").nullable()
 
     fun createEntity(row: ResultRow): Schedule =
         Schedule(
-            row[Schedules.id].value,
-            Section(row[sectionId].value),
-            Course(row[courseId].value),
-            row[deleteAt],
+            id = row[Schedules.id].value,
+            section = Section(row[sectionId].value),
+            course = Course(row[courseId].value),
+            deleteAt = row[deleteAt],
+            note = row[note],
         )
 }

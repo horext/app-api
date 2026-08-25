@@ -82,6 +82,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
         val teacherName: String,
         val sessionType: String,
         val day: String,
+        val note: String?,
     )
 
     private data class ResolvedClassSession(
@@ -553,6 +554,10 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     it[Schedules.sectionId] = EntityID(section, Sections)
                     it[Schedules.courseId] = EntityID(courseCode, Courses)
                     it[Schedules.vacancies] = vacancies
+                    it[Schedules.note] =
+                        rows.firstNotNullOfOrNull { row ->
+                            row.note.takeIf { row.course == courseCode && row.section.trim() == section }
+                        }
                 }.value
 
         val subjectIds =
@@ -633,6 +638,7 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
             Schedules.update({ Schedules.id eq scheduleId }) {
                 it[Schedules.updatedAt] = Instant.now()
+                it[Schedules.note] = sessions.firstNotNullOfOrNull { session -> session.note }
             }
         }
     }
