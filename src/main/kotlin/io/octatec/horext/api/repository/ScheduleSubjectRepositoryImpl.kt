@@ -5,6 +5,7 @@ import io.octatec.horext.api.repository.table.Courses
 import io.octatec.horext.api.repository.table.ScheduleSubjects
 import io.octatec.horext.api.repository.table.Schedules
 import io.octatec.horext.api.repository.table.Subjects
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.anyFrom
@@ -22,7 +23,7 @@ class ScheduleSubjectRepositoryImpl : ScheduleSubjectRepository {
         val ss = ScheduleSubjects
         val s = Schedules
         return ss
-            .leftJoin(s)
+            .join(s, JoinType.LEFT, ss.scheduleId, s.id)
             .select(ss.columns + s.columns)
             .where {
                 (ss.subjectId eq subjectId) and
@@ -42,12 +43,13 @@ class ScheduleSubjectRepositoryImpl : ScheduleSubjectRepository {
         val skt = Schedules
         val scheduleSubjects =
             ss
-                .innerJoin(s)
-                .innerJoin(c)
-                .innerJoin(skt)
+                .join(s, JoinType.INNER, ss.subjectId, s.id)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(skt, JoinType.INNER, ss.scheduleId, skt.id)
                 .select(ss.columns + s.columns + c.columns + skt.columns)
-                .where(ss.id eq anyFrom(ids))
-                .orderBy(
+                .where {
+                    (ss.id eq anyFrom(ids)) and skt.deleteAt.isNull()
+                }.orderBy(
                     skt.sectionId to SortOrder.ASC,
                     ss.fromDate to SortOrder.ASC_NULLS_FIRST,
                     ss.toDate to SortOrder.ASC_NULLS_LAST,

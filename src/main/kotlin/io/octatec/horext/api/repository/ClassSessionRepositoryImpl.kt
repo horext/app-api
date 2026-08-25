@@ -5,6 +5,7 @@ import io.octatec.horext.api.repository.table.ClassSessionTypes
 import io.octatec.horext.api.repository.table.ClassSessions
 import io.octatec.horext.api.repository.table.Classrooms
 import io.octatec.horext.api.repository.table.Teachers
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.anyFrom
@@ -21,9 +22,9 @@ class ClassSessionRepositoryImpl : ClassSessionRepository {
         val cr = Classrooms
         val t = Teachers
         return cs
-            .leftJoin(cst)
-            .leftJoin(cr)
-            .leftJoin(t)
+            .join(cst, JoinType.LEFT, cs.classSessionTypeId, cst.id)
+            .join(cr, JoinType.LEFT, cs.classroomId, cr.id)
+            .join(t, JoinType.LEFT, cs.teacherId, t.id)
             .select(cs.columns + cst.columns + cr.columns + t.columns)
             .where {
                 (cs.scheduleId eq anyFrom(scheduleIds)) and cs.deletedAt.isNull()

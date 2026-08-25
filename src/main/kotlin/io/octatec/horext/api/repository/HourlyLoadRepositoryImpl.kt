@@ -3,6 +3,7 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.HourlyLoad
 import io.octatec.horext.api.repository.table.AcademicPeriodOrganizationUnits
 import io.octatec.horext.api.repository.table.HourlyLoads
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -17,7 +18,7 @@ class HourlyLoadRepositoryImpl : HourlyLoadRepository {
         val hl = HourlyLoads
         val apou = AcademicPeriodOrganizationUnits
         return hl
-            .innerJoin(apou)
+            .join(apou, JoinType.INNER, hl.academicPeriodOrganizationUnitId, apou.id)
             .select(hl.columns + apou.columns)
             .where {
                 (apou.organizationUnitId eq facultyId) and

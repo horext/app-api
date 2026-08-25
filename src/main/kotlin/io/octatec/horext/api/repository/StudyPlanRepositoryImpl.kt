@@ -3,6 +3,7 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.StudyPlan
 import io.octatec.horext.api.repository.table.OrganizationUnits
 import io.octatec.horext.api.repository.table.StudyPlans
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Query
@@ -22,7 +23,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
         val sp = StudyPlans
         val ou = OrganizationUnits
         return sp
-            .leftJoin(ou)
+            .join(ou, JoinType.LEFT, sp.organizationUnitId, ou.id)
             .select(sp.entityColumns + ou.columns)
             .where { (sp.id eq id) }
             .limit(1)
@@ -34,7 +35,7 @@ class StudyPlanRepositoryImpl : StudyPlanRepository {
         val sp = StudyPlans
         val ou = OrganizationUnits
         return sp
-            .leftJoin(ou)
+            .join(ou, JoinType.LEFT, sp.organizationUnitId, ou.id)
             .select(sp.entityColumns + ou.columns)
             .where { (sp.organizationUnitId eq specialityId) }
             .orderByNewest()

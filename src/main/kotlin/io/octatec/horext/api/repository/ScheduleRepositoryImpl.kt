@@ -3,6 +3,7 @@ package io.octatec.horext.api.repository
 import io.octatec.horext.api.domain.Schedule
 import io.octatec.horext.api.repository.table.ScheduleSubjects
 import io.octatec.horext.api.repository.table.Schedules
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -20,7 +21,7 @@ class ScheduleRepositoryImpl : ScheduleRepository {
         val ss = ScheduleSubjects
         val s = Schedules
         return s
-            .innerJoin(ss)
+            .join(ss, JoinType.INNER, s.id, ss.scheduleId)
             .select(s.columns)
             .where {
                 (ss.subjectId eq subjectId) and

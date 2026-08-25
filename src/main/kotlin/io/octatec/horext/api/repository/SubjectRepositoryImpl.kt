@@ -13,6 +13,7 @@ import io.octatec.horext.api.repository.table.Subjects
 import io.octatec.horext.api.util.ilike
 import io.octatec.horext.api.util.unaccent
 import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.anyFrom
@@ -36,8 +37,8 @@ class SubjectRepositoryImpl : SubjectRepository {
         val sr = SubjectRelationships
         val subjects =
             s
-                .innerJoin(c)
-                .leftJoin(st)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(st, JoinType.LEFT, s.typeId, st.id)
                 .select(s.entityColumns + c.columns + st.columns)
                 .where {
                     (s.studyPlanId eq studyPlanId)
@@ -67,10 +68,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val ou = OrganizationUnits
         val subject =
             s
-                .innerJoin(c)
-                .innerJoin(sp)
-                .innerJoin(ou)
-                .leftJoin(st)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+                .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+                .join(st, JoinType.LEFT, s.typeId, st.id)
                 .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where { s.id eq id }
                 .map(s::createEntity)
@@ -92,10 +93,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val st = SubjectTypes
         val ou = OrganizationUnits
         return s
-            .innerJoin(c)
-            .innerJoin(sp)
-            .innerJoin(ou)
-            .leftJoin(st)
+            .join(c, JoinType.INNER, s.courseId, c.id)
+            .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+            .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+            .join(st, JoinType.LEFT, s.typeId, st.id)
             .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
             .where(s.id eq anyFrom(ids))
             .orderBy(s.id to SortOrder.ASC)
@@ -117,10 +118,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val ou = OrganizationUnits
         val query =
             s
-                .innerJoin(c)
-                .innerJoin(sp)
-                .innerJoin(ou)
-                .leftJoin(st)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+                .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+                .join(st, JoinType.LEFT, s.typeId, st.id)
                 .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (sp.organizationUnitId eq specialityId) and
@@ -146,10 +147,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val ou = OrganizationUnits
         val query =
             s
-                .innerJoin(c)
-                .innerJoin(sp)
-                .innerJoin(ou)
-                .leftJoin(st)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+                .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+                .join(st, JoinType.LEFT, s.typeId, st.id)
                 .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (ou.parentOrganizationId eq facultyId) and
@@ -175,10 +176,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val ou = OrganizationUnits
         val query =
             s
-                .innerJoin(c)
-                .innerJoin(sp)
-                .innerJoin(ou)
-                .leftJoin(st)
+                .join(c, JoinType.INNER, s.courseId, c.id)
+                .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+                .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+                .join(st, JoinType.LEFT, s.typeId, st.id)
                 .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
                 .where {
                     (sp.id eq studyPlanId) and
@@ -201,10 +202,10 @@ class SubjectRepositoryImpl : SubjectRepository {
         val st = SubjectTypes
         val ou = OrganizationUnits
         return s
-            .innerJoin(c)
-            .innerJoin(sp)
-            .innerJoin(ou)
-            .leftJoin(st)
+            .join(c, JoinType.INNER, s.courseId, c.id)
+            .join(sp, JoinType.INNER, s.studyPlanId, sp.id)
+            .join(ou, JoinType.INNER, sp.organizationUnitId, ou.id)
+            .join(st, JoinType.LEFT, s.typeId, st.id)
             .select(s.entityColumns + c.columns + sp.entityColumns + st.columns + ou.columns)
             .where {
                 (sp.id eq studyPlanId) and
