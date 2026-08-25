@@ -84,11 +84,39 @@ class HourlyLoadCsvSchemaTest {
             assertThrows<CsvImportException> {
                 parse(
                     "codigo_curso,seccion,inicio,fin,nombre_docente,dia,dni_docente\n" +
-                        "CS101,A,08:00,09:00,Ada,LU,1\n" +
-                        "CS102,B,10:00,11:00,Grace,MA,1",
+                        "CS101,A,08:00,09:00,Ada,LU,00000001\n" +
+                        "CS102,B,10:00,11:00,Grace,MA,00000001",
                 )
             }
         assertIs<CsvImportError.ConflictingMapping>(conflictingTeacher.errors.single())
+    }
+
+    @Test
+    fun `accepts an eight-digit DNI with leading zero, empty DNI, or NN`() {
+        val rows =
+            parse(
+                "codigo_curso,seccion,inicio,fin,nombre_docente,dia,dni_docente\n" +
+                    "CS101,A,,,Ada,LU,01234567\n" +
+                    "CS102,B,,,Grace,MA,\n" +
+                    "CS103,C,,,Alan,MI,NN",
+            )
+
+        assertEquals(listOf("01234567", null, "NN"), rows.map { it.teacherDni })
+    }
+
+    @Test
+    fun `rejects invalid teacher DNI values`() {
+        listOf("1234567", "123456789", "1234A678", "nn").forEach { dni ->
+            val error =
+                assertThrows<CsvImportException> {
+                    parse(
+                        "codigo_curso,seccion,inicio,fin,nombre_docente,dia,dni_docente\n" +
+                            "CS101,A,,,Ada,LU,$dni",
+                    )
+                }
+
+            assertTrue(error.errors.any { it.location.column == "dni_docente" })
+        }
     }
 
     private fun parse(csv: String) =

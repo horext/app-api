@@ -54,8 +54,9 @@ fun hourlyLoadCsvSchema(
         val teacherDni =
             optionalString("dni_docente") {
                 trim()
-                maxLength(50)
+                maxLength(8)
                 rejectControlCharacters()
+                normalize(::validateTeacherDni)
             }
         val teacher =
             optionalString("nombre_docente", requiredHeader = true) {
@@ -106,3 +107,10 @@ fun hourlyLoadCsvSchema(
 }
 
 internal fun normalizeCourseCode(value: String): String = value.replace("-", "")
+
+internal fun validateTeacherDni(value: String): String {
+    require(value.isEmpty() || value == "NN" || value.matches(Regex("[0-9]{8}"))) {
+        "must be empty, NN, or exactly 8 digits"
+    }
+    return value
+}
