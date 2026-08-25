@@ -129,11 +129,46 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
                     .limit(1)
                     .firstOrNull() ?: error("Faculty not found with code: $facultyCode")
             val facultyId = faculty[OrganizationUnits.id].value
+
+            if (isHourlyLoadUnchanged(meta, facultyId)) {
+                log.info(
+                    "R__200: hourly load '{}' period={} faculty={} unchanged; skipping file",
+                    meta.hourlyLoadName,
+                    meta.academicCode,
+                    facultyCode,
+                )
+                continue
+            }
+
             validateFaculty(facultyCode, facultyId, facultyRows)
             val apouId = setupFaculty(meta, facultyId, facultyRows)
             processHourlyLoad(meta, facultyRows, facultyId, apouId)
         }
     }
+
+    private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.isHourlyLoadUnchanged(
+        meta: CsvMetadata,
+        facultyId: Long,
+    ): Boolean =
+        HourlyLoads
+            .join(
+                AcademicPeriodOrganizationUnits,
+                JoinType.INNER,
+                HourlyLoads.academicPeriodOrganizationUnitId,
+                AcademicPeriodOrganizationUnits.id,
+            ).join(
+                AcademicPeriods,
+                JoinType.INNER,
+                AcademicPeriodOrganizationUnits.academicPeriodId,
+                AcademicPeriods.id,
+            ).select(HourlyLoads.id)
+            .where {
+                (HourlyLoads.name eq meta.hourlyLoadName) and
+                    (HourlyLoads.sourceChecksum eq meta.sourceChecksum) and
+                    (AcademicPeriodOrganizationUnits.organizationUnitId eq facultyId) and
+                    (AcademicPeriods.code eq meta.academicCode)
+            }.limit(1)
+            .any()
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.validateFaculty(
         facultyCode: String,
@@ -365,10 +400,6 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
             }
 
             if (previousChecksum == meta.sourceChecksum) {
-                HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
-                    it[HourlyLoads.checkedAt] = checkedAt
-                }
-
                 log.info(
                     "R__200: hourly load '{}' period={} unchanged; preserving publishedAt",
                     meta.hourlyLoadName,
@@ -456,7 +487,9 @@ class R__200_GenerateHourlyLoad : BaseCsvMigration() {
 
         HourlyLoads.update({ HourlyLoads.id eq hourlyLoadId }) {
             it[HourlyLoads.updatedAt] = lastUpdateInstant
-            it[HourlyLoads.publishedAt] = Instant.now()
+            if (existingHourlyLoad == null) {
+                it[HourlyLoads.publishedAt] = Instant.now()
+            }
             it[HourlyLoads.checkedAt] = checkedAt
             it[HourlyLoads.sourceChecksum] = meta.sourceChecksum
         }
