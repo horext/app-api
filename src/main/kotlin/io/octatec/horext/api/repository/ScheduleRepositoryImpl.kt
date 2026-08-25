@@ -25,7 +25,9 @@ class ScheduleRepositoryImpl : ScheduleRepository {
             .where {
                 (ss.subjectId eq subjectId) and
                     (ss.hourlyLoadId eq hourlyLoadId)
-            }.orderBy(s.id to SortOrder.ASC)
-            .map { row -> s.createEntity(row) }
+            }.orderBy(
+                s.sectionId to SortOrder.ASC,
+                s.id to SortOrder.ASC,
+            ).map { row -> s.createEntity(row) }
     }
 }

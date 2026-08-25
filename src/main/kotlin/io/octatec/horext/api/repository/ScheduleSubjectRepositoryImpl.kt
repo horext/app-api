@@ -28,6 +28,7 @@ class ScheduleSubjectRepositoryImpl : ScheduleSubjectRepository {
                 (ss.subjectId eq subjectId) and
                     (ss.hourlyLoadId eq hourlyLoadId) and (s.deleteAt.isNull())
             }.orderBy(
+                s.sectionId to SortOrder.ASC,
                 ss.fromDate to SortOrder.ASC_NULLS_FIRST,
                 ss.toDate to SortOrder.ASC_NULLS_LAST,
                 ss.id to SortOrder.ASC,
@@ -46,10 +47,13 @@ class ScheduleSubjectRepositoryImpl : ScheduleSubjectRepository {
                 .innerJoin(skt)
                 .select(ss.columns + s.columns + c.columns + skt.columns)
                 .where(ss.id eq anyFrom(ids))
-                .orderBy(ss.id to SortOrder.ASC)
-                .map { row -> ss.createEntity(row) }
+                .orderBy(
+                    skt.sectionId to SortOrder.ASC,
+                    ss.fromDate to SortOrder.ASC_NULLS_FIRST,
+                    ss.toDate to SortOrder.ASC_NULLS_LAST,
+                    ss.id to SortOrder.ASC,
+                ).map { row -> ss.createEntity(row) }
 
-        val positionById = ids.withIndex().associate { (position, id) -> id to position }
-        return scheduleSubjects.sortedBy { positionById[it.id] }
+        return scheduleSubjects
     }
 }
