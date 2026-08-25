@@ -6,8 +6,10 @@ import io.octatec.horext.api.repository.table.ClassSessions
 import io.octatec.horext.api.repository.table.Classrooms
 import io.octatec.horext.api.repository.table.Teachers
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.anyFrom
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.jdbc.select
 import org.springframework.stereotype.Repository
 
@@ -23,8 +25,9 @@ class ClassSessionRepositoryImpl : ClassSessionRepository {
             .leftJoin(cr)
             .leftJoin(t)
             .select(cs.columns + cst.columns + cr.columns + t.columns)
-            .where { cs.scheduleId eq anyFrom(scheduleIds) }
-            .orderBy(
+            .where {
+                (cs.scheduleId eq anyFrom(scheduleIds)) and cs.deletedAt.isNull()
+            }.orderBy(
                 cs.scheduleId to SortOrder.ASC,
                 cs.day to SortOrder.ASC,
                 cs.startTime to SortOrder.ASC,
