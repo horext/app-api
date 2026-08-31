@@ -6,7 +6,7 @@ plugins {
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.graalvm.buildtools.native") version "1.1.10"
-    id("org.flywaydb.flyway") version "13.3.0"
+    id("org.flywaydb.flyway") version "13.4.0"
 }
 
 group = "io.octatec.horext"
@@ -35,7 +35,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.jetbrains.exposed:exposed-spring-boot4-starter:1.4.0")
     implementation("org.jetbrains.exposed:exposed-java-time:1.4.0")
-    implementation("org.flywaydb:flyway-core:13.3.0")
+    implementation("org.flywaydb:flyway-core:13.4.0")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.springframework.boot:spring-boot-starter-jdbc-test")
@@ -54,7 +54,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:13.3.0")
+        classpath("org.flywaydb:flyway-database-postgresql:13.4.0")
     }
 }
 
