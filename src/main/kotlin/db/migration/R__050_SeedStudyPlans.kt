@@ -75,6 +75,8 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
         val values: List<String>,
     )
 
+    private val changedStudyPlanCodes = mutableSetOf<String>()
+
     private class HeaderIndex(
         private val path: String,
         headers: List<String>,
@@ -139,6 +141,8 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
             log.info("R__050_SeedStudyPlans: skipSeeds is true, skipping migration")
             return
         }
+
+        changedStudyPlanCodes.clear()
 
         val db =
             Database.connect(
@@ -215,14 +219,19 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
 
             val existingStudyPlan =
                 StudyPlans
-                    .select(StudyPlans.sourceChecksum)
-                    .where { StudyPlans.code eq studyPlanCode }
+                    .select(
+                        StudyPlans.sourceChecksum,
+                        StudyPlans.fromDate,
+                        StudyPlans.organizationUnitId,
+                    ).where { StudyPlans.code eq studyPlanCode }
                     .limit(1)
                     .firstOrNull()
 
             if (existingStudyPlan?.get(StudyPlans.sourceChecksum) == sourceChecksum) {
                 continue
             }
+
+            changedStudyPlanCodes += studyPlanCode
 
             if (existingStudyPlan == null) {
                 StudyPlans.insert {
@@ -233,25 +242,43 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                     it[StudyPlans.sourceChecksum] = sourceChecksum
                 }
             } else {
+                val metadataChanged =
+                    existingStudyPlan[StudyPlans.fromDate] != fromDate ||
+                        existingStudyPlan[StudyPlans.organizationUnitId].value != organizationUnitId
+
                 StudyPlans.update({ StudyPlans.code eq studyPlanCode }) {
-                    it[StudyPlans.fromDate] = fromDate
-                    it[StudyPlans.organizationUnitId] = EntityID(organizationUnitId, OrganizationUnits)
-                    it[StudyPlans.updatedAt] = Instant.now()
+                    if (metadataChanged) {
+                        it[StudyPlans.fromDate] = fromDate
+                        it[StudyPlans.organizationUnitId] = EntityID(organizationUnitId, OrganizationUnits)
+                        it[StudyPlans.updatedAt] = Instant.now()
+                    }
                     it[StudyPlans.sourceChecksum] = sourceChecksum
                 }
             }
         }
     }
 
-    private fun calculateStudyPlanChecksum(
+    internal fun calculateStudyPlanChecksum(
         code: String,
         fromDate: Instant?,
         organizationUnitCode: String,
-    ): String =
-        MessageDigest
-            .getInstance("SHA-256")
-            .digest(listOf(code, fromDate?.toString().orEmpty(), organizationUnitCode).joinToString("\u0000").toByteArray())
+    ): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(listOf(code, fromDate?.toString().orEmpty(), organizationUnitCode).joinToString("\u0000").toByteArray())
+
+        listOf(
+            "db/data/$SUBJECTS_PREFIX$code$CSV_EXT",
+            "db/data/$RELATIONSHIPS_PREFIX$code$CSV_EXT",
+        ).forEach { path ->
+            digest.update(0)
+            digest.update(path.toByteArray())
+            openClasspathResource(path)?.use { digest.update(it.readBytes()) }
+        }
+
+        return digest
+            .digest()
             .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
+    }
 
     private fun org.jetbrains.exposed.v1.jdbc.JdbcTransaction.seedAllSubjects() {
         val allStudyPlans =
@@ -273,6 +300,11 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                 path
                     .removePrefix("db/data/$SUBJECTS_PREFIX")
                     .removeSuffix(CSV_EXT)
+
+            if (studyPlanCode !in changedStudyPlanCodes) {
+                log.info("R__050_SeedStudyPlans: unchanged study plan {}, skipping {}", studyPlanCode, path)
+                continue
+            }
 
             val table = readCsv(path) ?: continue
 
@@ -501,6 +533,11 @@ class R__050_SeedStudyPlans : BaseCsvMigration() {
                 path
                     .removePrefix("db/data/$RELATIONSHIPS_PREFIX")
                     .removeSuffix(CSV_EXT)
+
+            if (studyPlanCode !in changedStudyPlanCodes) {
+                log.info("R__050_SeedStudyPlans: unchanged study plan {}, skipping {}", studyPlanCode, path)
+                continue
+            }
 
             val table = readCsv(path) ?: continue
 
