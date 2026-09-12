@@ -9,6 +9,19 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    groups:
+      devcontainers:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      devcontainers-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
+
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
@@ -35,7 +48,32 @@ updates:
       prefix: fix
       prefix-development: chore
       include: scope
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      github-actions-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
+
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      docker:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      docker-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
