@@ -33,7 +33,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.jetbrains.exposed:exposed-spring-boot4-starter:1.5.0")
+    implementation("org.jetbrains.exposed:exposed-spring-boot4-starter:1.6.1")
     implementation("org.jetbrains.exposed:exposed-java-time:1.5.0")
     implementation("org.flywaydb:flyway-core:13.9.0")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
