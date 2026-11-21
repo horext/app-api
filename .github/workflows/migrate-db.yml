@@ -9,7 +9,7 @@ on:
       java-version:
         required: false
         type: string
-        default: "25"
+        default: "25.0.5.1+2"
         description: "Java version to use for migration"
       skip-seeds:
         required: false
@@ -40,7 +40,7 @@ on:
         description: "Java version to use for migration"
         type: string
         required: false
-        default: "25"
+        default: "25.0.5.1+2"
       skip-seeds:
         description: "Whether to skip seed migrations"
         type: boolean
@@ -64,6 +64,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: ${{ inputs.java-version }}
+          check-latest: true
           cache: gradle
 
       - name: Setup Gradle

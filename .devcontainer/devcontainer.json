@@ -5,13 +5,6 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	"features": {
-		"ghcr.io/devcontainers/features/java:1": {
-			"installMaven": "false",
-			"installGradle": "true"
-		}
-	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
