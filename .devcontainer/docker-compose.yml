@@ -4,7 +4,7 @@ volumes:
 
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/java:3.0.0-25-bookworm
+    image: mcr.microsoft.com/devcontainers/java:3.0.0-25-bookworm@sha256:b4afd9d59c7941e13de69300d4666fbe9ff39106915bb989c8756a6f5728fa40
     environment:
       # NOTE: SPRING_DATASOURCE_USERNAME/PASSWORD/URL should match values in db container
         SPRING_DATASOURCE_USERNAME: postgres
